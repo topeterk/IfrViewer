@@ -86,6 +86,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCodeGuid(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
                     #region IFR OpCodes (just the header)
@@ -185,7 +186,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP:
@@ -299,6 +299,27 @@ namespace IFR
 
                 offset += 16;
             }
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_GUID_OP
+    /// </summary>
+    class HiiIfrOpCodeGuid : HiiIfrOpCode<EFI_IFR_GUID>
+    {
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        protected byte[] _Payload;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiIfrOpCodeGuid(IfrRawDataBlock raw) : base(raw)
+        {
+            data.IncreaseOffset(this._Header.GetPhysSize());
+            this._Payload = data.CopyOfSelectedBytes;
         }
     }
 }

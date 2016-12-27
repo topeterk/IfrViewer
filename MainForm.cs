@@ -66,6 +66,7 @@ namespace IfrViewer
                 {
                     TreeNode root = tv.Nodes.Add(hpk.Name);
                     LoadHpkElementIntoTreeView(hpk, root);
+                    PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file completed!");
                 }
             }
         }

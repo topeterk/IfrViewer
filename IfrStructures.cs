@@ -1734,15 +1734,18 @@ namespace IFR
 
                     #define EFI_IFR_OPTION_DEFAULT         0x10
                     #define EFI_IFR_OPTION_DEFAULT_MFG     0x20
-
-                    typedef struct _EFI_IFR_GUID
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_GUID Guid;
-                    //Optional Data Follows
-                }
-                EFI_IFR_GUID;
-
+    */
+         
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_GUID
+    {
+        [FieldOffset(0)]
+        public EFI_IFR_OP_HEADER Header;
+        [FieldOffset(2)]
+        public EFI_GUID Guid;
+        //Optional Data Follows
+    };
+    /*
                     typedef struct _EFI_IFR_REFRESH_ID
                 {
                     EFI_IFR_OP_HEADER Header;

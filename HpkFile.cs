@@ -84,8 +84,15 @@ namespace IFR
                 {
                     if (IsList)
                     {
-                        foreach (var obj_elem in obj as IEnumerable)
-                            AddStructToStringList(list, obj_elem);
+                        if (type.FullName == "System.Byte[]")
+                        {
+                            list.Add(new KeyValuePair<string, object>("Raw Bytes", (obj as System.Byte[]).HexDump(8)));
+                        }
+                        else
+                        {
+                            foreach (var obj_elem in obj as IEnumerable)
+                                AddStructToStringList(list, obj_elem);
+                        }
                         break; // skip list internal data (means: all other properties of this type)
                     }
                     else if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
