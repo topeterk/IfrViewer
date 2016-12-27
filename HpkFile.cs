@@ -43,24 +43,27 @@ namespace IFR
         /// Managed structure header
         /// </summary>
         public virtual object Header { get { return null; } }
-
-        public List<KeyValuePair<string, string>> HeaderToStringList()
+        /// <summary>
+        /// Gets name/value pairs of all managed header's data
+        /// </summary>
+        /// <returns>list of name/value pairs</returns>
+        public List<KeyValuePair<string, object>> HeaderToStringList()
         {
-            List<KeyValuePair<string, string>> result = new List<KeyValuePair<string, string>>();
+            List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
 
             if (Header != null) AddStructToStringList(result, Header);
 
             return result;
         }
-   
-        private void AddStructToStringList(List<KeyValuePair<string, string>> list, object obj)
+        
+        private void AddStructToStringList(List<KeyValuePair<string, object>> list, object obj)
         {
             foreach (System.Reflection.PropertyInfo pi in obj.GetType().GetProperties())
             {
                 if (pi.CanRead)
                 {
                     if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
-                        list.Add(new KeyValuePair<string, string>(pi.Name, pi.GetValue(obj).ToString()));
+                        list.Add(new KeyValuePair<string, object>(pi.Name, pi.GetValue(obj)));
                     else
                         AddStructToStringList(list, pi.GetValue(obj));
                 }
@@ -73,7 +76,7 @@ namespace IFR
                     if (fi.IsPublic)
                     {
                         if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
-                            list.Add(new KeyValuePair<string, string>(fi.Name, fi.GetValue(obj).ToString()));
+                            list.Add(new KeyValuePair<string, object>(fi.Name, fi.GetValue(obj)));
                         else
                             AddStructToStringList(list, fi.GetValue(obj));
                     }

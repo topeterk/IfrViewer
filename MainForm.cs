@@ -76,9 +76,9 @@ namespace IfrViewer
             if (elem.Header != null)
             {
                 TreeNode leaf = parent.Nodes.Add("Header");
-                foreach (System.Collections.Generic.KeyValuePair<string, string> pair in elem.HeaderToStringList())
+                foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.HeaderToStringList())
                 {
-                    leaf.Nodes.Add(pair.Key + " = " + pair.Value);
+                    leaf.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
                 }
             }
 
