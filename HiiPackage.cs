@@ -75,18 +75,19 @@ namespace IFR
                     throw new Exception("Payload length invalid");
 
                 IfrRawDataBlock raw_data = new IfrRawDataBlock(data.Bytes, data.Offset + offset, ifr_hdr.Length);
+                HPKElement hpk_element;
 
                 switch (ifr_hdr.OpCode)
                 {
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP:
-                        Childs.Add(new HiiIfrOpCodeFormSet(ifr_hdr, raw_data));
-                        break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
                     default:
                         raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
                         PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());
-                        Childs.Add(new HiiIfrOpCode(ifr_hdr, raw_data));
+                        hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
                 }
+                Childs.Add(hpk_element);
 
                 offset += ifr_hdr.Length;
             }
@@ -96,38 +97,72 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode base class
     /// </summary>
-    class HiiIfrOpCode : HPKElement
+    class HiiIfrOpCode<T> : HPKElement
     {
-
         /// <summary>
         /// Type of IFR opcode
         /// </summary>
         public readonly EFI_IFR_OPCODE_e OpCode;
 
         /// <summary>
+        /// Managed structure header
+        /// </summary>
+        protected T _Header;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Header { get { return _Header; } }
+
+        /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { return OpCode.ToString(); } }
+        public override string Name { get { string name = Enum.GetName(OpCode.GetType(), OpCode); return name == null ? "UNKNOWN" : name; } }
 
-        public HiiIfrOpCode(EFI_IFR_OP_HEADER hdr, IfrRawDataBlock raw) : base(raw)
+        public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
-            this.OpCode = hdr.OpCode;
+            this._Header = data.ToIfrType<T>();
+
+            // Get OpCode from header (first attempt, get the header structures "Header" field ; covers all EFI_IFR_? structs except EFI_IFR_OP_HEADER)..
+            foreach (System.Reflection.MemberInfo mi in _Header.GetType().GetMember("Header"))
+            {
+                if (mi is System.Reflection.FieldInfo)
+                {
+                    System.Reflection.FieldInfo fi = (System.Reflection.FieldInfo)mi;
+                    try
+                    {
+                        this.OpCode = ((EFI_IFR_OP_HEADER)fi.GetValue(_Header)).OpCode;
+                    }
+                    catch (Exception)
+                    {
+                        throw new Exception("Type \"" + _Header.ToString() + "\" has invalid property \"Header\"");
+                    }
+                    break;
+                }
+            }
+            // Get OpCode directy (second attempt, read the value from header structure directly ; covers EFI_IFR_OP_HEADER)..
+            if (OpCode == 0)
+            {
+                System.Reflection.PropertyInfo pi = _Header.GetType().GetProperty("OpCode");
+                try
+                {
+                    this.OpCode = (EFI_IFR_OPCODE_e)pi.GetValue(_Header);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Type \"" + _Header.ToString() + "\" has invalid property \"OpCode\"");
+                }
+            }
+            // Check if OpCode could be read correctly..
+            if (Enum.GetName(OpCode.GetType(), OpCode) == null)
+                PrintConsoleMsg(IfrErrorSeverity.ERROR, "Unknown OpCode \"" + OpCode.ToString() + "\"");
         }
     }
 
     /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
     /// </summary>
-    class HiiIfrOpCodeFormSet : HiiIfrOpCode
+    class HiiIfrOpCodeFormSet : HiiIfrOpCode<EFI_IFR_FORM_SET>
     {
-        /// <summary>
-        /// Managed structure header
-        /// </summary>
-        protected EFI_IFR_FORM_SET _Header;
-        /// <summary>
-        /// Managed structure header
-        /// </summary>
-        public override object Header { get { return _Header; } }
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -137,14 +172,10 @@ namespace IFR
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
-        public HiiIfrOpCodeFormSet(EFI_IFR_OP_HEADER hdr, IfrRawDataBlock raw) : base(hdr, raw)
+        public HiiIfrOpCodeFormSet(IfrRawDataBlock raw) : base(raw)
         {
-            EFI_IFR_FORM_SET ifr_hdr = data.ToIfrType<EFI_IFR_FORM_SET>();
-            data.IncreaseOffset(ifr_hdr.GetPhysSize());
-            this._Header = ifr_hdr;
+            data.IncreaseOffset(this._Header.GetPhysSize());
             this._Payload = new List<EFI_GUID>();
-
-            PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, ifr_hdr.ToString());
 
             // Parse all GUIDs..
             uint offset = 0;

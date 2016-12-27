@@ -46,6 +46,17 @@ namespace IFR
     using EFI_HII_FONT_STYLE = UInt32;
     using System.Drawing;
     using System.Reflection;
+
+    /// <summary>
+    /// Wrapper for EFI_GUID
+    /// </summary>
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
+    struct EFI_GUID
+    {
+        [FieldOffset(0)]
+        public Guid Guid;
+    };
+
     #endregion
 
     #region Bit Field Support
@@ -1293,71 +1304,63 @@ namespace IFR
         #define EFI_IFR_FLAG_RESET_REQUIRED     0x10
         #define EFI_IFR_FLAG_RECONNECT_REQUIRED 0x40
         #define EFI_IFR_FLAG_OPTIONS_ONLY       0x80
-
-        //
-        // Definition for Opcode Reference
-        // Section 27.3.8.3
-        //
-        typedef struct _EFI_IFR_DEFAULTSTORE
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_STRING_ID DefaultName;
-        UINT16 DefaultId;
-    }
-    EFI_IFR_DEFAULTSTORE;
-
-        //
-        // Default Identifier of default store 
-        //
-        #define EFI_HII_DEFAULT_CLASS_STANDARD       0x0000
-        #define EFI_HII_DEFAULT_CLASS_MANUFACTURING  0x0001
-        #define EFI_HII_DEFAULT_CLASS_SAFE           0x0002
-        #define EFI_HII_DEFAULT_CLASS_PLATFORM_BEGIN 0x4000
-        #define EFI_HII_DEFAULT_CLASS_PLATFORM_END   0x7fff
-        #define EFI_HII_DEFAULT_CLASS_HARDWARE_BEGIN 0x8000
-        #define EFI_HII_DEFAULT_CLASS_HARDWARE_END   0xbfff
-        #define EFI_HII_DEFAULT_CLASS_FIRMWARE_BEGIN 0xc000
-        #define EFI_HII_DEFAULT_CLASS_FIRMWARE_END   0xffff
-
-        typedef struct _EFI_IFR_VARSTORE
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_GUID Guid;
-        EFI_VARSTORE_ID VarStoreId;
-        UINT16 Size;
-        UINT8 Name[1];
-    }
-    EFI_IFR_VARSTORE;
-
-        typedef struct _EFI_IFR_VARSTORE_EFI
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_VARSTORE_ID VarStoreId;
-        EFI_GUID Guid;
-        UINT32 Attributes;
-        UINT16 Size;
-        UINT8 Name[1];
-    }
-    EFI_IFR_VARSTORE_EFI;
-
-        typedef struct _EFI_IFR_VARSTORE_NAME_VALUE
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_VARSTORE_ID VarStoreId;
-        EFI_GUID Guid;
-    }
-    EFI_IFR_VARSTORE_NAME_VALUE;
-    */
-
+*/
     /// <summary>
-    /// Wrapper for EFI_GUID
+    /// Definition for Opcode Reference (Section Section 27.3.8.3)
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
-    struct EFI_GUID
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_DEFAULTSTORE
     {
         [FieldOffset(0)]
-        public Guid Guid;
+        public EFI_IFR_OP_HEADER Header;
+        [FieldOffset(2)]
+        public EFI_STRING_ID DefaultName;
+        [FieldOffset(4)]
+        public ushort DefaultId;
     };
+    /*
+            //
+            // Default Identifier of default store 
+            //
+            #define EFI_HII_DEFAULT_CLASS_STANDARD       0x0000
+            #define EFI_HII_DEFAULT_CLASS_MANUFACTURING  0x0001
+            #define EFI_HII_DEFAULT_CLASS_SAFE           0x0002
+            #define EFI_HII_DEFAULT_CLASS_PLATFORM_BEGIN 0x4000
+            #define EFI_HII_DEFAULT_CLASS_PLATFORM_END   0x7fff
+            #define EFI_HII_DEFAULT_CLASS_HARDWARE_BEGIN 0x8000
+            #define EFI_HII_DEFAULT_CLASS_HARDWARE_END   0xbfff
+            #define EFI_HII_DEFAULT_CLASS_FIRMWARE_BEGIN 0xc000
+            #define EFI_HII_DEFAULT_CLASS_FIRMWARE_END   0xffff
+
+            typedef struct _EFI_IFR_VARSTORE
+        {
+            EFI_IFR_OP_HEADER Header;
+            EFI_GUID Guid;
+            EFI_VARSTORE_ID VarStoreId;
+            UINT16 Size;
+            UINT8 Name[1];
+        }
+        EFI_IFR_VARSTORE;
+
+            typedef struct _EFI_IFR_VARSTORE_EFI
+        {
+            EFI_IFR_OP_HEADER Header;
+            EFI_VARSTORE_ID VarStoreId;
+            EFI_GUID Guid;
+            UINT32 Attributes;
+            UINT16 Size;
+            UINT8 Name[1];
+        }
+        EFI_IFR_VARSTORE_EFI;
+
+            typedef struct _EFI_IFR_VARSTORE_NAME_VALUE
+        {
+            EFI_IFR_OP_HEADER Header;
+            EFI_VARSTORE_ID VarStoreId;
+            EFI_GUID Guid;
+        }
+        EFI_IFR_VARSTORE_NAME_VALUE;
+        */
 
     [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack=1, Size=23)]
     struct EFI_IFR_FORM_SET
