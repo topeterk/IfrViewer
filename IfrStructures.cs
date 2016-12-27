@@ -1284,20 +1284,34 @@ namespace IFR
         [FieldOffset(2)]
         public EFI_STRING_ID Help;
     };
-    /*
-        typedef struct _EFI_IFR_QUESTION_HEADER
-    {
-        EFI_IFR_STATEMENT_HEADER Header;
-        EFI_QUESTION_ID QuestionId;
-        EFI_VARSTORE_ID VarStoreId;
-        union {
-            EFI_STRING_ID VarName;
-        UINT16 VarOffset;
-    }
-    VarStoreInfo;
-          UINT8 Flags;
-        } EFI_IFR_QUESTION_HEADER;
 
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_IFR_QUESTION_HEADER_VarStoreInfo
+    {
+        // union type 1
+        [FieldOffset(0)]
+        public EFI_QUESTION_ID VarName;
+
+        // union type 2
+        [FieldOffset(0)]
+        public ushort VarOffset;
+    };
+
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 11)]
+    struct EFI_IFR_QUESTION_HEADER
+    {
+        [FieldOffset(0)]
+        public EFI_IFR_STATEMENT_HEADER Header;
+        [FieldOffset(4)]
+        public EFI_QUESTION_ID QuestionId;
+        [FieldOffset(6)]
+        public EFI_QUESTION_ID VarStoreId;
+        [FieldOffset(8)]
+        public EFI_IFR_QUESTION_HEADER_VarStoreInfo VarStoreInfo;
+        [FieldOffset(10)]
+        public byte Flags;
+    };
+    /*
         //
         // Flag values of EFI_IFR_QUESTION_HEADER
         //
@@ -1506,15 +1520,19 @@ namespace IFR
                 EFI_DEFAULT_ID DefaultId;
             }
             EFI_IFR_RESET_BUTTON;
-
-                typedef struct _EFI_IFR_ACTION
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                EFI_STRING_ID QuestionConfig;
-            }
-            EFI_IFR_ACTION;
-
+            */
+            
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
+    struct EFI_IFR_ACTION
+    {
+        [FieldOffset(0)]
+        public EFI_IFR_OP_HEADER Header;
+        [FieldOffset(2)]
+        public EFI_IFR_QUESTION_HEADER Question;
+        [FieldOffset(13)]
+        public EFI_STRING_ID QuestionConfig;
+    };
+/*
                 typedef struct _EFI_IFR_ACTION_1
             {
                 EFI_IFR_OP_HEADER Header;

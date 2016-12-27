@@ -83,6 +83,7 @@ namespace IFR
                     #region IFR OpCodes (more than just the header)
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
                     #endregion
@@ -151,7 +152,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
