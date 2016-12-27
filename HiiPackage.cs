@@ -22,6 +22,7 @@
 
 using IFR;
 using System;
+using System.Collections.Generic;
 using static IFR.IFRHelper;
 
 namespace IFR
@@ -127,12 +128,21 @@ namespace IFR
         /// Managed structure header
         /// </summary>
         public override object Header { get { return _Header; } }
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        protected List<EFI_GUID> _Payload;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
 
         public HiiIfrOpCodeFormSet(EFI_IFR_OP_HEADER hdr, IfrRawDataBlock raw) : base(hdr, raw)
         {
             EFI_IFR_FORM_SET ifr_hdr = data.ToIfrType<EFI_IFR_FORM_SET>();
             data.IncreaseOffset(ifr_hdr.GetPhysSize());
             this._Header = ifr_hdr;
+            this._Payload = new List<EFI_GUID>();
 
             PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, ifr_hdr.ToString());
 
@@ -143,7 +153,7 @@ namespace IFR
                 if (data.Length < 16)
                     throw new Exception("Payload length invalid");
 
-                EFI_GUID guid = data.ToIfrType<EFI_GUID>(offset);
+                _Payload.Add(data.ToIfrType<EFI_GUID>(offset));
 
                 offset += 16;
             }

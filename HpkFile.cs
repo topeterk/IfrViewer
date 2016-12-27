@@ -22,6 +22,7 @@
 
 using IFR;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -55,20 +56,45 @@ namespace IFR
 
             return result;
         }
-        
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        public virtual object Payload { get { return null; } }
+        /// <summary>
+        /// Gets name/value pairs of all managed payloads's data
+        /// </summary>
+        /// <returns>list of name/value pairs</returns>
+        public List<KeyValuePair<string, object>> PayloadToStringList()
+        {
+            List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
+
+            if (Payload != null) AddStructToStringList(result, Payload);
+
+            return result;
+        }
+
         private void AddStructToStringList(List<KeyValuePair<string, object>> list, object obj)
         {
-            foreach (System.Reflection.PropertyInfo pi in obj.GetType().GetProperties())
+            Type type = obj.GetType();
+            bool IsList = obj is IEnumerable;
+
+            foreach (System.Reflection.PropertyInfo pi in type.GetProperties())
             {
                 if (pi.CanRead)
                 {
-                    if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
+                    if (IsList)
+                    {
+                        foreach (var obj_elem in obj as IEnumerable)
+                            AddStructToStringList(list, obj_elem);
+                        break; // skip list internal data (means: all other properties of this type)
+                    }
+                    else if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
                         list.Add(new KeyValuePair<string, object>(pi.Name, pi.GetValue(obj)));
                     else
                         AddStructToStringList(list, pi.GetValue(obj));
                 }
             }
-            foreach (System.Reflection.MemberInfo mi in obj.GetType().GetMembers())
+            foreach (System.Reflection.MemberInfo mi in type.GetMembers())
             {
                 if (mi is System.Reflection.FieldInfo)
                 {

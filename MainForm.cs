@@ -81,6 +81,15 @@ namespace IfrViewer
                     leaf.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
                 }
             }
+            // add all payload fields to the tree..
+            if (elem.Payload != null)
+            {
+                TreeNode leaf = parent.Nodes.Add("Payload");
+                foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.PayloadToStringList())
+                {
+                    leaf.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                }
+            }
 
             // add all child elements to the tree..
             foreach (HPKElement child in elem.Childs)
