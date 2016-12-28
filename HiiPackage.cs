@@ -58,6 +58,7 @@ namespace IFR
         #endregion
     }
 
+    #region Definitions for Forms Package (Section 27.3.8)
     /// <summary>
     /// Hii package class for Forms
     /// </summary>
@@ -196,7 +197,7 @@ namespace IFR
                     */
                     #endregion
                     default:
-                        raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
+                        //raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
                         PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());
                         hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
@@ -286,4 +287,5 @@ namespace IFR
             data_payload.IncreaseOffset(this._Header.GetPhysSize());
         }
     }
+    #endregion
 }
