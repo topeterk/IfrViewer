@@ -221,16 +221,19 @@ namespace IFR
                     throw new Exception("Payload length invalid");
 
                 IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
+                HPKElement hpk_element;
 
                 switch (hdr.Type)
                 {
-                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
-                        EFI_HII_FORM_PACKAGE_HDR pkg_hdr = new EFI_HII_FORM_PACKAGE_HDR();
-                        pkg_hdr.Header = hdr;
-                        Childs.Add(new HiiPackageForm(pkg_hdr, raw_data));
+                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS: hpk_element = new HiiPackageForm(raw_data); break;
+                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: hpk_element = new HiiPackage<EFI_HII_PACKAGE_HEADER>(raw_data); break;
+                    default:
+                        //raw_data.DumpToDebugConsole(hdr.Type.ToString());
+                        PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString());
+                        hpk_element = new HiiPackage<EFI_HII_PACKAGE_HEADER>(raw_data);
                         break;
-                    default: PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString()); break;
                 }
+                Childs.Add(hpk_element);
 
                 offset += hdr.Length;
             }

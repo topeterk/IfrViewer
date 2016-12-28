@@ -30,30 +30,32 @@ namespace IFR
     /// <summary>
     /// Hii package base class
     /// </summary>
-    class HiiPackage : HPKElement
+    class HiiPackage<T> : HPKElement
     {
         #region HiiPackage definition
         /// <summary>
+        /// Type of HII package
+        /// </summary>
+        public readonly EFI_HII_PACKAGE_e PackageType;
+
+        /// <summary>
         /// Managed structure header
         /// </summary>
-        protected EFI_HII_PACKAGE_HEADER _Header;
+        protected T _Header;
         /// <summary>
         /// Managed structure header
         /// </summary>
         public override object Header { get { return _Header; } }
 
         /// <summary>
-        /// Type of HII package
-        /// </summary>
-        public readonly EFI_HII_PACKAGE_e PackageType;
-        /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { return PackageType.ToString(); } }
+        public override string Name { get { string name = Enum.GetName(PackageType.GetType(), PackageType); return name == null ? "UNKNOWN" : name; } }
 
-        public HiiPackage(IfrRawDataBlock raw, EFI_HII_PACKAGE_e Type) : base(raw)
+        public HiiPackage(IfrRawDataBlock raw) : base(raw)
         {
-            this.PackageType = Type;
+            this.PackageType = data.ToIfrType<EFI_HII_PACKAGE_HEADER>().Type;
+            this._Header = data.ToIfrType<T>();
         }
         #endregion
     }
@@ -62,13 +64,12 @@ namespace IFR
     /// <summary>
     /// Hii package class for Forms
     /// </summary>
-    class HiiPackageForm : HiiPackage
+    class HiiPackageForm : HiiPackage<EFI_HII_FORM_PACKAGE_HDR>
     {
-        public HiiPackageForm(EFI_HII_FORM_PACKAGE_HDR hdr, IfrRawDataBlock raw) : base(raw, EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS)
+        public HiiPackageForm(IfrRawDataBlock raw) : base(raw)
         {
-            this._Header = hdr.Header;
             data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(hdr.GetPhysSize());
+            data_payload.IncreaseOffset(_Header.GetPhysSize());
 
             // Parse all IFR opcodes..
             uint offset = 0;
@@ -236,8 +237,8 @@ namespace IFR
 
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
-            this._Header = data.ToIfrType<T>();
             this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode;
+            this._Header = data.ToIfrType<T>();
         }
         #endregion
     }
