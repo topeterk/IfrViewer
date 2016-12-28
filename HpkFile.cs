@@ -36,6 +36,7 @@ namespace IFR
     /// </summary>
     class HPKElement
     {
+        #region Raw Data Blocks
         /// <summary>
         /// Raw data representation of this object
         /// </summary> 
@@ -44,6 +45,9 @@ namespace IFR
         /// Raw data representation of this object's payload
         /// </summary> 
         protected IfrRawDataBlock data_payload;
+        #endregion
+
+        #region Header specific
         /// <summary>
         /// Managed structure payload (raw)
         /// </summary>
@@ -65,10 +69,12 @@ namespace IFR
                 return result.Length > 0 ? result : null;
             }
         }
+ 
         /// <summary>
         /// Managed structure header
         /// </summary>
         public virtual object Header { get { return null; } }
+
         /// <summary>
         /// Gets name/value pairs of all managed header's data
         /// </summary>
@@ -81,6 +87,9 @@ namespace IFR
 
             return result;
         }
+        #endregion
+
+        #region Payload specfic
         /// <summary>
         /// Managed structure payload (raw)
         /// </summary>
@@ -90,6 +99,7 @@ namespace IFR
         /// Managed structure payload
         /// </summary>
         public virtual object Payload { get { return null; } }
+
         /// <summary>
         /// Gets name/value pairs of all managed payloads's data
         /// </summary>
@@ -102,7 +112,9 @@ namespace IFR
 
             return result;
         }
+        #endregion
 
+        #region Private helper methods
         private void AddStructToStringList(List<KeyValuePair<string, object>> list, object obj)
         {
             Type type = obj.GetType();
@@ -146,35 +158,9 @@ namespace IFR
                 }
             }
         }
+        #endregion
 
-        private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode parent)
-        {
-            // add all header fields to the tree..
-            if (elem.Header != null)
-            {
-                TreeNode leaf = parent.Nodes.Add("Header");
-                foreach (System.Reflection.PropertyInfo pi in elem.Header.GetType().GetProperties())
-                {
-                    if (pi.CanRead)
-                    {
-                        leaf.Nodes.Add(pi.Name + " = " + pi.GetValue(elem.Header).ToString());
-                    }
-                }
-                foreach (System.Reflection.MemberInfo mi in elem.Header.GetType().GetMembers())
-                {
-                    if (mi is System.Reflection.FieldInfo)
-                    {
-                        System.Reflection.FieldInfo fi = (System.Reflection.FieldInfo)mi;
-                        if (!fi.FieldType.FullName.StartsWith("System."))
-                            leaf.Nodes.Add(mi.Name + " ! " + fi.GetValue(elem.Header).ToString());
-                        else
-                        if (fi.IsPublic)
-                            leaf.Nodes.Add(mi.Name + " = " + fi.GetValue(elem.Header).ToString());
-                    }
-                }
-            }
-        }
-
+        #region Name, Childs, Debug and Constructor
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
@@ -198,6 +184,7 @@ namespace IFR
         {
             PrintLineToLocalConsole(severity, this.ToString(), msg);
         }
+        #endregion
     }
 
     /// <summary>
@@ -219,42 +206,34 @@ namespace IFR
             this.Filename = filename;
 
             // Load file into memory
-            StreamReader stream = new StreamReader(filename);
+            StreamReader stream = new StreamReader(Filename);
             BinaryReader file = new BinaryReader(stream.BaseStream);
             data = new IfrRawDataBlock(file.ReadBytes((int)file.BaseStream.Length));
             data_payload = new IfrRawDataBlock(data);
             stream.Close();
 
-            try
+            PrintConsoleMsg(IfrErrorSeverity.WARNING, "EFI_GUID not checked to be correctly read from binary!");
+            // Parse all HII packages..
+            uint offset = 0;
+            while (offset < data_payload.Length)
             {
-                PrintConsoleMsg(IfrErrorSeverity.WARNING, "EFI_GUID not checked to be correctly read from binary!");
-                // Parse all HII packages..
-                uint offset = 0;
-                while (offset < data_payload.Length)
+                EFI_HII_PACKAGE_HEADER hdr = data_payload.ToIfrType<EFI_HII_PACKAGE_HEADER>(offset);
+                if (data_payload.Length < hdr.Length + offset)
+                    throw new Exception("Payload length invalid");
+
+                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
+
+                switch (hdr.Type)
                 {
-                    EFI_HII_PACKAGE_HEADER hdr = data_payload.ToIfrType<EFI_HII_PACKAGE_HEADER>(offset);
-                    if (data_payload.Length < hdr.Length + offset)
-                        throw new Exception("Payload length invalid");
-
-                    IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
-
-                    switch (hdr.Type)
-                    {
-                        case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
-                            EFI_HII_FORM_PACKAGE_HDR pkg_hdr = new EFI_HII_FORM_PACKAGE_HDR();
-                            pkg_hdr.Header = hdr;
-                            Childs.Add(new HiiPackageForm(pkg_hdr, raw_data));
-                            break;
-                        default: PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString()); break;
-                    }
-
-                    offset += hdr.Length;
+                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
+                        EFI_HII_FORM_PACKAGE_HDR pkg_hdr = new EFI_HII_FORM_PACKAGE_HDR();
+                        pkg_hdr.Header = hdr;
+                        Childs.Add(new HiiPackageForm(pkg_hdr, raw_data));
+                        break;
+                    default: PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString()); break;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                MessageBox.Show("Parsing HPK failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                offset += hdr.Length;
             }
         }
     }

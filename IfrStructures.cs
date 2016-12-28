@@ -24,7 +24,7 @@
 
 using System;
 using System.Runtime.InteropServices;
-using static IFR.PrimitiveConversion;
+using System.Drawing;
 
 /// <summary>
 /// This namespace contains the Internal Form Representation definisions
@@ -32,8 +32,7 @@ using static IFR.PrimitiveConversion;
 /// </summary>
 namespace IFR
 {
-    #region Typedefs
-    // The following types are currently defined:
+    #region 1:1 type assignments between C <-> C#
     using EFI_HII_HANDLE = IntPtr;
     using EFI_STRING = System.String;
     using EFI_IMAGE_ID = UInt16;
@@ -44,8 +43,6 @@ namespace IFR
     using EFI_ANIMATION_ID = UInt16;
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
-    using System.Drawing;
-    using System.Reflection;
 
     /// <summary>
     /// Wrapper for EFI_GUID
@@ -56,101 +53,9 @@ namespace IFR
         [FieldOffset(0)]
         public Guid Guid;
     };
-
     #endregion
 
-    #region Bit Field Support
-    /// <summary>
-    /// Bit Field Length
-    /// </summary>
-    [global::System.AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    sealed class BFLAttribute : Attribute
-    {
-        uint length;
-
-        public BFLAttribute(uint length)
-        {
-            this.length = length;
-        }
-
-        public uint Length { get { return length; } }
-    }
-
-    static class PrimitiveConversion
-    {
-        public static long ToLong<T>(T t) where T : struct
-        {
-            long r = 0;
-            int offset = 0;
-
-            // For every field suitably attributed with a BitfieldLength
-            foreach (System.Reflection.FieldInfo f in t.GetType().GetFields())
-            {
-                object[] attrs = f.GetCustomAttributes(typeof(BFLAttribute), false);
-                if (attrs.Length == 1)
-                {
-                    uint fieldLength = ((BFLAttribute)attrs[0]).Length;
-
-                    // Calculate a bitmask of the desired length
-                    long mask = 0;
-                    for (int i = 0; i < fieldLength; i++)
-                        mask |= (long)(1 << i);
-
-                    r |= ((UInt32)f.GetValue(t) & mask) << offset;
-
-                    offset += (int)fieldLength;
-                }
-            }
-
-            return r;
-        }
-
-        public static long GetBitLen(long value, uint width)
-        {
-            long mask = 0;
-            for (int i = 0; i < width; i++)
-                mask |= (long)(1 << i);
-            return value & mask;
-        }
-        public static uint GetBitLen(uint value, uint width)
-        {
-            long mask = 0;
-            for (int i = 0; i < width; i++)
-                mask |= (long)(1 << i);
-            return (uint)(value & mask);
-        }
-    }
-    //[BFL(24)]
-
-    public class MyProp<T>
-    {
-        private T _value;
-
-        public T Value
-        {
-            get
-            {
-                // insert desired logic here
-                return _value;
-            }
-            set
-            {
-                // insert desired logic here
-                _value = value;
-            }
-        }
-
-        public static implicit operator T(MyProp<T> value)
-        {
-            return value.Value;
-        }
-
-        public static implicit operator MyProp<T>(T value)
-        {
-            return new MyProp<T> { Value = value };
-        }
-    }
-
+    #region Common stuff (not related to UEFI source)
     /// <summary>
     /// Wrapper to access raw data directly as single memory source
     /// </summary>
@@ -237,7 +142,6 @@ namespace IFR
 
             return result;
         }
-
         #endregion
     }
 
@@ -427,7 +331,7 @@ namespace IFR
     {
         [FieldOffset(0)]
         private uint _Length;
-        public uint Length { get { return GetBitLen(_Length, 24); } set { _Length = GetBitLen(value, 24); } }
+        public uint Length { get { return _Length & 0x00FFFFFF; } set { _Length = (byte)((_Length & 0xFF000000) | (byte)(value & 0x00FFFFFF)); } }
         [FieldOffset(3)]
         private byte _Type;
         public EFI_HII_PACKAGE_e Type { get { return (EFI_HII_PACKAGE_e)_Type; } set { _Type = (byte)value; } }

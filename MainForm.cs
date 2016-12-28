@@ -59,7 +59,8 @@ namespace IfrViewer
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    MessageBox.Show("Loading HPK failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    PrintLineToLocalConsole(IfrErrorSeverity.ERROR, "Main", "Loading file failed!");
+                    MessageBox.Show("Loading file failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 if (null != hpk) // Loaded successfully?

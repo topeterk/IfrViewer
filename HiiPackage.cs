@@ -32,6 +32,7 @@ namespace IFR
     /// </summary>
     class HiiPackage : HPKElement
     {
+        #region Hii Package definition
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -54,6 +55,7 @@ namespace IFR
         {
             this.PackageType = Type;
         }
+        #endregion
     }
 
     /// <summary>
@@ -233,40 +235,7 @@ namespace IFR
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
             this._Header = data.ToIfrType<T>();
-
-            // Get OpCode from header (first attempt, get the header structures "Header" field ; covers all EFI_IFR_? structs except EFI_IFR_OP_HEADER)..
-            foreach (System.Reflection.MemberInfo mi in _Header.GetType().GetMember("Header"))
-            {
-                if (mi is System.Reflection.FieldInfo)
-                {
-                    System.Reflection.FieldInfo fi = (System.Reflection.FieldInfo)mi;
-                    try
-                    {
-                        this.OpCode = ((EFI_IFR_OP_HEADER)fi.GetValue(_Header)).OpCode;
-                    }
-                    catch (Exception)
-                    {
-                        throw new Exception("Type \"" + _Header.ToString() + "\" has invalid property \"Header\"");
-                    }
-                    break;
-                }
-            }
-            // Get OpCode directy (second attempt, read the value from header structure directly ; covers EFI_IFR_OP_HEADER)..
-            if (OpCode == 0)
-            {
-                System.Reflection.PropertyInfo pi = _Header.GetType().GetProperty("OpCode");
-                try
-                {
-                    this.OpCode = (EFI_IFR_OPCODE_e)pi.GetValue(_Header);
-                }
-                catch (Exception)
-                {
-                    throw new Exception("Type \"" + _Header.ToString() + "\" has invalid property \"OpCode\"");
-                }
-            }
-            // Check if OpCode could be read correctly..
-            if (Enum.GetName(OpCode.GetType(), OpCode) == null)
-                PrintConsoleMsg(IfrErrorSeverity.ERROR, "Unknown OpCode \"" + OpCode.ToString() + "\"");
+            this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode;
         }
     }
 
