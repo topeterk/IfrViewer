@@ -212,7 +212,6 @@ namespace IFR
             data_payload = new IfrRawDataBlock(data);
             stream.Close();
 
-            PrintConsoleMsg(IfrErrorSeverity.WARNING, "EFI_GUID not checked to be correctly read from binary!");
             // Parse all HII packages..
             uint offset = 0;
             while (offset < data_payload.Length)

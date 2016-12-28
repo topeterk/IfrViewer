@@ -32,7 +32,7 @@ namespace IFR
     /// </summary>
     class HiiPackage : HPKElement
     {
-        #region Hii Package definition
+        #region HiiPackage definition
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -213,6 +213,7 @@ namespace IFR
     /// </summary>
     class HiiIfrOpCode<T> : HPKElement
     {
+        #region HiiIfrOpCode definition
         /// <summary>
         /// Type of IFR opcode
         /// </summary>
@@ -237,6 +238,7 @@ namespace IFR
             this._Header = data.ToIfrType<T>();
             this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode;
         }
+        #endregion
     }
 
     /// <summary>
