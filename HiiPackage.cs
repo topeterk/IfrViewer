@@ -60,7 +60,7 @@ namespace IFR
         #endregion
     }
 
-    #region Definitions for Forms Package (Section 27.3.8)
+    #region Definitions for Forms Package
     /// <summary>
     /// Hii package class for Forms
     /// </summary>
@@ -286,6 +286,35 @@ namespace IFR
         {
             this.data_payload = new IfrRawDataBlock(data);
             data_payload.IncreaseOffset(this._Header.GetPhysSize());
+        }
+    }
+    #endregion
+
+    #region Definitions for String Package
+    /// <summary>
+    /// Hii package class for Strings
+    /// </summary>
+    class HiiPackageString : HiiPackage<EFI_HII_STRING_PACKAGE_HDR>
+    {
+        public HiiPackageString(IfrRawDataBlock raw) : base(raw)
+        {
+            data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(_Header.GetPhysSize());
+
+            PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, Name);
+            //// Parse all IFR opcodes..
+            //uint offset = 0;
+            //while (offset < data_payload.Length)
+            //{
+            //    EFI_IFR_OP_HEADER ifr_hdr = data_payload.ToIfrType<EFI_IFR_OP_HEADER>(offset);
+            //    if (data_payload.Length < ifr_hdr.Length + offset)
+            //        throw new Exception("Payload length invalid");
+
+            //    IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
+            //    HPKElement hpk_element;
+
+            //    offset += ifr_hdr.Length;
+            //}
         }
     }
     #endregion

@@ -76,6 +76,8 @@ namespace IfrViewer
 
         private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode root)
         {
+            const uint BytesPerLine = 16;
+
             // add all header fields to the tree..
             byte[] HeaderRaw = elem.HeaderRaw;
             if ((elem.Header != null) || (HeaderRaw != null))
@@ -85,13 +87,13 @@ namespace IfrViewer
                 if (HeaderRaw != null)
                 {
                     TreeNode leaf = branch.Nodes.Add("__RAW");
-                    foreach (string line in HeaderRaw.HexDump(8).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                         leaf.Nodes.Add(line);
                 }
                 // handle managed..
                 if (elem.Header != null)
                 {
-                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.HeaderToStringList())
+                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintableHeader(BytesPerLine))
                     {
                         branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
                     }
@@ -106,13 +108,13 @@ namespace IfrViewer
                 if (PayloadRaw != null)
                 {
                     TreeNode leaf = branch.Nodes.Add("__RAW");
-                    foreach (string line in PayloadRaw.HexDump(8).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                         leaf.Nodes.Add(line);
                 }
                 // handle managed..
                 if (elem.Payload != null)
                 {
-                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.PayloadToStringList())
+                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintablePayload(BytesPerLine))
                     {
                         branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
                     }

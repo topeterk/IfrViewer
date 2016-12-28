@@ -79,11 +79,11 @@ namespace IFR
         /// Gets name/value pairs of all managed header's data
         /// </summary>
         /// <returns>list of name/value pairs</returns>
-        public List<KeyValuePair<string, object>> HeaderToStringList()
+        public List<KeyValuePair<string, object>> GetPrintableHeader(uint BytesPerLine = 16)
         {
             List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
 
-            if (Header != null) AddStructToStringList(result, Header);
+            if (Header != null) GetPrintableStructureElements(result, Header, BytesPerLine);
 
             return result;
         }
@@ -104,18 +104,18 @@ namespace IFR
         /// Gets name/value pairs of all managed payloads's data
         /// </summary>
         /// <returns>list of name/value pairs</returns>
-        public List<KeyValuePair<string, object>> PayloadToStringList()
+        public List<KeyValuePair<string, object>> GetPrintablePayload(uint BytesPerLine = 16)
         {
             List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
 
-            if (Payload != null) AddStructToStringList(result, Payload);
+            if (Payload != null) GetPrintableStructureElements(result, Payload, BytesPerLine);
 
             return result;
         }
         #endregion
 
         #region Private helper methods
-        private void AddStructToStringList(List<KeyValuePair<string, object>> list, object obj)
+        private void GetPrintableStructureElements(List<KeyValuePair<string, object>> list, object obj, uint BytesPerLine)
         {
             Type type = obj.GetType();
             bool IsList = obj is IEnumerable;
@@ -128,19 +128,19 @@ namespace IFR
                     {
                         if (type.FullName == "System.Byte[]")
                         {
-                            list.Add(new KeyValuePair<string, object>("Raw Bytes", (obj as System.Byte[]).HexDump(8)));
+                            list.Add(new KeyValuePair<string, object>("Raw Bytes", (obj as System.Byte[]).HexDump(BytesPerLine)));
                         }
                         else
                         {
                             foreach (var obj_elem in obj as IEnumerable)
-                                AddStructToStringList(list, obj_elem);
+                                GetPrintableStructureElements(list, obj_elem, BytesPerLine);
                         }
                         break; // skip list internal data (means: all other properties of this type)
                     }
                     else if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
                         list.Add(new KeyValuePair<string, object>(pi.Name, pi.GetValue(obj)));
                     else
-                        AddStructToStringList(list, pi.GetValue(obj));
+                        GetPrintableStructureElements(list, pi.GetValue(obj), BytesPerLine);
                 }
             }
             foreach (System.Reflection.MemberInfo mi in type.GetMembers())
@@ -150,10 +150,15 @@ namespace IFR
                     System.Reflection.FieldInfo fi = (System.Reflection.FieldInfo)mi;
                     if (fi.IsPublic)
                     {
-                        if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
+                        if (fi.FieldType.FullName == "System.Char[]")
+                        {
+                            string value = new string(fi.GetValue(obj) as System.Char[]).TrimEnd(new char[] { (char)0x00 }); // remove ending zeros
+                            list.Add(new KeyValuePair<string, object>(fi.Name, "\"" + value + "\""));
+                        }
+                        else if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
                             list.Add(new KeyValuePair<string, object>(fi.Name, fi.GetValue(obj)));
                         else
-                            AddStructToStringList(list, fi.GetValue(obj));
+                            GetPrintableStructureElements(list, fi.GetValue(obj), BytesPerLine);
                     }
                 }
             }
@@ -226,7 +231,7 @@ namespace IFR
                 switch (hdr.Type)
                 {
                     case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS: hpk_element = new HiiPackageForm(raw_data); break;
-                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: hpk_element = new HiiPackage<EFI_HII_PACKAGE_HEADER>(raw_data); break;
+                    case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: hpk_element = new HiiPackageString(raw_data); break;
                     default:
                         //raw_data.DumpToDebugConsole(hdr.Type.ToString());
                         PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString());

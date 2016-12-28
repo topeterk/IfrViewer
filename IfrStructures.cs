@@ -179,7 +179,7 @@ namespace IFR
         /// </summary>
         /// <param name="data">Data that shall be dumped</param>
         /// <param name="bytesPerLine">Amount of bytes shown at a single line</param>
-        public static void DumpToDebugConsole(this IfrRawDataBlock data, string title = "Unnamed", int bytesPerLine = 16)
+        public static void DumpToDebugConsole(this IfrRawDataBlock data, string title = "Unnamed", uint bytesPerLine = 16)
         {
             string dump = data.CopyOfSelectedBytes.HexDump(bytesPerLine);
             System.Console.WriteLine(PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Debug", "Data \"" + title + "\" dumped (Offset=" + data.Offset + ", Length=" + data.Length + "):" + Environment.NewLine + dump));
@@ -192,7 +192,7 @@ namespace IFR
         /// </summary>
         /// <param name="data">Data that shall be dumped</param>
         /// <param name="bytesPerLine">Amount of bytes shown at a single line</param>
-        public static void DumpToDebugConsole(this byte[] bytes, int bytesPerLine = 16)
+        public static void DumpToDebugConsole(this byte[] bytes, uint bytesPerLine = 16)
         {
             System.Console.WriteLine(bytes.HexDump(bytesPerLine));
         }
@@ -203,8 +203,10 @@ namespace IFR
         /// <param name="bytes">Byte array to be dumped</param>
         /// <param name="bytesPerLine">Amount of bytes shown at a single line</param>
         /// <returns>String holding the hexdump</returns>
-        public static string HexDump(this byte[] bytes, int bytesPerLine = 16)
+        public static string HexDump(this byte[] bytes, uint BytesPerLine = 16)
         {
+            int bytesPerLine = (int)BytesPerLine;
+
             if (bytes == null) return "<null>";
             int bytesLength = bytes.Length;
 
