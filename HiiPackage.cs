@@ -64,17 +64,18 @@ namespace IFR
         public HiiPackageForm(EFI_HII_FORM_PACKAGE_HDR hdr, IfrRawDataBlock raw) : base(raw, EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS)
         {
             this._Header = hdr.Header;
-            data.IncreaseOffset(hdr.GetPhysSize());
+            data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(hdr.GetPhysSize());
 
             // Parse all IFR opcodes..
             uint offset = 0;
-            while (offset < data.Length)
+            while (offset < data_payload.Length)
             {
-                EFI_IFR_OP_HEADER ifr_hdr = data.ToIfrType<EFI_IFR_OP_HEADER>(offset);
-                if (data.Length < ifr_hdr.Length + offset)
+                EFI_IFR_OP_HEADER ifr_hdr = data_payload.ToIfrType<EFI_IFR_OP_HEADER>(offset);
+                if (data_payload.Length < ifr_hdr.Length + offset)
                     throw new Exception("Payload length invalid");
 
-                IfrRawDataBlock raw_data = new IfrRawDataBlock(data.Bytes, data.Offset + offset, ifr_hdr.Length);
+                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
                 HPKElement hpk_element;
 
                 switch (ifr_hdr.OpCode)
@@ -285,17 +286,18 @@ namespace IFR
 
         public HiiIfrOpCodeFormSet(IfrRawDataBlock raw) : base(raw)
         {
-            data.IncreaseOffset(this._Header.GetPhysSize());
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
             this._Payload = new List<EFI_GUID>();
 
             // Parse all GUIDs..
             uint offset = 0;
-            while (offset < data.Length)
+            while (offset < data_payload.Length)
             {
-                if (data.Length < 16)
+                if (data_payload.Length < 16)
                     throw new Exception("Payload length invalid");
 
-                _Payload.Add(data.ToIfrType<EFI_GUID>(offset));
+                _Payload.Add(data_payload.ToIfrType<EFI_GUID>(offset));
 
                 offset += 16;
             }
@@ -307,19 +309,10 @@ namespace IFR
     /// </summary>
     class HiiIfrOpCodeGuid : HiiIfrOpCode<EFI_IFR_GUID>
     {
-        /// <summary>
-        /// Managed structure header
-        /// </summary>
-        protected byte[] _Payload;
-        /// <summary>
-        /// Managed structure header
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
         public HiiIfrOpCodeGuid(IfrRawDataBlock raw) : base(raw)
         {
-            data.IncreaseOffset(this._Header.GetPhysSize());
-            this._Payload = data.CopyOfSelectedBytes;
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
         }
     }
 }

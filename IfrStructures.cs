@@ -186,6 +186,17 @@ namespace IFR
             Length = length;
         }
         /// <summary>
+        /// Creates new IFR raw data block.
+        /// Copy constructur
+        /// </summary>
+        /// <param name="origin">Instance from which data is copied to this new instance</param>
+        public IfrRawDataBlock(IfrRawDataBlock origin)
+        {
+            Bytes = origin.Bytes;
+            Offset = origin.Offset;
+            Length = origin.Length;
+        }
+        /// <summary>
         /// Changes Offset and Length accordingly. Cheks for out of bounds.
         /// </summary>
         /// <param name="amount">Amount of bytes to skip</param>

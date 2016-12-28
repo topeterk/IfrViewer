@@ -41,6 +41,31 @@ namespace IFR
         /// </summary> 
         protected IfrRawDataBlock data;
         /// <summary>
+        /// Raw data representation of this object's payload
+        /// </summary> 
+        protected IfrRawDataBlock data_payload;
+        /// <summary>
+        /// Managed structure payload (raw)
+        /// </summary>
+        public byte[] HeaderRaw
+        {
+            get
+            {
+                byte[] result;
+                // There is no payload? Then everything is header..
+                if (data_payload == null)
+                    result = data.CopyOfSelectedBytes;
+                else
+                {
+                    // Otherwise, the header is from data start till payload begin..
+                    IfrRawDataBlock hdr_data = new IfrRawDataBlock(data);
+                    hdr_data.Length = data_payload.Offset - data.Offset;
+                    result = hdr_data.CopyOfSelectedBytes;
+                }
+                return result.Length > 0 ? result : null;
+            }
+        }
+        /// <summary>
         /// Managed structure header
         /// </summary>
         public virtual object Header { get { return null; } }
@@ -56,6 +81,11 @@ namespace IFR
 
             return result;
         }
+        /// <summary>
+        /// Managed structure payload (raw)
+        /// </summary>
+        public byte[] PayloadRaw { get { return data_payload?.CopyOfSelectedBytes; } }
+
         /// <summary>
         /// Managed structure payload
         /// </summary>
@@ -192,6 +222,7 @@ namespace IFR
             StreamReader stream = new StreamReader(filename);
             BinaryReader file = new BinaryReader(stream.BaseStream);
             data = new IfrRawDataBlock(file.ReadBytes((int)file.BaseStream.Length));
+            data_payload = new IfrRawDataBlock(data);
             stream.Close();
 
             try
@@ -199,13 +230,13 @@ namespace IFR
                 PrintConsoleMsg(IfrErrorSeverity.WARNING, "EFI_GUID not checked to be correctly read from binary!");
                 // Parse all HII packages..
                 uint offset = 0;
-                while (offset < data.Length)
+                while (offset < data_payload.Length)
                 {
-                    EFI_HII_PACKAGE_HEADER hdr = data.ToIfrType<EFI_HII_PACKAGE_HEADER>(offset);
-                    if (data.Length < hdr.Length + offset)
+                    EFI_HII_PACKAGE_HEADER hdr = data_payload.ToIfrType<EFI_HII_PACKAGE_HEADER>(offset);
+                    if (data_payload.Length < hdr.Length + offset)
                         throw new Exception("Payload length invalid");
 
-                    IfrRawDataBlock raw_data = new IfrRawDataBlock(data.Bytes, data.Offset + offset, hdr.Length);
+                    IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
 
                     switch (hdr.Type)
                     {

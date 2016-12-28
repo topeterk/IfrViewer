@@ -71,33 +71,62 @@ namespace IfrViewer
             }
         }
 
-        private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode parent)
+        private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode root)
         {
             // add all header fields to the tree..
-            if (elem.Header != null)
+            byte[] HeaderRaw = elem.HeaderRaw;
+            if ((elem.Header != null) || (HeaderRaw != null))
             {
-                TreeNode leaf = parent.Nodes.Add("Header");
-                foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.HeaderToStringList())
+                TreeNode branch = root.Nodes.Add("Header");
+                // handle raw..
+                if (HeaderRaw != null)
                 {
-                    leaf.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                    TreeNode leaf = branch.Nodes.Add("__RAW");
+                    foreach (string line in HeaderRaw.HexDump(8).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                        leaf.Nodes.Add(line);
+                }
+                // handle managed..
+                if (elem.Header != null)
+                {
+                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.HeaderToStringList())
+                    {
+                        branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                    }
                 }
             }
             // add all payload fields to the tree..
-            if (elem.Payload != null)
+            byte[] PayloadRaw = elem.PayloadRaw;
+            if ((elem.Payload != null) || (PayloadRaw != null))
             {
-                TreeNode leaf = parent.Nodes.Add("Payload");
-                foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.PayloadToStringList())
+                TreeNode branch = root.Nodes.Add("Payload");
+                // handle raw..
+                if (PayloadRaw != null)
                 {
-                    leaf.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                    TreeNode leaf = branch.Nodes.Add("__RAW");
+                    foreach (string line in PayloadRaw.HexDump(8).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                        leaf.Nodes.Add(line);
+                }
+                // handle managed..
+                if (elem.Payload != null)
+                {
+                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.PayloadToStringList())
+                    {
+                        branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                    }
                 }
             }
 
             // add all child elements to the tree..
-            foreach (HPKElement child in elem.Childs)
+            if (elem.Childs.Count > 0)
             {
-                TreeNode leaf = parent.Nodes.Add(child.Name);
-                LoadHpkElementIntoTreeView(child, leaf);
-                parent.Expand();
+                TreeNode branch = root.Nodes.Add("Childs");
+                foreach (HPKElement child in elem.Childs)
+                {
+                    TreeNode leaf = branch.Nodes.Add(child.Name);
+                    LoadHpkElementIntoTreeView(child, leaf);
+                    branch.Expand();
+                }
+                root.Expand();
             }
         }
 
