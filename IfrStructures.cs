@@ -43,14 +43,15 @@ namespace IFR
     using EFI_ANIMATION_ID = UInt16;
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
+    using UINT32 = UInt32;
+    using CHAR16 = System.Char;
 
     /// <summary>
     /// Wrapper for EFI_GUID
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
     struct EFI_GUID
     {
-        [FieldOffset(0)]
         public Guid Guid;
     };
     #endregion
@@ -631,175 +632,176 @@ namespace IFR
     /*
     #define UEFI_CONFIG_LANG   "x-UEFI"
     #define UEFI_CONFIG_LANG_2 "x-i-UEFI"
-
-        ///
-        /// The fixed header consists of a standard record header and then the string identifiers
-        /// contained in this section and the offsets of the string and language information.
-        ///
-        typedef struct _EFI_HII_STRING_PACKAGE_HDR
+        */
+    /// <summary>
+    /// The fixed header consists of a standard record header and then the string identifiers
+    /// contained in this section and the offsets of the string and language information.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 46)]
+    struct EFI_HII_STRING_PACKAGE_HDR
     {
-        EFI_HII_PACKAGE_HEADER Header;
-        UINT32 HdrSize;
-        UINT32 StringInfoOffset;
-        CHAR16 LanguageWindow[16];
-        EFI_STRING_ID LanguageName;
-        CHAR8 Language[1];
+        public EFI_HII_PACKAGE_HEADER Header;
+        public UINT32 HdrSize;
+        public UINT32 StringInfoOffset;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public CHAR16[] LanguageWindow;
+        public EFI_STRING_ID LanguageName;
+        // CHAR8 Language[...];
     }
-    EFI_HII_STRING_PACKAGE_HDR;
+    /*
+            typedef struct {
+              UINT8 BlockType;
+            } EFI_HII_STRING_BLOCK;
 
-        typedef struct {
-          UINT8 BlockType;
-        } EFI_HII_STRING_BLOCK;
+            //
+            // Value of different string information block types
+            //
+            #define EFI_HII_SIBT_END                     0x00
+            #define EFI_HII_SIBT_STRING_SCSU             0x10
+            #define EFI_HII_SIBT_STRING_SCSU_FONT        0x11
+            #define EFI_HII_SIBT_STRINGS_SCSU            0x12
+            #define EFI_HII_SIBT_STRINGS_SCSU_FONT       0x13
+            #define EFI_HII_SIBT_STRING_UCS2             0x14
+            #define EFI_HII_SIBT_STRING_UCS2_FONT        0x15
+            #define EFI_HII_SIBT_STRINGS_UCS2            0x16
+            #define EFI_HII_SIBT_STRINGS_UCS2_FONT       0x17
+            #define EFI_HII_SIBT_DUPLICATE               0x20
+            #define EFI_HII_SIBT_SKIP2                   0x21
+            #define EFI_HII_SIBT_SKIP1                   0x22
+            #define EFI_HII_SIBT_EXT1                    0x30
+            #define EFI_HII_SIBT_EXT2                    0x31
+            #define EFI_HII_SIBT_EXT4                    0x32
+            #define EFI_HII_SIBT_FONT                    0x40
 
-        //
-        // Value of different string information block types
-        //
-        #define EFI_HII_SIBT_END                     0x00
-        #define EFI_HII_SIBT_STRING_SCSU             0x10
-        #define EFI_HII_SIBT_STRING_SCSU_FONT        0x11
-        #define EFI_HII_SIBT_STRINGS_SCSU            0x12
-        #define EFI_HII_SIBT_STRINGS_SCSU_FONT       0x13
-        #define EFI_HII_SIBT_STRING_UCS2             0x14
-        #define EFI_HII_SIBT_STRING_UCS2_FONT        0x15
-        #define EFI_HII_SIBT_STRINGS_UCS2            0x16
-        #define EFI_HII_SIBT_STRINGS_UCS2_FONT       0x17
-        #define EFI_HII_SIBT_DUPLICATE               0x20
-        #define EFI_HII_SIBT_SKIP2                   0x21
-        #define EFI_HII_SIBT_SKIP1                   0x22
-        #define EFI_HII_SIBT_EXT1                    0x30
-        #define EFI_HII_SIBT_EXT2                    0x31
-        #define EFI_HII_SIBT_EXT4                    0x32
-        #define EFI_HII_SIBT_FONT                    0x40
+            //
+            // Definition of different string information block types
+            //
 
-        //
-        // Definition of different string information block types
-        //
+            typedef struct _EFI_HII_SIBT_DUPLICATE_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            EFI_STRING_ID StringId;
+        }
+        EFI_HII_SIBT_DUPLICATE_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_DUPLICATE_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        EFI_STRING_ID StringId;
-    }
-    EFI_HII_SIBT_DUPLICATE_BLOCK;
+            typedef struct _EFI_HII_SIBT_END_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+        }
+        EFI_HII_SIBT_END_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_END_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-    }
-    EFI_HII_SIBT_END_BLOCK;
+            typedef struct _EFI_HII_SIBT_EXT1_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 BlockType2;
+            UINT8 Length;
+        }
+        EFI_HII_SIBT_EXT1_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_EXT1_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 BlockType2;
-        UINT8 Length;
-    }
-    EFI_HII_SIBT_EXT1_BLOCK;
+            typedef struct _EFI_HII_SIBT_EXT2_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 BlockType2;
+            UINT16 Length;
+        }
+        EFI_HII_SIBT_EXT2_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_EXT2_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 BlockType2;
-        UINT16 Length;
-    }
-    EFI_HII_SIBT_EXT2_BLOCK;
+            typedef struct _EFI_HII_SIBT_EXT4_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 BlockType2;
+            UINT32 Length;
+        }
+        EFI_HII_SIBT_EXT4_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_EXT4_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 BlockType2;
-        UINT32 Length;
-    }
-    EFI_HII_SIBT_EXT4_BLOCK;
+            typedef struct _EFI_HII_SIBT_FONT_BLOCK
+        {
+            EFI_HII_SIBT_EXT2_BLOCK Header;
+            UINT8 FontId;
+            UINT16 FontSize;
+            EFI_HII_FONT_STYLE FontStyle;
+            CHAR16 FontName[1];
+        }
+        EFI_HII_SIBT_FONT_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_FONT_BLOCK
-    {
-        EFI_HII_SIBT_EXT2_BLOCK Header;
-        UINT8 FontId;
-        UINT16 FontSize;
-        EFI_HII_FONT_STYLE FontStyle;
-        CHAR16 FontName[1];
-    }
-    EFI_HII_SIBT_FONT_BLOCK;
+            typedef struct _EFI_HII_SIBT_SKIP1_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 SkipCount;
+        }
+        EFI_HII_SIBT_SKIP1_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_SKIP1_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 SkipCount;
-    }
-    EFI_HII_SIBT_SKIP1_BLOCK;
+            typedef struct _EFI_HII_SIBT_SKIP2_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT16 SkipCount;
+        }
+        EFI_HII_SIBT_SKIP2_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_SKIP2_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT16 SkipCount;
-    }
-    EFI_HII_SIBT_SKIP2_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRING_SCSU_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 StringText[1];
+        }
+        EFI_HII_SIBT_STRING_SCSU_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRING_SCSU_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 StringText[1];
-    }
-    EFI_HII_SIBT_STRING_SCSU_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRING_SCSU_FONT_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 FontIdentifier;
+            UINT8 StringText[1];
+        }
+        EFI_HII_SIBT_STRING_SCSU_FONT_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRING_SCSU_FONT_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 FontIdentifier;
-        UINT8 StringText[1];
-    }
-    EFI_HII_SIBT_STRING_SCSU_FONT_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRINGS_SCSU_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT16 StringCount;
+            UINT8 StringText[1];
+        }
+        EFI_HII_SIBT_STRINGS_SCSU_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRINGS_SCSU_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT16 StringCount;
-        UINT8 StringText[1];
-    }
-    EFI_HII_SIBT_STRINGS_SCSU_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRINGS_SCSU_FONT_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 FontIdentifier;
+            UINT16 StringCount;
+            UINT8 StringText[1];
+        }
+        EFI_HII_SIBT_STRINGS_SCSU_FONT_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRINGS_SCSU_FONT_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 FontIdentifier;
-        UINT16 StringCount;
-        UINT8 StringText[1];
-    }
-    EFI_HII_SIBT_STRINGS_SCSU_FONT_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRING_UCS2_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            CHAR16 StringText[1];
+        }
+        EFI_HII_SIBT_STRING_UCS2_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRING_UCS2_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        CHAR16 StringText[1];
-    }
-    EFI_HII_SIBT_STRING_UCS2_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRING_UCS2_FONT_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 FontIdentifier;
+            CHAR16 StringText[1];
+        }
+        EFI_HII_SIBT_STRING_UCS2_FONT_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRING_UCS2_FONT_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 FontIdentifier;
-        CHAR16 StringText[1];
-    }
-    EFI_HII_SIBT_STRING_UCS2_FONT_BLOCK;
+            typedef struct _EFI_HII_SIBT_STRINGS_UCS2_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT16 StringCount;
+            CHAR16 StringText[1];
+        }
+        EFI_HII_SIBT_STRINGS_UCS2_BLOCK;
 
-        typedef struct _EFI_HII_SIBT_STRINGS_UCS2_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT16 StringCount;
-        CHAR16 StringText[1];
-    }
-    EFI_HII_SIBT_STRINGS_UCS2_BLOCK;
-
-        typedef struct _EFI_HII_SIBT_STRINGS_UCS2_FONT_BLOCK
-    {
-        EFI_HII_STRING_BLOCK Header;
-        UINT8 FontIdentifier;
-        UINT16 StringCount;
-        CHAR16 StringText[1];
-    }
-    EFI_HII_SIBT_STRINGS_UCS2_FONT_BLOCK;
-    */
+            typedef struct _EFI_HII_SIBT_STRINGS_UCS2_FONT_BLOCK
+        {
+            EFI_HII_STRING_BLOCK Header;
+            UINT8 FontIdentifier;
+            UINT16 StringCount;
+            CHAR16 StringText[1];
+        }
+        EFI_HII_SIBT_STRINGS_UCS2_FONT_BLOCK;
+        */
     #endregion
     #region Definitions for Image Package(Section 27.3.7)
     /*
@@ -1025,10 +1027,9 @@ namespace IFR
     /// <summary>
     /// The Form package is used to carry form-based encoding data.
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
     struct EFI_HII_FORM_PACKAGE_HDR
     {
-        [FieldOffset(0)]
         public EFI_HII_PACKAGE_HEADER Header;
         // EFI_IFR_OP_HEADER  Data[...];
     }
@@ -1179,51 +1180,40 @@ namespace IFR
     /// <summary>
     /// Definitions of IFR Standard Headers (Section 27.3.8.2)
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
     struct EFI_IFR_OP_HEADER
     {
-        [FieldOffset(0)]
         private byte _OpCode;
-        public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
-        [FieldOffset(1)]
         private byte _LengthAndscope;
+
+        public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
         public uint Length { get { return (uint)_LengthAndscope & 0x7F; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x80) | (byte)(value & 0x7F)); } }
         public uint Scope { get { return (uint)_LengthAndscope >> 7; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x7F) | (byte)((value & 0x01) >> 7)); } }
     };
 
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
     struct EFI_IFR_STATEMENT_HEADER
     {
-        [FieldOffset(0)]
         public EFI_STRING_ID Prompt;
-        [FieldOffset(2)]
         public EFI_STRING_ID Help;
     };
 
     [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
     struct EFI_IFR_QUESTION_HEADER_VarStoreInfo
     {
-        // union type 1
-        [FieldOffset(0)]
+        [FieldOffset(0)] // union type 1
         public EFI_QUESTION_ID VarName;
-
-        // union type 2
-        [FieldOffset(0)]
+        [FieldOffset(0)] // union type 2
         public ushort VarOffset;
     };
 
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 11)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 11)]
     struct EFI_IFR_QUESTION_HEADER
     {
-        [FieldOffset(0)]
         public EFI_IFR_STATEMENT_HEADER Header;
-        [FieldOffset(4)]
         public EFI_QUESTION_ID QuestionId;
-        [FieldOffset(6)]
         public EFI_QUESTION_ID VarStoreId;
-        [FieldOffset(8)]
         public EFI_IFR_QUESTION_HEADER_VarStoreInfo VarStoreInfo;
-        [FieldOffset(10)]
         public byte Flags;
     };
     /*
@@ -1239,14 +1229,11 @@ namespace IFR
     /// <summary>
     /// Definition for Opcode Reference (Section Section 27.3.8.3)
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_DEFAULTSTORE
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public EFI_STRING_ID DefaultName;
-        [FieldOffset(4)]
         public ushort DefaultId;
     };
     /*
@@ -1293,30 +1280,22 @@ namespace IFR
         EFI_IFR_VARSTORE_NAME_VALUE;
         */
 
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack=1, Size=23)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack=1, Size=23)]
     struct EFI_IFR_FORM_SET
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public EFI_GUID Guid;
-        [FieldOffset(18)]
         public EFI_STRING_ID FormSetTitle;
-        [FieldOffset(20)]
         public EFI_STRING_ID Help;
-        [FieldOffset(22)]
         public byte Flags;
         // EFI_GUID ClassGuid[...];
     };
 
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_FORM
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public ushort FormId;
-        [FieldOffset(4)]
         public EFI_STRING_ID FormTitle;
     };
     /*
@@ -1351,14 +1330,11 @@ namespace IFR
     }
     EFI_IFR_DEFAULT_2;
 */
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
     struct EFI_IFR_SUBTITLE
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public EFI_IFR_STATEMENT_HEADER Statement;
-        [FieldOffset(6)]
         public byte Flags;
     };
     /*
@@ -1437,14 +1413,11 @@ namespace IFR
             EFI_IFR_RESET_BUTTON;
             */
             
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
     struct EFI_IFR_ACTION
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public EFI_IFR_QUESTION_HEADER Question;
-        [FieldOffset(13)]
         public EFI_STRING_ID QuestionConfig;
     };
 /*
@@ -1651,12 +1624,10 @@ namespace IFR
                     #define EFI_IFR_OPTION_DEFAULT_MFG     0x20
     */
          
-    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
     struct EFI_IFR_GUID
     {
-        [FieldOffset(0)]
         public EFI_IFR_OP_HEADER Header;
-        [FieldOffset(2)]
         public EFI_GUID Guid;
         //Optional Data Follows
     };
