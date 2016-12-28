@@ -149,7 +149,7 @@ namespace IFR
     /// <summary>
     /// Severity for console messages
     /// </summary>
-    public enum IfrErrorSeverity { INFO, STATUS, WARNING, ERROR, UNIMPLEMENTED };
+    public enum IfrErrorSeverity { INFO, SUCCESS, STATUS, WARNING, ERROR, UNIMPLEMENTED };
 
     static class IFRHelper
     {
@@ -287,6 +287,7 @@ namespace IFR
             switch (severity)
             {
                 case IfrErrorSeverity.INFO: message += "{INFO}         "; break;
+                case IfrErrorSeverity.SUCCESS: color = Color.LimeGreen; message += "{SUCCESS}      "; break;
                 case IfrErrorSeverity.STATUS: color = Color.LightGreen; message += "{STATUS}       "; break;
                 case IfrErrorSeverity.WARNING: color = Color.LightCoral; message += "{WARNING}      "; break;
                 case IfrErrorSeverity.ERROR: color = Color.OrangeRed; message += "{ERROR}        "; break;

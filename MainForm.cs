@@ -51,7 +51,7 @@ namespace IfrViewer
             for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
             {
                 string hpk_filename = Environment.GetCommandLineArgs()[i];
-                PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file: \"" + hpk_filename + "\"");
+                PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file \"" + hpk_filename + "\"...");
                 HPKfile hpk = null;
                 try
                 {
@@ -68,7 +68,7 @@ namespace IfrViewer
                 {
                     TreeNode root = tv.Nodes.Add(hpk.Name);
                     LoadHpkElementIntoTreeView(hpk, root);
-                    PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file completed!");
+                    PrintLineToLocalConsole(IfrErrorSeverity.SUCCESS, "Main", "Loading file \"" + hpk_filename + "\" completed!");
                     root.Expand();
                 }
             }
