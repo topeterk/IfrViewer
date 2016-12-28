@@ -4,9 +4,10 @@
 
 
 Tool that is able to read a binary HPK package and most (hopefully all in future) of its HII and IFR structures.  
-> A HPK is a __Hii package__ (kind of file structure) comming from UEFI specification.
-> It consists of verious things but as a core element it contains strings for different languages
+> A HPK holds __Hii package__s (kind of file structure) defined by UEFI.
+> A Hii package can consist of many various things but mostly it contains strings for different languages
 > and IFR structures (__Internal Forms Representation__) to be able to build the SETUP menu for UEFI capable systems.
+> The definition for HII and IFR related structures cen be found [at http://uefi.org] (http://uefi.org/specifications)
 
 ## Goals
 1. List all IFR related data in order to HPK content in the first place
