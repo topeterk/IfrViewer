@@ -48,13 +48,14 @@ namespace IfrViewer
             CenterToScreen();
 
             // Load project from command line argument (when available)
-            if (Environment.GetCommandLineArgs().Length > 1)
+            for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
             {
-                PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file: \"" + Environment.GetCommandLineArgs()[1] + "\"");
+                string hpk_filename = Environment.GetCommandLineArgs()[i];
+                PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file: \"" + hpk_filename + "\"");
                 HPKfile hpk = null;
                 try
                 {
-                    hpk = new HPKfile(Environment.GetCommandLineArgs()[1]);
+                    hpk = new HPKfile(hpk_filename);
                 }
                 catch (Exception ex)
                 {
@@ -68,6 +69,7 @@ namespace IfrViewer
                     TreeNode root = tv.Nodes.Add(hpk.Name);
                     LoadHpkElementIntoTreeView(hpk, root);
                     PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file completed!");
+                    root.Expand();
                 }
             }
         }
