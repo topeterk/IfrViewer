@@ -44,6 +44,7 @@ namespace IFR
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
     using UINT32 = UInt32;
+    using UINT16 = UInt16;
     using UINT8 = Byte;
     using CHAR16 = Char;
 
@@ -1322,17 +1323,17 @@ namespace IFR
             #define EFI_HII_DEFAULT_CLASS_HARDWARE_END   0xbfff
             #define EFI_HII_DEFAULT_CLASS_FIRMWARE_BEGIN 0xc000
             #define EFI_HII_DEFAULT_CLASS_FIRMWARE_END   0xffff
-
-            typedef struct _EFI_IFR_VARSTORE
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_GUID Guid;
-            EFI_VARSTORE_ID VarStoreId;
-            UINT16 Size;
-            UINT8 Name[1];
-        }
-        EFI_IFR_VARSTORE;
-
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 22)]
+    struct EFI_IFR_VARSTORE
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_GUID Guid;
+        public EFI_VARSTORE_ID VarStoreId;
+        public UINT16 Size;
+        // UINT8 Name[...];
+    };
+/*
             typedef struct _EFI_IFR_VARSTORE_EFI
         {
             EFI_IFR_OP_HEADER Header;

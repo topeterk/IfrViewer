@@ -90,6 +90,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeVarstore(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCodeGuid(raw_data); break;
                     #endregion
@@ -172,7 +173,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
@@ -288,6 +288,32 @@ namespace IFR
             data_payload.IncreaseOffset(this._Header.GetPhysSize());
         }
     }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// </summary>
+    class HiiIfrOpCodeVarstore : HiiIfrOpCode<EFI_IFR_VARSTORE>
+    {
+        private struct Payload_t
+        {
+            public string Name;
+        }
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        private Payload_t _Payload;
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiIfrOpCodeVarstore(IfrRawDataBlock raw) : base(raw)
+        {
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
+            _Payload.Name = data_payload.CopyOfAsciiNullTerminatedString;
+        }
+    }
     #endregion
 
     #region Definitions for String Package
@@ -389,7 +415,7 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// Hii Sibt class of EFI_IFR_FORM_SET_OP
     /// </summary>
     class HiiSibtBlockStringUcs2 : HiiSibtBlock<EFI_HII_SIBT_STRING_UCS2_BLOCK>
     {
@@ -419,7 +445,7 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// Hii Sibt class of EFI_IFR_FORM_SET_OP
     /// </summary>
     class HiiSibtBlockNoPayload : HiiSibtBlock<EFI_HII_STRING_BLOCK>
     {
