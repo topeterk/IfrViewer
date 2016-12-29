@@ -45,6 +45,10 @@ namespace IFR
         /// Raw data representation of this object's payload
         /// </summary> 
         protected IfrRawDataBlock data_payload;
+        /// <summary>
+        /// Physical size of header and payload
+        /// </summary>
+        public uint PhysicalSize { get { return data.Length; } }
         #endregion
 
         #region Header specific
@@ -130,6 +134,11 @@ namespace IFR
                         {
                             list.Add(new KeyValuePair<string, object>("Raw Bytes", (obj as System.Byte[]).HexDump(BytesPerLine)));
                         }
+                        else if (type.FullName == "System.String")
+                        {
+                            string value = obj as System.String;
+                            list.Add(new KeyValuePair<string, object>("String", "\"" + value + "\""));
+                        }
                         else
                         {
                             foreach (var obj_elem in obj as IEnumerable)
@@ -152,8 +161,13 @@ namespace IFR
                     {
                         if (fi.FieldType.FullName == "System.Char[]")
                         {
-                            string value = new string(fi.GetValue(obj) as System.Char[]).TrimEnd(new char[] { (char)0x00 }); // remove ending zeros
+                            string value = new string(fi.GetValue(obj) as System.Char[]).Replace("\0", "<NUL>");
                             list.Add(new KeyValuePair<string, object>(fi.Name, "\"" + value + "\""));
+                        }
+                        else if (fi.FieldType.FullName == "System.String")
+                        {
+                            string value = fi.GetValue(obj) as System.String;
+                            list.Add(new KeyValuePair<string, object>("String", "\"" + value + "\""));
                         }
                         else if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
                             list.Add(new KeyValuePair<string, object>(fi.Name, fi.GetValue(obj)));

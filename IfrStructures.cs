@@ -44,7 +44,8 @@ namespace IFR
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
     using UINT32 = UInt32;
-    using CHAR16 = System.Char;
+    using UINT8 = Byte;
+    using CHAR16 = Char;
 
     /// <summary>
     /// Wrapper for EFI_GUID
@@ -113,18 +114,77 @@ namespace IFR
             Offset += amount;
             Length -= amount;
         }
+
         /// <summary>
-        /// Should not be used in release version because memory is copied!
-        /// Can be used while debugging to see only selected data more easily.
+        /// Copies the whole selected buffer at the current data position
         /// </summary>
+        /// <returns>Byte array</returns>
         public byte[] CopyOfSelectedBytes { get { return Bytes.SubArray((int)Offset, (int)Length); } }
+
+        /// <summary>
+        /// Retrieves a null terminated ASCII string from the current data position
+        /// </summary>
+        /// <returns>Managed string filled with corresponding raw data (without NULL)</returns>
+        public string CopyOfAsciiNullTerminatedString
+        {
+            get
+            {
+                const int startindex = 0;
+
+                int IdxStart = (int)(Offset + startindex);
+                int IdxEnd = IdxStart + (int)Length;
+                int IdxNull = -1;
+                for (int i = IdxStart; i < IdxEnd; i++)
+                {
+                    if (Bytes[i] == '\0') // null terminated string
+                    {
+                        IdxNull = i;
+                        break;
+                    }
+                }
+
+                if (IdxNull == -1)
+                    throw new Exception("Expected string is not NULL terminated!");
+
+                return System.Text.Encoding.ASCII.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a null terminated Unicode string from the current data position
+        /// </summary>
+        /// <returns>Managed string filled with corresponding raw data (without NULL)</returns>
+        public string CopyOfUnicodeNullTerminatedString
+        {
+            get
+            {
+                const int startindex = 0;
+
+                int IdxStart = (int)(Offset + startindex);
+                int IdxEnd = IdxStart + (int)Length;
+                int IdxNull = -1;
+                for (int i = IdxStart; i < IdxEnd - 1; i += 2)
+                {
+                    if ((Bytes[i] == '\0') && (Bytes[i] == '\0')) // null terminated string
+                    {
+                        IdxNull = i;
+                        break;
+                    }
+                }
+
+                if (IdxNull == -1)
+                    throw new Exception("Expected string is not NULL terminated!");
+
+                return System.Text.Encoding.Unicode.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
+            }
+        }
 
         /// <summary>
         /// Creates a managed object at the current data position
         /// </summary>
         /// <typeparam name="T">Type of managed structure</typeparam>
         /// <param name="startindex">Additional starting offset</param>
-        /// <returns>Managed structure filled initialized with corresponding raw data</returns>
+        /// <returns>Managed structure filled with corresponding raw data</returns>
         public T ToIfrType<T>(uint startindex = 0)
         {
             // Sanity check of broken structs..
@@ -650,32 +710,41 @@ namespace IFR
         public CHAR16[] LanguageWindow;
         public EFI_STRING_ID LanguageName;
         // CHAR8 Language[...];
+        // EFI_HII_STRING_BLOCK Blocks[...];
     }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct EFI_HII_STRING_BLOCK
+    {
+        private UINT8 _BlockType;
+        // UINT8 BlockBody[...];
+        
+        public EFI_HII_SIBT_e BlockType { get { return (EFI_HII_SIBT_e)_BlockType; } set { _BlockType = (UINT8)value; } }
+    }
+
+    /// <summary>
+    /// Value of different string information block types
+    /// </summary>
+    enum EFI_HII_SIBT_e
+    {
+        EFI_HII_SIBT_END = 0x00,
+        EFI_HII_SIBT_STRING_SCSU = 0x10,
+        EFI_HII_SIBT_STRING_SCSU_FONT = 0x11,
+        EFI_HII_SIBT_STRINGS_SCSU = 0x12,
+        EFI_HII_SIBT_STRINGS_SCSU_FONT = 0x13,
+        EFI_HII_SIBT_STRING_UCS2 = 0x14,
+        EFI_HII_SIBT_STRING_UCS2_FONT = 0x15,
+        EFI_HII_SIBT_STRINGS_UCS2 = 0x16,
+        EFI_HII_SIBT_STRINGS_UCS2_FONT = 0x17,
+        EFI_HII_SIBT_DUPLICATE = 0x20,
+        EFI_HII_SIBT_SKIP2 = 0x21,
+        EFI_HII_SIBT_SKIP1 = 0x22,
+        EFI_HII_SIBT_EXT1 = 0x30,
+        EFI_HII_SIBT_EXT2 = 0x31,
+        EFI_HII_SIBT_EXT4 = 0x32,
+        EFI_HII_SIBT_FONT = 0x40,
+    };
     /*
-            typedef struct {
-              UINT8 BlockType;
-            } EFI_HII_STRING_BLOCK;
-
-            //
-            // Value of different string information block types
-            //
-            #define EFI_HII_SIBT_END                     0x00
-            #define EFI_HII_SIBT_STRING_SCSU             0x10
-            #define EFI_HII_SIBT_STRING_SCSU_FONT        0x11
-            #define EFI_HII_SIBT_STRINGS_SCSU            0x12
-            #define EFI_HII_SIBT_STRINGS_SCSU_FONT       0x13
-            #define EFI_HII_SIBT_STRING_UCS2             0x14
-            #define EFI_HII_SIBT_STRING_UCS2_FONT        0x15
-            #define EFI_HII_SIBT_STRINGS_UCS2            0x16
-            #define EFI_HII_SIBT_STRINGS_UCS2_FONT       0x17
-            #define EFI_HII_SIBT_DUPLICATE               0x20
-            #define EFI_HII_SIBT_SKIP2                   0x21
-            #define EFI_HII_SIBT_SKIP1                   0x22
-            #define EFI_HII_SIBT_EXT1                    0x30
-            #define EFI_HII_SIBT_EXT2                    0x31
-            #define EFI_HII_SIBT_EXT4                    0x32
-            #define EFI_HII_SIBT_FONT                    0x40
-
             //
             // Definition of different string information block types
             //
@@ -686,12 +755,6 @@ namespace IFR
             EFI_STRING_ID StringId;
         }
         EFI_HII_SIBT_DUPLICATE_BLOCK;
-
-            typedef struct _EFI_HII_SIBT_END_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-        }
-        EFI_HII_SIBT_END_BLOCK;
 
             typedef struct _EFI_HII_SIBT_EXT1_BLOCK
         {
@@ -772,7 +835,14 @@ namespace IFR
             UINT8 StringText[1];
         }
         EFI_HII_SIBT_STRINGS_SCSU_FONT_BLOCK;
-
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct EFI_HII_SIBT_STRING_UCS2_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        // CHAR16 StringText[...];
+    }
+/*
             typedef struct _EFI_HII_SIBT_STRING_UCS2_BLOCK
         {
             EFI_HII_STRING_BLOCK Header;

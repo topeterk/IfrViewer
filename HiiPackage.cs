@@ -249,11 +249,11 @@ namespace IFR
     class HiiIfrOpCodeFormSet : HiiIfrOpCode<EFI_IFR_FORM_SET>
     {
         /// <summary>
-        /// Managed structure header
+        /// Managed structure payload
         /// </summary>
         protected List<EFI_GUID> _Payload;
         /// <summary>
-        /// Managed structure header
+        /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
@@ -296,25 +296,136 @@ namespace IFR
     /// </summary>
     class HiiPackageString : HiiPackage<EFI_HII_STRING_PACKAGE_HDR>
     {
+        private struct Payload_t
+        {
+            public string Language;
+        }
+        /// <summary>
+        /// Language identifier for this package
+        /// </summary>
+        private Payload_t _Payload;
+        /// <summary>
+        /// Language identifier for this package
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
         public HiiPackageString(IfrRawDataBlock raw) : base(raw)
         {
             data_payload = new IfrRawDataBlock(data);
             data_payload.IncreaseOffset(_Header.GetPhysSize());
 
-            PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, Name);
-            //// Parse all IFR opcodes..
-            //uint offset = 0;
-            //while (offset < data_payload.Length)
-            //{
-            //    EFI_IFR_OP_HEADER ifr_hdr = data_payload.ToIfrType<EFI_IFR_OP_HEADER>(offset);
-            //    if (data_payload.Length < ifr_hdr.Length + offset)
-            //        throw new Exception("Payload length invalid");
+            _Payload.Language = data_payload.CopyOfAsciiNullTerminatedString;
 
-            //    IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
-            //    HPKElement hpk_element;
+            // Parse all string information block types..
+            uint offset = (uint)_Payload.Language.Length + 1;
+            while (offset < data_payload.Length)
+            {
+                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, data_payload.Length - offset);
+                EFI_HII_STRING_BLOCK block_hdr = raw_data.ToIfrType<EFI_HII_STRING_BLOCK>();
+                HPKElement hpk_element;
 
-            //    offset += ifr_hdr.Length;
-            //}
+                switch (block_hdr.BlockType)
+                {
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_END: hpk_element = new HiiSibtBlockNoPayload(raw_data); break;
+                    /*case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_SCSU:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_SCSU_FONT:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_SCSU:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_SCSU_FONT:*/
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2: hpk_element = new HiiSibtBlockStringUcs2(raw_data); break;
+                    /*case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2_FONT:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2_FONT:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_DUPLICATE:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT1:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT2:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4:
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_FONT:*/
+                    default:
+                        //raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
+                        PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, block_hdr.BlockType.ToString());
+                        PrintConsoleMsg(IfrErrorSeverity.ERROR, "Parsing aborted due to unimplemented type!");
+                        return;
+                }
+                Childs.Add(hpk_element);
+
+                offset += hpk_element.PhysicalSize;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hii Sibt base class
+    /// </summary>
+    class HiiSibtBlock<T> : HPKElement
+    {
+        #region HiiSibtBlock definition
+        /// <summary>
+        /// Type of string information block type
+        /// </summary>
+        public readonly EFI_HII_SIBT_e BlockType;
+
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        protected T _Header;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Header { get { return _Header; } }
+
+        /// <summary>
+        /// Friendly name of this object
+        /// </summary> 
+        public override string Name { get { string name = Enum.GetName(BlockType.GetType(), BlockType); return name == null ? "UNKNOWN" : name; } }
+
+        public HiiSibtBlock(IfrRawDataBlock raw) : base(raw)
+        {
+            this.BlockType = data.ToIfrType<EFI_HII_STRING_BLOCK>().BlockType;
+            this._Header = data.ToIfrType<T>();
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// </summary>
+    class HiiSibtBlockStringUcs2 : HiiSibtBlock<EFI_HII_SIBT_STRING_UCS2_BLOCK>
+    {
+        private struct Payload_t
+        {
+            public string StringText;
+        }
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        private Payload_t _Payload;
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiSibtBlockStringUcs2(IfrRawDataBlock raw) : base(raw)
+        {
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
+            _Payload.StringText = data_payload.CopyOfUnicodeNullTerminatedString;
+
+            // know we know actual data after parsing payload, so fix up lengths..
+            data_payload.Length = ((uint)_Payload.StringText.Length)*2 + 2; // n*CHAR16 + NULL
+            data.Length = this._Header.GetPhysSize() + data_payload.Length;
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// </summary>
+    class HiiSibtBlockNoPayload : HiiSibtBlock<EFI_HII_STRING_BLOCK>
+    {
+        public HiiSibtBlockNoPayload(IfrRawDataBlock raw) : base(raw)
+        {
+            data.Length = this._Header.GetPhysSize(); // shorten header length since we have no payload
         }
     }
     #endregion
