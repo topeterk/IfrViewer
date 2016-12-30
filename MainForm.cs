@@ -140,6 +140,11 @@ namespace IfrViewer
 
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
+            // Check if window got minimized then stop changing sizes!
+            // When form gets maximized (means ClientSize changes back to normal) then SizeChanged event doesn't get fired   (;ﾟ︵ﾟ;)
+            if ((ClientSize.Width == 0) || (ClientSize.Height == 0))
+                return;
+
             splitContainer1.Width = ClientSize.Width - 24;
             splitContainer1.Height = ClientSize.Height - 24;
             tv.Width = splitContainer1.Panel1.Width - 6;
