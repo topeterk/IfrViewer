@@ -195,13 +195,13 @@ namespace IFR
             Childs = new List<HPKElement>();
         }
         /// <summary>
-        /// An error has occured
+        /// Generates a logged message
         /// </summary>
         /// <param name="severity">Severity of message</param>
         /// <param name="msg">Message string</param>
-        protected void PrintConsoleMsg(IfrErrorSeverity severity, string msg)
+        protected void LogMessage(LogSeverity severity, string msg)
         {
-            PrintLineToLocalConsole(severity, this.ToString(), msg);
+            CreateLogEntry(severity, this.ToString(), msg);
         }
         #endregion
     }
@@ -247,8 +247,8 @@ namespace IFR
                     case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS: hpk_element = new HiiPackageForm(raw_data); break;
                     case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: hpk_element = new HiiPackageString(raw_data); break;
                     default:
-                        //raw_data.DumpToDebugConsole(hdr.Type.ToString());
-                        PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, hdr.Type.ToString());
+                        //raw_data.GenerateAndLogDump(hdr.Type.ToString());
+                        LogMessage(LogSeverity.UNIMPLEMENTED, hdr.Type.ToString());
                         hpk_element = new HiiPackage<EFI_HII_PACKAGE_HEADER>(raw_data);
                         break;
                 }

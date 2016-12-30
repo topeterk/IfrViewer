@@ -198,8 +198,8 @@ namespace IFR
                     */
                     #endregion
                     default:
-                        //raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
-                        PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());
+                        //raw_data.GenerateAndLogDump(ifr_hdr.OpCode.ToString());
+                        LogMessage(LogSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());
                         hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
                 }
@@ -369,9 +369,9 @@ namespace IFR
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_FONT:*/
                     default:
-                        //raw_data.DumpToDebugConsole(ifr_hdr.OpCode.ToString());
-                        PrintConsoleMsg(IfrErrorSeverity.UNIMPLEMENTED, block_hdr.BlockType.ToString());
-                        PrintConsoleMsg(IfrErrorSeverity.ERROR, "Parsing aborted due to unimplemented type!");
+                        //raw_data.GenerateAndLogDump(ifr_hdr.OpCode.ToString());
+                        LogMessage(LogSeverity.UNIMPLEMENTED, block_hdr.BlockType.ToString());
+                        LogMessage(LogSeverity.ERROR, "Parsing aborted due to unimplemented type!");
                         return;
                 }
                 Childs.Add(hpk_element);

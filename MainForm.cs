@@ -22,7 +22,6 @@
 
 using IFR;
 using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
 
@@ -33,7 +32,7 @@ namespace IfrViewer
         public MainForm()
         {
             InitializeComponent();
-            IFRHelper.conout = conout; // Use local window as debug window
+            IFRHelper.log = log; // Use local window as logging window
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -51,7 +50,7 @@ namespace IfrViewer
             for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
             {
                 string hpk_filename = Environment.GetCommandLineArgs()[i];
-                PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Main", "Loading file \"" + hpk_filename + "\"...");
+                CreateLogEntry(LogSeverity.INFO, "Main", "Loading file \"" + hpk_filename + "\"...");
                 HPKfile hpk = null;
                 try
                 {
@@ -60,7 +59,7 @@ namespace IfrViewer
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    PrintLineToLocalConsole(IfrErrorSeverity.ERROR, "Main", "Loading file failed!");
+                    CreateLogEntry(LogSeverity.ERROR, "Main", "Loading file failed!");
                     MessageBox.Show("Loading file failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
@@ -68,10 +67,14 @@ namespace IfrViewer
                 {
                     TreeNode root = tv.Nodes.Add(hpk.Name);
                     LoadHpkElementIntoTreeView(hpk, root);
-                    PrintLineToLocalConsole(IfrErrorSeverity.SUCCESS, "Main", "Loading file \"" + hpk_filename + "\" completed!");
+                    CreateLogEntry(LogSeverity.SUCCESS, "Main", "Loading file \"" + hpk_filename + "\" completed!");
                     root.Expand();
                 }
             }
+
+            log.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+            log.AutoResizeRows(DataGridViewAutoSizeRowsMode.AllCells);
+            log.FirstDisplayedScrollingRowIndex = log.Rows[log.RowCount - 1].Index; // Scroll to bottom
         }
 
         private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode root)
@@ -141,8 +144,8 @@ namespace IfrViewer
             splitContainer1.Height = ClientSize.Height - 24;
             tv.Width = splitContainer1.Panel1.Width - 6;
             tv.Height = splitContainer1.Panel1.Height - 6;
-            conout.Width = splitContainer1.Panel2.Width - 6;
-            conout.Height = splitContainer1.Panel2.Height - 6;
+            log.Width = splitContainer1.Panel2.Width - 6;
+            log.Height = splitContainer1.Panel2.Height - 6;
         }
 
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)

@@ -25,6 +25,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Windows.Forms;
 
 /// <summary>
 /// This namespace contains the Internal Form Representation definisions
@@ -64,11 +65,11 @@ namespace IFR
     /// </summary>
     public class IfrRawDataBlock
     {
-        #region IFR raw data block definition
         public byte[] Bytes;
         public uint Offset;
         public uint Length;
 
+        #region Constructors
         /// <summary>
         /// Creates new IFR raw data block.
         /// Sets initially Offset to 0 and Length according to given raw data length
@@ -104,18 +105,9 @@ namespace IFR
             Offset = origin.Offset;
             Length = origin.Length;
         }
-        /// <summary>
-        /// Changes Offset and Length accordingly. Cheks for out of bounds.
-        /// </summary>
-        /// <param name="amount">Amount of bytes to skip</param>
-        public void IncreaseOffset(uint amount)
-        {
-            if (Length < amount)
-                throw new Exception("Out of bounds!");
-            Offset += amount;
-            Length -= amount;
-        }
+        #endregion
 
+        #region CopyOf[type] methods
         /// <summary>
         /// Copies the whole selected buffer at the current data position
         /// </summary>
@@ -179,6 +171,20 @@ namespace IFR
                 return System.Text.Encoding.Unicode.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
             }
         }
+        #endregion
+
+        #region Other methods
+        /// <summary>
+        /// Changes Offset and Length accordingly. Cheks for out of bounds.
+        /// </summary>
+        /// <param name="amount">Amount of bytes to skip</param>
+        public void IncreaseOffset(uint amount)
+        {
+            if (Length < amount)
+                throw new Exception("Out of bounds!");
+            Offset += amount;
+            Length -= amount;
+        }
 
         /// <summary>
         /// Creates a managed object at the current data position
@@ -205,12 +211,27 @@ namespace IFR
             return result;
         }
         #endregion
+
+        #region Debug methods
+        /// <summary>
+        /// Dumps the selection of IFR raw data block to log window
+        /// </summary>
+        /// <param name="title">Firendly name of the dumped object</param>
+        /// <param name="bytesPerLine">Amount of bytes shown at a single line</param>
+        /// <returns>Generated message</returns>
+        public string GenerateAndLogDump(string title = "Unnamed", uint bytesPerLine = 16)
+        {
+            string message = "Data \"" + title + "\" dumped (Offset=" + Offset + ", Length=" + Length + "):" + Environment.NewLine + CopyOfSelectedBytes.HexDump(bytesPerLine);
+            IFRHelper.CreateLogEntry(LogSeverity.INFO, "Debug", message);
+            return message;
+        }
+        #endregion
     }
 
     /// <summary>
     /// Severity for console messages
     /// </summary>
-    public enum IfrErrorSeverity { INFO, SUCCESS, STATUS, WARNING, ERROR, UNIMPLEMENTED };
+    public enum LogSeverity { INFO, SUCCESS, STATUS, WARNING, ERROR, UNIMPLEMENTED };
 
     static class IFRHelper
     {
@@ -231,19 +252,6 @@ namespace IFR
                 throw new Exception("Hey dev, get your structure size of \"" + typeof(T).ToString() + "\" fixed!");
 
             return result;
-        }
-        #endregion
-
-        #region Methods specific for IFR structures
-        /// <summary>
-        /// Dumps the selection of IFR raw data block to debugger console
-        /// </summary>
-        /// <param name="data">Data that shall be dumped</param>
-        /// <param name="bytesPerLine">Amount of bytes shown at a single line</param>
-        public static void DumpToDebugConsole(this IfrRawDataBlock data, string title = "Unnamed", uint bytesPerLine = 16)
-        {
-            string dump = data.CopyOfSelectedBytes.HexDump(bytesPerLine);
-            System.Console.WriteLine(PrintLineToLocalConsole(IfrErrorSeverity.INFO, "Debug", "Data \"" + title + "\" dumped (Offset=" + data.Offset + ", Length=" + data.Length + "):" + Environment.NewLine + dump));
         }
         #endregion
 
@@ -333,45 +341,42 @@ namespace IFR
         /// <summary>
         /// Debug window which is used to print debug messages
         /// </summary>
-        public static System.Windows.Forms.RichTextBox conout = null;
+        public static DataGridView log = null;
 
         /// <summary>
-        /// Used as last instance to print any kind of HII/IFR related debug messages
+        /// Generates a logged message and adds it to the logging window
         /// </summary>
         /// <param name="severity">Severity of message</param>
         /// <param name="origin">Short origin name of message (to group messges)</param>
         /// <param name="msg">Message string</param>
-        public static string PrintLineToLocalConsole(IfrErrorSeverity severity, string origin, string msg)
+        public static void CreateLogEntry(LogSeverity severity, string origin, string msg)
         {
+            string typename = severity.ToString();
 
-            // prepare debug message
-            Color color = Color.White;
-            string message = "";
+            Color color;
             switch (severity)
             {
-                case IfrErrorSeverity.INFO: message += "{INFO}         "; break;
-                case IfrErrorSeverity.SUCCESS: color = Color.LimeGreen; message += "{SUCCESS}      "; break;
-                case IfrErrorSeverity.STATUS: color = Color.LightGreen; message += "{STATUS}       "; break;
-                case IfrErrorSeverity.WARNING: color = Color.LightCoral; message += "{WARNING}      "; break;
-                case IfrErrorSeverity.ERROR: color = Color.OrangeRed; message += "{ERROR}        "; break;
-                case IfrErrorSeverity.UNIMPLEMENTED: color = Color.HotPink; message += "{UNIMPLEMENTED}"; break;
-                default: message += "{UNKNOWN}      "; break;
+                case LogSeverity.SUCCESS: color = Color.LimeGreen; break;
+                case LogSeverity.STATUS: color = Color.LightGreen; break;
+                case LogSeverity.WARNING: color = Color.LightCoral; break;
+                case LogSeverity.ERROR: color = Color.OrangeRed; break;
+                case LogSeverity.UNIMPLEMENTED: color = Color.HotPink; break;
+                //case LogSeverity.INFO:
+                default: color = Color.White; break;
             }
-            message += "[" + origin + "] " + msg.Replace(Environment.NewLine, Environment.NewLine + " > ") + Environment.NewLine;
 
-            // Is debug window connected?
-            if (conout != null)
+            //Is debug window connected?
+            if (log != null)
             {
                 // print debug message and assign color
-                int SelectionStart = (conout.Text.Length == 0 ? 0 : conout.Text.Length - 1);
-                conout.AppendText(message);
-                int SelectionLength = conout.Text.Length - SelectionStart;
-                conout.Select(SelectionStart, SelectionLength);
-                conout.SelectionBackColor = color;
-                conout.Select(SelectionStart, 0); // = autoscroll
+                log.Rows[log.Rows.Add(new object[]{ typename, origin, msg.Replace(Environment.NewLine, Environment.NewLine + " > ") })].SetRowBackgroundColor(color);
             }
+        }
 
-            return message;
+        public static void SetRowBackgroundColor(this DataGridViewRow row, Color color)
+        {
+            foreach (DataGridViewCell col in row.Cells)
+                col.Style.BackColor = color;
         }
         #endregion
     }
