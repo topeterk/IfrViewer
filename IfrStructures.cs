@@ -1338,18 +1338,18 @@ namespace IFR
         public UINT16 Size;
         // UINT8 Name[...];
     };
-/*
-            typedef struct _EFI_IFR_VARSTORE_EFI
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_VARSTORE_ID VarStoreId;
-            EFI_GUID Guid;
-            UINT32 Attributes;
-            UINT16 Size;
-            UINT8 Name[1];
-        }
-        EFI_IFR_VARSTORE_EFI;
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 26)]
+    struct EFI_IFR_VARSTORE_EFI
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_VARSTORE_ID VarStoreId;
+        public EFI_GUID Guid;
+        public UINT32 Attributes;
+        public UINT16 Size;
+        // UINT8 Name[...];
+    };
+/*
             typedef struct _EFI_IFR_VARSTORE_NAME_VALUE
         {
             EFI_IFR_OP_HEADER Header;
