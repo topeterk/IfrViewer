@@ -1579,15 +1579,15 @@ namespace IFR
 
         #define EFI_IFR_CHECKBOX_DEFAULT       0x01
         #define EFI_IFR_CHECKBOX_DEFAULT_MFG   0x02
-
-                typedef struct _EFI_IFR_TEXT
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_STATEMENT_HEADER Statement;
-                EFI_STRING_ID TextTwo;
-            }
-            EFI_IFR_TEXT;
 */
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
+    struct EFI_IFR_TEXT
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_STATEMENT_HEADER Statement;
+        public EFI_STRING_ID TextTwo;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
     struct EFI_IFR_REF
     {
