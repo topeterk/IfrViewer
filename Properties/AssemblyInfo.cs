@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Peter Kirmeier")]
 [assembly: AssemblyProduct("IfrViewer")]
-[assembly: AssemblyCopyright("Copyright © 2016 Peter Kirmeier")]
+[assembly: AssemblyCopyright("Copyright © 2017 Peter Kirmeier")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
