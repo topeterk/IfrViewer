@@ -88,11 +88,12 @@ namespace IFR
                     #region IFR OpCodes (more than just the header)
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeVarstore(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeVarstoreEfi(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCodeGuid(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
@@ -155,7 +156,6 @@ namespace IFR
                     /*
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
@@ -338,6 +338,75 @@ namespace IFR
             this.data_payload = new IfrRawDataBlock(data);
             data_payload.IncreaseOffset(this._Header.GetPhysSize());
             _Payload.Name = data_payload.CopyOfAsciiNullTerminatedString;
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_ONE_OF_OP
+    /// </summary>
+    class HiiIfrOpCodeOneOf : HiiIfrOpCode<EFI_IFR_ONE_OF>
+    {
+        private struct Payload_t
+        {
+            public UInt64 MinValue;
+            public UInt64 MaxValue;
+            public UInt64 Step;
+        }
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        private Payload_t _Payload;
+        /// <summary>
+        /// String text of this block
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiIfrOpCodeOneOf(IfrRawDataBlock raw) : base(raw)
+        {
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
+         
+            switch (this._Header.Flags_DataSize)
+            {
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
+                    {
+                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8>();
+                        _Payload.MinValue = data.MinValue;
+                        _Payload.MaxValue = data.MaxValue;
+                        _Payload.Step = data.Step;
+                    }
+                    break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
+                    {
+                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16>();
+                        _Payload.MinValue = data.MinValue;
+                        _Payload.MaxValue = data.MaxValue;
+                        _Payload.Step = data.Step;
+                    }
+                    break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
+                    {
+                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32>();
+                        _Payload.MinValue = data.MinValue;
+                        _Payload.MaxValue = data.MaxValue;
+                        _Payload.Step = data.Step;
+                    }
+                    break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
+                    {
+                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64>();
+                        _Payload.MinValue = data.MinValue;
+                        _Payload.MaxValue = data.MaxValue;
+                        _Payload.Step = data.Step;
+                    }
+                    break;
+                default:
+                    LogMessage(LogSeverity.ERROR, Name + ": Unknown Data size of EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x");
+                    _Payload.MinValue = 0;
+                    _Payload.MaxValue = 0;
+                    _Payload.Step = 0;
+                    break;
+            }
         }
     }
     #endregion

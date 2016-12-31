@@ -44,9 +44,10 @@ namespace IFR
     using EFI_ANIMATION_ID = UInt16;
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
-    using UINT32 = UInt32;
-    using UINT16 = UInt16;
     using UINT8 = Byte;
+    using UINT16 = UInt16;
+    using UINT32 = UInt32;
+    using UINT64 = UInt64;
     using CHAR16 = Char;
 
     /// <summary>
@@ -1267,7 +1268,7 @@ namespace IFR
 
         public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
         public uint Length { get { return (uint)_LengthAndscope & 0x7F; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x80) | (byte)(value & 0x7F)); } }
-        public uint Scope { get { return (uint)_LengthAndscope >> 7; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x7F) | (byte)((value & 0x01) >> 7)); } }
+        public uint Scope { get { return (uint)_LengthAndscope >> 7; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x7F) | (byte)((value & 0x01) << 7)); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
@@ -1526,7 +1527,36 @@ namespace IFR
                 #define     QF_DATE_STORAGE_NORMAL     0x00
                 #define     QF_DATE_STORAGE_TIME       0x10
                 #define     QF_DATE_STORAGE_WAKEUP     0x20
-
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8
+    {
+        public UINT8 MinValue;
+        public UINT8 MaxValue;
+        public UINT8 Step;
+    };
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16
+    {
+        public UINT16 MinValue;
+        public UINT16 MaxValue;
+        public UINT16 Step;
+    };
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 12)]
+    struct EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32
+    {
+        public UINT32 MinValue;
+        public UINT32 MaxValue;
+        public UINT32 Step;
+    };
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 24)]
+    struct EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64
+    {
+        public UINT64 MinValue;
+        public UINT64 MaxValue;
+        public UINT64 Step;
+    };
+/*
                 typedef union
             {
                   struct {
@@ -1573,16 +1603,40 @@ namespace IFR
                 #define   EFI_IFR_DISPLAY_INT_DEC      0x00
                 #define   EFI_IFR_DISPLAY_UINT_DEC     0x10
                 #define   EFI_IFR_DISPLAY_UINT_HEX     0x20
+*/
+    /// <summary>
+    /// Flags related to the numeric question (mask = 0x03)
+    /// </summary>
+    enum EFI_IFR_NUMERIC_SIZE_e
+    {
+        EFI_IFR_NUMERIC_SIZE_1 = 0x00,
+        EFI_IFR_NUMERIC_SIZE_2 = 0x01,
+        EFI_IFR_NUMERIC_SIZE_4 = 0x02,
+        EFI_IFR_NUMERIC_SIZE_8 = 0x03,
+    };
 
-                typedef struct _EFI_IFR_ONE_OF
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 Flags;
-                MINMAXSTEP_DATA data;
-            }
-            EFI_IFR_ONE_OF;
+    /// <summary>
+    /// Flags related to the numeric question (mask = 0x30)
+    /// </summary>
+    enum EFI_IFR_DISPLAY_e
+    {
+        EFI_IFR_DISPLAY_INT_DEC = 0x00,
+        EFI_IFR_DISPLAY_UINT_DEC = 0x10,
+        EFI_IFR_DISPLAY_UINT_HEX = 0x20,
+    };
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
+    struct EFI_IFR_ONE_OF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public UINT8 _Flags;
+        // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
+
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(_Flags & 0x03); } set { _Flags = (UINT8)((_Flags & 0xFC) | ((UINT8)value & 0x03)); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(_Flags & 0x30); } set { _Flags = (UINT8)((_Flags & 0xCF) | ((UINT8)value & 0x30)); } }
+    };
+/*
                 typedef struct _EFI_IFR_STRING
             {
                 EFI_IFR_OP_HEADER Header;
