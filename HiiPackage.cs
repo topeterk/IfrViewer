@@ -91,6 +91,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeVarstore(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeVarstoreEfi(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
@@ -161,7 +162,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP:

@@ -1587,15 +1587,15 @@ namespace IFR
                 EFI_STRING_ID TextTwo;
             }
             EFI_IFR_TEXT;
-
-                typedef struct _EFI_IFR_REF
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                EFI_FORM_ID FormId;
-            }
-            EFI_IFR_REF;
-
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
+    struct EFI_IFR_REF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public EFI_FORM_ID FormId;
+    };
+/*
                 typedef struct _EFI_IFR_REF2
             {
                 EFI_IFR_OP_HEADER Header;
