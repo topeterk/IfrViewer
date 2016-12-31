@@ -268,12 +268,18 @@ namespace IFR
             while (offset < data_payload.Length)
             {
                 if (data_payload.Length < 16)
-                    throw new Exception("Payload length invalid");
+                {
+                    LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
+                    break;
+                }
 
                 _Payload.Add(data_payload.ToIfrType<EFI_GUID>(offset));
 
                 offset += 16;
             }
+
+            if (this._Header.Flags_ClassGuidCount != _Payload.Count) // information doubled in structure, so we use it for sanity check
+                LogMessage(LogSeverity.ERROR, Name + ": Size of payload does not match with header!");
         }
     }
 

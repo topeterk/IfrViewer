@@ -1397,8 +1397,8 @@ namespace IFR
         private UINT8 _LengthAndscope;
 
         public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
-        public UINT8 Length { get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits<UINT8>(_LengthAndscope, value, 0x7F); } }
-        public UINT8 Scope { get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits<UINT8>(_LengthAndscope, value, 0x01, 7); } }
+        public UINT8 Length { get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x7F); } }
+        public UINT8 Scope { get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x01, 7); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
@@ -1508,8 +1508,10 @@ namespace IFR
         public EFI_GUID Guid;
         public EFI_STRING_ID FormSetTitle;
         public EFI_STRING_ID Help;
-        public UINT8 Flags;
+        public UINT8 Flags; // bits 2:7 reserved
         // EFI_GUID ClassGuid[...];
+
+        public UINT8 Flags_ClassGuidCount { get { return Flags.GetBits<UINT8>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
