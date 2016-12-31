@@ -1450,22 +1450,27 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_STRING_ID DefaultName;
-        public UINT16 DefaultId;
+        private UINT16 _DefaultId;
+
+        public EFI_HII_DEFAULT_CLASS_e DefaultId { get { return _DefaultId.GetBits<EFI_HII_DEFAULT_CLASS_e>(); } set { _DefaultId = SetBits(_DefaultId, value); } }
     };
-    /*
-            //
-            // Default Identifier of default store 
-            //
-            #define EFI_HII_DEFAULT_CLASS_STANDARD       0x0000
-            #define EFI_HII_DEFAULT_CLASS_MANUFACTURING  0x0001
-            #define EFI_HII_DEFAULT_CLASS_SAFE           0x0002
-            #define EFI_HII_DEFAULT_CLASS_PLATFORM_BEGIN 0x4000
-            #define EFI_HII_DEFAULT_CLASS_PLATFORM_END   0x7fff
-            #define EFI_HII_DEFAULT_CLASS_HARDWARE_BEGIN 0x8000
-            #define EFI_HII_DEFAULT_CLASS_HARDWARE_END   0xbfff
-            #define EFI_HII_DEFAULT_CLASS_FIRMWARE_BEGIN 0xc000
-            #define EFI_HII_DEFAULT_CLASS_FIRMWARE_END   0xffff
-*/
+
+    /// <summary>
+    /// Default Identifier of default store 
+    /// </summary>
+    enum EFI_HII_DEFAULT_CLASS_e
+    {
+        EFI_HII_DEFAULT_CLASS_STANDARD = 0x0000,
+        EFI_HII_DEFAULT_CLASS_MANUFACTURING = 0x0001,
+        EFI_HII_DEFAULT_CLASS_SAFE = 0x0002,
+        EFI_HII_DEFAULT_CLASS_PLATFORM_BEGIN = 0x4000,
+        EFI_HII_DEFAULT_CLASS_PLATFORM_END = 0x7fff,
+        EFI_HII_DEFAULT_CLASS_HARDWARE_BEGIN = 0x8000,
+        EFI_HII_DEFAULT_CLASS_HARDWARE_END = 0xbfff,
+        EFI_HII_DEFAULT_CLASS_FIRMWARE_BEGIN = 0xc000,
+        EFI_HII_DEFAULT_CLASS_FIRMWARE_END = 0xffff,
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 22)]
     struct EFI_IFR_VARSTORE
     {
