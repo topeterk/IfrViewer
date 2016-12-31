@@ -1558,11 +1558,12 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_STATEMENT_HEADER Statement;
-        public UINT8 Flags;
+        private UINT8 _Flags;
 
-        public bool Flags_Horizontal { get { return (Flags & (UINT8)EFI_IFR_SUBTITLE_FLAGS_e.EFI_IFR_FLAGS_HORIZONTAL) != 0; } set { Flags = (UINT8)((Flags & 0xFE) | (value ? 0: (UINT8)EFI_IFR_SUBTITLE_FLAGS_e.EFI_IFR_FLAGS_HORIZONTAL)); } }
+        public EFI_IFR_SUBTITLE_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_SUBTITLE_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
+    [Flags]
     enum EFI_IFR_SUBTITLE_FLAGS_e
     {
         EFI_IFR_FLAGS_HORIZONTAL = 0x01,
@@ -1704,21 +1705,22 @@ namespace IFR
         public UINT64 MaxValue;
         public UINT64 Step;
     };
-/*
-                typedef struct _EFI_IFR_NUMERIC
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 Flags;
-                MINMAXSTEP_DATA data;
-            }
-            EFI_IFR_NUMERIC;
-*/
+    /*
+                    typedef struct _EFI_IFR_NUMERIC
+                {
+                    EFI_IFR_OP_HEADER Header;
+                    EFI_IFR_QUESTION_HEADER Question;
+                    UINT8 Flags;
+                    MINMAXSTEP_DATA data;
+                }
+                EFI_IFR_NUMERIC;
+    */
     /// <summary>
-    /// Flags related to the numeric question (mask = 0x03)
+    /// Flags related to the numeric question
     /// </summary>
     enum EFI_IFR_NUMERIC_SIZE_e
     {
+        //EFI_IFR_NUMERIC_SIZE = 0x03,
         EFI_IFR_NUMERIC_SIZE_1 = 0x00,
         EFI_IFR_NUMERIC_SIZE_2 = 0x01,
         EFI_IFR_NUMERIC_SIZE_4 = 0x02,
@@ -1726,10 +1728,11 @@ namespace IFR
     };
 
     /// <summary>
-    /// Flags related to the numeric question (mask = 0x30)
+    /// Flags related to the numeric question
     /// </summary>
     enum EFI_IFR_DISPLAY_e
     {
+        //EFI_IFR_DISPLAY = 0x30,
         EFI_IFR_DISPLAY_INT_DEC = 0x00,
         EFI_IFR_DISPLAY_UINT_DEC = 0x10,
         EFI_IFR_DISPLAY_UINT_HEX = 0x20,
