@@ -26,6 +26,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
+using static IFR.IFRHelper;
 
 /// <summary>
 /// This namespace contains the Internal Form Representation definisions
@@ -34,6 +35,11 @@ using System.Windows.Forms;
 namespace IFR
 {
     #region 1:1 type assignments between C <-> C#
+    using UINT8 = Byte;
+    using UINT16 = UInt16;
+    using UINT32 = UInt32;
+    using UINT64 = UInt64;
+    using CHAR16 = Char;
     using EFI_HII_HANDLE = IntPtr;
     using EFI_STRING = System.String;
     using EFI_IMAGE_ID = UInt16;
@@ -44,11 +50,6 @@ namespace IFR
     using EFI_ANIMATION_ID = UInt16;
     using EFI_DEFAULT_ID = UInt16;
     using EFI_HII_FONT_STYLE = UInt32;
-    using UINT8 = Byte;
-    using UINT16 = UInt16;
-    using UINT32 = UInt32;
-    using UINT64 = UInt64;
-    using CHAR16 = Char;
 
     /// <summary>
     /// Wrapper for EFI_GUID
@@ -338,6 +339,134 @@ namespace IFR
         }
         #endregion
 
+        #region Methods specific for numeric bitmasks
+        private static T _internal_GetBits<T>(UINT64 Value, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
+        {
+            return (T)(dynamic)((Value >> ShiftedOffset) & BitMask);
+        }
+        #region GetBits[Type] wrappers
+        /// <summary>
+        /// Gets a typecasted value from a bit mask represented by the object's numeric value.
+        /// Origin's value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type for typecasted value</typeparam>
+        /// <param name="Value">The objects numeric value</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        /// <returns>Value of selected bits</returns>
+        public static T GetBits<T>(this UINT64 Value, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Gets a typecasted value from a bit mask represented by the object's numeric value.
+        /// Origin's value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type for typecasted value</typeparam>
+        /// <param name="Value">The objects numeric value</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        /// <returns>Value of selected bits</returns>
+        public static T GetBits<T>(this UINT32 Value, UINT32 BitMask = UINT32.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Gets a typecasted value from a bit mask represented by the object's numeric value.
+        /// Origin's value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type for typecasted value</typeparam>
+        /// <param name="Value">The objects numeric value</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        /// <returns>Value of selected bits</returns>
+        public static T GetBits<T>(this UINT16 Value, UINT16 BitMask = UINT16.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Gets a typecasted value from a bit mask represented by the object's numeric value.
+        /// Origin's value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type for typecasted value</typeparam>
+        /// <param name="Value">The objects numeric value</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        /// <returns>Value of selected bits</returns>
+        public static T GetBits<T>(this UINT8 Value, UINT8 BitMask = UINT8.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+        }
+        #endregion
+
+        private static T _internal_SetBits<T>(UINT64 Value, UINT64 NewValue, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
+        {
+            return (T)(dynamic)((Value & ~(BitMask << ShiftedOffset)) | ((NewValue & BitMask) << ShiftedOffset));
+        }
+        #region SetBits[Type] wrappers
+        /// <summary>
+        /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
+        /// Given value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type of given numeric value</typeparam>
+        /// <param name="OldValue">The objects numeric value</param>
+        /// <param name="NewValue">Value of given type to set</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        public static UINT64 SetBits<T>(UINT64 OldValue, T NewValue, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_SetBits<UINT64>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
+        /// Given value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type of given numeric value</typeparam>
+        /// <param name="OldValue">The objects numeric value</param>
+        /// <param name="NewValue">Value of given type to set</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        public static UINT32 SetBits<T>(UINT32 OldValue, T NewValue, UINT32 BitMask = UINT32.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_SetBits<UINT32>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
+        /// Given value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type of given numeric value</typeparam>
+        /// <param name="OldValue">The objects numeric value</param>
+        /// <param name="NewValue">Value of given type to set</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        public static UINT16 SetBits<T>(UINT16 OldValue, T NewValue, UINT16 BitMask = UINT16.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_SetBits<UINT16>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+        }
+        /// <summary>
+        /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
+        /// Given value gets shifted first and then masked.
+        /// If you plan to keep bit position alive, simply use BitMask only.
+        /// </summary>
+        /// <typeparam name="T">Type of given numeric value</typeparam>
+        /// <param name="OldValue">The objects numeric value</param>
+        /// <param name="NewValue">Value of given type to set</param>
+        /// <param name="BitMask">Mask of relevant bits for value, default = 0xFFFFFFFFFFFFFFFF</param>
+        /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
+        public static UINT8 SetBits<T>(UINT8 OldValue, T NewValue, UINT8 BitMask = UINT8.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
+        {
+            return _internal_SetBits<UINT8>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+        }
+        #endregion
+        #endregion
+
         #region Debug and console functions
         /// <summary>
         /// Debug window which is used to print debug messages
@@ -402,11 +531,12 @@ namespace IFR
     {
         [FieldOffset(0)]
         private UINT32 _Length;
-        public uint Length { get { return _Length & 0x00FFFFFF; } set { _Length = (byte)((_Length & 0xFF000000) | (byte)(value & 0x00FFFFFF)); } }
         [FieldOffset(3)]
         private UINT8 _Type;
-        public EFI_HII_PACKAGE_e Type { get { return (EFI_HII_PACKAGE_e)_Type; } set { _Type = (byte)value; } }
         // UINT8  Data[...];
+
+        public UINT32 Length { get { return _Length.GetBits<UINT32>(0x00FFFFFF); } set { _Length = SetBits<UINT32>(_Length, value, 0x00FFFFFF); } }
+        public EFI_HII_PACKAGE_e Type { get { return (EFI_HII_PACKAGE_e)_Type; } set { _Type = (byte)value; } }
     };
 
     /// <summary>
@@ -1267,8 +1397,8 @@ namespace IFR
         private UINT8 _LengthAndscope;
 
         public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
-        public uint Length { get { return (uint)_LengthAndscope & 0x7F; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x80) | (byte)(value & 0x7F)); } }
-        public uint Scope { get { return (uint)_LengthAndscope >> 7; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x7F) | (byte)((value & 0x01) << 7)); } }
+        public UINT8 Length { get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits<UINT8>(_LengthAndscope, value, 0x7F); } }
+        public UINT8 Scope { get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits<UINT8>(_LengthAndscope, value, 0x01, 7); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
@@ -1294,18 +1424,24 @@ namespace IFR
         public EFI_QUESTION_ID QuestionId;
         public EFI_QUESTION_ID VarStoreId;
         public EFI_IFR_QUESTION_HEADER_VarStoreInfo VarStoreInfo;
-        public UINT8 Flags;
+        private UINT8 _Flags;
+
+        public EFI_IFR_QUESTION_HEADER_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_QUESTION_HEADER_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+     };
+
+    /// <summary>
+    /// Flag values of EFI_IFR_QUESTION_HEADER
+    /// </summary>
+    [Flags]
+    enum EFI_IFR_QUESTION_HEADER_FLAGS_e
+    {
+        EFI_IFR_FLAG_READ_ONLY = 0x01,
+        EFI_IFR_FLAG_CALLBACK = 0x04,
+        EFI_IFR_FLAG_RESET_REQUIRED = 0x10,
+        EFI_IFR_FLAG_RECONNECT_REQUIRED = 0x40,
+        EFI_IFR_FLAG_OPTIONS_ONLY = 0x80,
     };
-    /*
-        //
-        // Flag values of EFI_IFR_QUESTION_HEADER
-        //
-        #define EFI_IFR_FLAG_READ_ONLY          0x01
-        #define EFI_IFR_FLAG_CALLBACK           0x04
-        #define EFI_IFR_FLAG_RESET_REQUIRED     0x10
-        #define EFI_IFR_FLAG_RECONNECT_REQUIRED 0x40
-        #define EFI_IFR_FLAG_OPTIONS_ONLY       0x80
-*/
+
     /// <summary>
     /// Definition for Opcode Reference (Section Section 27.3.8.3)
     /// </summary>
