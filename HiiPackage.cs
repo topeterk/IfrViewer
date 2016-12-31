@@ -90,9 +90,11 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeOneOfOption(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeVarstore(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeVarstoreEfi(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
@@ -160,11 +162,9 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP:
@@ -305,11 +305,11 @@ namespace IFR
             public string Name;
         }
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         private Payload_t _Payload;
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
@@ -331,11 +331,11 @@ namespace IFR
             public string Name;
         }
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         private Payload_t _Payload;
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
@@ -352,18 +352,12 @@ namespace IFR
     /// </summary>
     class HiiIfrOpCodeOneOf : HiiIfrOpCode<EFI_IFR_ONE_OF>
     {
-        private struct Payload_t
-        {
-            public UInt64 MinValue;
-            public UInt64 MaxValue;
-            public UInt64 Step;
-        }
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
-        private Payload_t _Payload;
+        private object _Payload;
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
@@ -374,44 +368,52 @@ namespace IFR
          
             switch (this._Header.Flags_DataSize)
             {
-                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
-                    {
-                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8>();
-                        _Payload.MinValue = data.MinValue;
-                        _Payload.MaxValue = data.MaxValue;
-                        _Payload.Step = data.Step;
-                    }
-                    break;
-                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
-                    {
-                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16>();
-                        _Payload.MinValue = data.MinValue;
-                        _Payload.MaxValue = data.MaxValue;
-                        _Payload.Step = data.Step;
-                    }
-                    break;
-                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
-                    {
-                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32>();
-                        _Payload.MinValue = data.MinValue;
-                        _Payload.MaxValue = data.MaxValue;
-                        _Payload.Step = data.Step;
-                    }
-                    break;
-                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
-                    {
-                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64>();
-                        _Payload.MinValue = data.MinValue;
-                        _Payload.MaxValue = data.MaxValue;
-                        _Payload.Step = data.Step;
-                    }
-                    break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8>(); break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16>(); break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32>(); break;
+                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64>(); break;
                 default:
-                    LogMessage(LogSeverity.ERROR, Name + ": Unknown Data size of EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x");
-                    _Payload.MinValue = 0;
-                    _Payload.MaxValue = 0;
-                    _Payload.Step = 0;
+                    LogMessage(LogSeverity.ERROR, Name + ": Unknown data size of EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x");
                     break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_ONE_OF_OPTION_OP
+    /// </summary>
+    class HiiIfrOpCodeOneOfOption : HiiIfrOpCode<EFI_IFR_ONE_OF_OPTION>
+    {
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        private object _Payload;
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiIfrOpCodeOneOfOption(IfrRawDataBlock raw) : base(raw)
+        {
+            this.data_payload = new IfrRawDataBlock(data);
+            data_payload.IncreaseOffset(this._Header.GetPhysSize());
+
+            switch (this._Header.Type)
+            {
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_8>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_16>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_32: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_32>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_64: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_64>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BOOLEAN: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_BOOLEAN>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_TIME: _Payload = data_payload.ToIfrType<EFI_HII_TIME>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_DATE: _Payload = data_payload.ToIfrType<EFI_HII_DATE>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: _Payload = data_payload.ToIfrType<IFRStruct_EFI_STRING_ID>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER: break; // There is no value. It is nested and part of next IFR OpCode object
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_UNDEFINED: LogMessage(LogSeverity.WARNING, Name + ": Data type not speficied"); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: _Payload = data_payload.ToIfrType<IFRStruct_EFI_STRING_ID>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BUFFER: _Payload = data_payload.CopyOfSelectedBytes; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_REF: _Payload = data_payload.ToIfrType<EFI_HII_REF>(); break;
+                default: LogMessage(LogSeverity.ERROR, Name + ": Unknown data type of EFI_IFR_TYPE_VALUE"); break;
             }
         }
     }
@@ -525,11 +527,11 @@ namespace IFR
             public string StringText;
         }
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         private Payload_t _Payload;
         /// <summary>
-        /// String text of this block
+        /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 

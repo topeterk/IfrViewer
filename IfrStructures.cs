@@ -1243,41 +1243,90 @@ namespace IFR
         public EFI_HII_PACKAGE_HEADER Header;
         // EFI_IFR_OP_HEADER  Data[...];
     }
-    /*
-        typedef struct {
-          UINT8 Hour;
-    UINT8 Minute;
-    UINT8 Second;
-        } EFI_HII_TIME;
 
-        typedef struct {
-          UINT16 Year;
-    UINT8 Month;
-    UINT8 Day;
-        } EFI_HII_DATE;
-
-        typedef struct {
-          EFI_QUESTION_ID QuestionId;
-    EFI_FORM_ID FormId;
-    EFI_GUID FormSetGuid;
-    EFI_STRING_ID DevicePath;
-        } EFI_HII_REF;
-
-        typedef union
+    /// <summary>
+    /// Same as EFI_IFR_TYPE_TIME
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_HII_TIME
     {
-        UINT8 u8;
-        UINT16 u16;
-        UINT32 u32;
-        UINT64 u64;
-        BOOLEAN b;
-        EFI_HII_TIME time;
-        EFI_HII_DATE date;
-        EFI_STRING_ID   string; ///< EFI_IFR_TYPE_STRING, EFI_IFR_TYPE_ACTION
-        EFI_HII_REF     ref;    ///< EFI_IFR_TYPE_REF
-        // UINT8 buffer[];      ///< EFI_IFR_TYPE_BUFFER
-    }
-    EFI_IFR_TYPE_VALUE;
-*/
+        public UINT8 Hour;
+        public UINT8 Minute;
+        public UINT8 Second;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_HII_DATE
+    {
+        public UINT16 Year;
+        public UINT8 Month;
+        public UINT8 Day;
+    };
+
+    /// <summary>
+    /// Same as EFI_IFR_TYPE_REF
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 22)]
+    struct EFI_HII_REF
+    {
+        public EFI_QUESTION_ID QuestionId;
+        public EFI_FORM_ID FormId;
+        public EFI_GUID FormSetGuid;
+        public EFI_STRING_ID DevicePath;
+    };
+
+    #region EFI_IFR_TYPE_VALUE types
+    /// <summary>
+    /// Wrapper for UINT8
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct EFI_IFR_TYPE_NUM_SIZE_8
+    {
+        public UINT8 u8;
+    };
+    /// <summary>
+    /// Wrapper for UINT16
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_IFR_TYPE_NUM_SIZE_16
+    {
+        public UINT16 u16;
+    };
+    /// <summary>
+    /// Wrapper for UINT32
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_TYPE_NUM_SIZE_32
+    {
+        public UINT32 u32;
+    };
+    /// <summary>
+    /// Wrapper for UINT64
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
+    struct EFI_IFR_TYPE_NUM_SIZE_64
+    {
+        public UINT64 u64;
+    };
+    /// <summary>
+    /// Wrapper for BOOLEAN.
+    /// Value: (0 = false, 1 = true)
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct EFI_IFR_TYPE_BOOLEAN
+    {
+        public UINT8 boolean;
+    };
+    /// <summary>
+    /// Wrapper for EFI_STRING_ID
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct IFRStruct_EFI_STRING_ID
+    {
+        public UINT16 stringid;
+    };
+    #endregion
+
     /// <summary>
     /// Value of IFR opcodes
     /// </summary>
@@ -1838,38 +1887,46 @@ namespace IFR
                     EFI_STRING_ID DevicePath;
                 }
                 EFI_IFR_VARSTORE_DEVICE;
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_ONE_OF_OPTION
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID Option;
+        private UINT8 _Flags;
+        private UINT8 _Type;
+        // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
 
-                    typedef struct _EFI_IFR_ONE_OF_OPTION
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_STRING_ID Option;
-                    UINT8 Flags;
-                    UINT8 Type;
-                    EFI_IFR_TYPE_VALUE Value;
-                }
-                EFI_IFR_ONE_OF_OPTION;
+        public EFI_IFR_OPTION_e Flags { get { return (EFI_IFR_OPTION_e)_Flags; } set { _Flags = (UINT8)value; } }
+        public EFI_IFR_TYPE_e Type { get { return (EFI_IFR_TYPE_e)_Type; } set { _Type = (UINT8)value; } }
+    };
 
-                    //
-                    // Types of the option's value.
-                    //
-                    #define EFI_IFR_TYPE_NUM_SIZE_8        0x00
-                    #define EFI_IFR_TYPE_NUM_SIZE_16       0x01
-                    #define EFI_IFR_TYPE_NUM_SIZE_32       0x02
-                    #define EFI_IFR_TYPE_NUM_SIZE_64       0x03
-                    #define EFI_IFR_TYPE_BOOLEAN           0x04
-                    #define EFI_IFR_TYPE_TIME              0x05
-                    #define EFI_IFR_TYPE_DATE              0x06
-                    #define EFI_IFR_TYPE_STRING            0x07
-                    #define EFI_IFR_TYPE_OTHER             0x08
-                    #define EFI_IFR_TYPE_UNDEFINED         0x09
-                    #define EFI_IFR_TYPE_ACTION            0x0A
-                    #define EFI_IFR_TYPE_BUFFER            0x0B
-                    #define EFI_IFR_TYPE_REF               0x0C
+    /// <summary>
+    /// Types of the option's value.
+    /// </summary>
+    enum EFI_IFR_TYPE_e
+    {
+        EFI_IFR_TYPE_NUM_SIZE_8 = 0x00,
+        EFI_IFR_TYPE_NUM_SIZE_16 = 0x01,
+        EFI_IFR_TYPE_NUM_SIZE_32 = 0x02,
+        EFI_IFR_TYPE_NUM_SIZE_64 = 0x03,
+        EFI_IFR_TYPE_BOOLEAN = 0x04,
+        EFI_IFR_TYPE_TIME = 0x05,
+        EFI_IFR_TYPE_DATE = 0x06,
+        EFI_IFR_TYPE_STRING = 0x07,
+        EFI_IFR_TYPE_OTHER = 0x08,
+        EFI_IFR_TYPE_UNDEFINED = 0x09,
+        EFI_IFR_TYPE_ACTION = 0x0A,
+        EFI_IFR_TYPE_BUFFER = 0x0B,
+        EFI_IFR_TYPE_REF = 0x0C,
+    };
 
-                    #define EFI_IFR_OPTION_DEFAULT         0x10
-                    #define EFI_IFR_OPTION_DEFAULT_MFG     0x20
-    */
-         
+    enum EFI_IFR_OPTION_e
+    {
+        EFI_IFR_OPTION_DEFAULT = 0x10,
+        EFI_IFR_OPTION_DEFAULT_MFG = 0x20,
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
     struct EFI_IFR_GUID
     {
@@ -1892,15 +1949,15 @@ namespace IFR
                     EFI_QUESTION_ID QuestionId2;
                 }
                 EFI_IFR_EQ_ID_ID;
-
-                    typedef struct _EFI_IFR_EQ_ID_VAL
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_QUESTION_ID QuestionId;
-                    UINT16 Value;
-                }
-                EFI_IFR_EQ_ID_VAL;
-
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_EQ_ID_VAL
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_QUESTION_ID QuestionId;
+        public UINT16 Value;
+    };
+/*
                     typedef struct _EFI_IFR_EQ_ID_VAL_LIST
                 {
                     EFI_IFR_OP_HEADER Header;
