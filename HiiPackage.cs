@@ -90,15 +90,16 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeOneOfOption(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeVarstore(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeVarstoreEfi(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
-                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCodeGuid(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
                     #region IFR OpCodes (just the header)
@@ -189,7 +190,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP:
@@ -213,7 +213,7 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode base class
     /// </summary>
-    class HiiIfrOpCode<T> : HPKElement
+    class HiiIfrOpCode<T> : HPKElement where T : struct
     {
         #region HiiIfrOpCode definition
         /// <summary>
@@ -237,11 +237,16 @@ namespace IFR
 
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
-            this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode;
+            this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode; // Do not take value from "this._Header" because casting might fail. Keep using common header!
             this._Header = data.ToIfrType<T>();
+            if (data.Length != 0)
+            {
+                this.data_payload = new IfrRawDataBlock(data);
+                data_payload.IncreaseOffset(this._Header.GetPhysSize());
+            }
         }
-        #endregion
-    }
+    #endregion
+}
 
     /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
@@ -259,8 +264,6 @@ namespace IFR
 
         public HiiIfrOpCodeFormSet(IfrRawDataBlock raw) : base(raw)
         {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
             this._Payload = new List<EFI_GUID>();
 
             // Parse all GUIDs..
@@ -284,21 +287,9 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_GUID_OP
-    /// </summary>
-    class HiiIfrOpCodeGuid : HiiIfrOpCode<EFI_IFR_GUID>
-    {
-        public HiiIfrOpCodeGuid(IfrRawDataBlock raw) : base(raw)
-        {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
-        }
-    }
-
-    /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_VARSTORE_OP
     /// </summary>
-    class HiiIfrOpCodeVarstore : HiiIfrOpCode<EFI_IFR_VARSTORE>
+    class HiiIfrOpCodeWithAsciiNullTerminatedString<T> : HiiIfrOpCode<T> where T : struct
     {
         private struct Payload_t
         {
@@ -313,36 +304,8 @@ namespace IFR
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
-        public HiiIfrOpCodeVarstore(IfrRawDataBlock raw) : base(raw)
+        public HiiIfrOpCodeWithAsciiNullTerminatedString(IfrRawDataBlock raw) : base(raw)
         {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
-            _Payload.Name = data_payload.CopyOfAsciiNullTerminatedString;
-        }
-    }
-
-    /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_VARSTORE_OP
-    /// </summary>
-    class HiiIfrOpCodeVarstoreEfi : HiiIfrOpCode<EFI_IFR_VARSTORE_EFI>
-    {
-        private struct Payload_t
-        {
-            public string Name;
-        }
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        private Payload_t _Payload;
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
-        public HiiIfrOpCodeVarstoreEfi(IfrRawDataBlock raw) : base(raw)
-        {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
             _Payload.Name = data_payload.CopyOfAsciiNullTerminatedString;
         }
     }
@@ -363,9 +326,6 @@ namespace IFR
 
         public HiiIfrOpCodeOneOf(IfrRawDataBlock raw) : base(raw)
         {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
-         
             switch (this._Header.Flags_DataSize)
             {
                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8>(); break;
@@ -380,9 +340,9 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_ONE_OF_OPTION_OP
+    /// Hii Ifr Opcode class which has EFI_IFR_TYPE_VALUE as payload
     /// </summary>
-    class HiiIfrOpCodeOneOfOption : HiiIfrOpCode<EFI_IFR_ONE_OF_OPTION>
+    class HiiIfrOpCodeWithEfiIfrTypeValue<T> : HiiIfrOpCode<T> where T : struct
     {
         /// <summary>
         /// Managed structure payload
@@ -393,12 +353,10 @@ namespace IFR
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
-        public HiiIfrOpCodeOneOfOption(IfrRawDataBlock raw) : base(raw)
+        public HiiIfrOpCodeWithEfiIfrTypeValue(IfrRawDataBlock raw) : base(raw)
         {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
-
-            switch (this._Header.Type)
+            EFI_IFR_TYPE_e efiifrtype = ((dynamic)this._Header).Type;
+            switch (efiifrtype)
             {
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_8>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_16>(); break;

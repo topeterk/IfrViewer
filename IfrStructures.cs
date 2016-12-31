@@ -1584,24 +1584,21 @@ namespace IFR
         UINT8 RuleId;
     }
     EFI_IFR_RULE;
-
-            typedef struct _EFI_IFR_DEFAULT
-    {
-        EFI_IFR_OP_HEADER Header;
-        UINT16 DefaultId;
-        UINT8 Type;
-        EFI_IFR_TYPE_VALUE Value;
-    }
-    EFI_IFR_DEFAULT;
-
-            typedef struct _EFI_IFR_DEFAULT_2
-    {
-        EFI_IFR_OP_HEADER Header;
-        UINT16 DefaultId;
-        UINT8 Type;
-    }
-    EFI_IFR_DEFAULT_2;
 */
+    /// <summary>
+    /// Same as _EFI_IFR_DEFAULT_2
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 5)]
+    struct EFI_IFR_DEFAULT
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public UINT16 DefaultId;
+        private UINT8 _Type;
+        // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
+
+        public EFI_IFR_TYPE_e Type { get { return (EFI_IFR_TYPE_e)_Type; } set { _Type = (UINT8)value; } }
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
     struct EFI_IFR_SUBTITLE
     {
