@@ -401,10 +401,10 @@ namespace IFR
     struct EFI_HII_PACKAGE_HEADER
     {
         [FieldOffset(0)]
-        private uint _Length;
+        private UINT32 _Length;
         public uint Length { get { return _Length & 0x00FFFFFF; } set { _Length = (byte)((_Length & 0xFF000000) | (byte)(value & 0x00FFFFFF)); } }
         [FieldOffset(3)]
-        private byte _Type;
+        private UINT8 _Type;
         public EFI_HII_PACKAGE_e Type { get { return (EFI_HII_PACKAGE_e)_Type; } set { _Type = (byte)value; } }
         // UINT8  Data[...];
     };
@@ -1263,8 +1263,8 @@ namespace IFR
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
     struct EFI_IFR_OP_HEADER
     {
-        private byte _OpCode;
-        private byte _LengthAndscope;
+        private UINT8 _OpCode;
+        private UINT8 _LengthAndscope;
 
         public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
         public uint Length { get { return (uint)_LengthAndscope & 0x7F; } set { _LengthAndscope = (byte)((_LengthAndscope & 0x80) | (byte)(value & 0x7F)); } }
@@ -1284,7 +1284,7 @@ namespace IFR
         [FieldOffset(0)] // union type 1
         public EFI_QUESTION_ID VarName;
         [FieldOffset(0)] // union type 2
-        public ushort VarOffset;
+        public UINT16 VarOffset;
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 11)]
@@ -1294,7 +1294,7 @@ namespace IFR
         public EFI_QUESTION_ID QuestionId;
         public EFI_QUESTION_ID VarStoreId;
         public EFI_IFR_QUESTION_HEADER_VarStoreInfo VarStoreInfo;
-        public byte Flags;
+        public UINT8 Flags;
     };
     /*
         //
@@ -1314,7 +1314,7 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_STRING_ID DefaultName;
-        public ushort DefaultId;
+        public UINT16 DefaultId;
     };
     /*
             //
@@ -1367,7 +1367,7 @@ namespace IFR
         public EFI_GUID Guid;
         public EFI_STRING_ID FormSetTitle;
         public EFI_STRING_ID Help;
-        public byte Flags;
+        public UINT8 Flags;
         // EFI_GUID ClassGuid[...];
     };
 
@@ -1375,7 +1375,7 @@ namespace IFR
     struct EFI_IFR_FORM
     {
         public EFI_IFR_OP_HEADER Header;
-        public ushort FormId;
+        public UINT16 FormId;
         public EFI_STRING_ID FormTitle;
     };
     /*
@@ -1415,11 +1415,16 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_STATEMENT_HEADER Statement;
-        public byte Flags;
+        public UINT8 Flags;
+
+        public bool Flags_Horizontal { get { return (Flags & (UINT8)EFI_IFR_SUBTITLE_FLAGS_e.EFI_IFR_FLAGS_HORIZONTAL) != 0; } set { Flags = (UINT8)((Flags & 0xFE) | (value ? 0: (UINT8)EFI_IFR_SUBTITLE_FLAGS_e.EFI_IFR_FLAGS_HORIZONTAL)); } }
+    };
+
+    enum EFI_IFR_SUBTITLE_FLAGS_e
+    {
+        EFI_IFR_FLAGS_HORIZONTAL = 0x01,
     };
     /*
-        #define EFI_IFR_FLAGS_HORIZONTAL       0x01
-
         typedef struct _EFI_IFR_CHECKBOX
     {
         EFI_IFR_OP_HEADER Header;
@@ -1492,7 +1497,7 @@ namespace IFR
             }
             EFI_IFR_RESET_BUTTON;
             */
-            
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
     struct EFI_IFR_ACTION
     {
@@ -1557,30 +1562,6 @@ namespace IFR
         public UINT64 Step;
     };
 /*
-                typedef union
-            {
-                  struct {
-                    UINT8 MinValue;
-            UINT8 MaxValue;
-            UINT8 Step;
-                  } u8;
-                  struct {
-                    UINT16 MinValue;
-            UINT16 MaxValue;
-            UINT16 Step;
-                  } u16;
-                  struct {
-                    UINT32 MinValue;
-            UINT32 MaxValue;
-            UINT32 Step;
-                  } u32;
-                  struct {
-                    UINT64 MinValue;
-            UINT64 MaxValue;
-            UINT64 Step;
-                  } u64;
-                } MINMAXSTEP_DATA;
-
                 typedef struct _EFI_IFR_NUMERIC
             {
                 EFI_IFR_OP_HEADER Header;
@@ -1589,20 +1570,6 @@ namespace IFR
                 MINMAXSTEP_DATA data;
             }
             EFI_IFR_NUMERIC;
-
-                //
-                // Flags related to the numeric question
-                //
-                #define EFI_IFR_NUMERIC_SIZE           0x03
-                #define   EFI_IFR_NUMERIC_SIZE_1       0x00
-                #define   EFI_IFR_NUMERIC_SIZE_2       0x01
-                #define   EFI_IFR_NUMERIC_SIZE_4       0x02
-                #define   EFI_IFR_NUMERIC_SIZE_8       0x03
-
-                #define EFI_IFR_DISPLAY                0x30
-                #define   EFI_IFR_DISPLAY_INT_DEC      0x00
-                #define   EFI_IFR_DISPLAY_UINT_DEC     0x10
-                #define   EFI_IFR_DISPLAY_UINT_HEX     0x20
 */
     /// <summary>
     /// Flags related to the numeric question (mask = 0x03)
@@ -1630,11 +1597,11 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_QUESTION_HEADER Question;
-        public UINT8 _Flags;
+        public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
-        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(_Flags & 0x03); } set { _Flags = (UINT8)((_Flags & 0xFC) | ((UINT8)value & 0x03)); } }
-        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(_Flags & 0x30); } set { _Flags = (UINT8)((_Flags & 0xCF) | ((UINT8)value & 0x30)); } }
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(Flags & 0x03); } set { Flags = (UINT8)((Flags & 0xFC) | ((UINT8)value & 0x03)); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(Flags & 0x30); } set { Flags = (UINT8)((Flags & 0xCF) | ((UINT8)value & 0x30)); } }
     };
 /*
                 typedef struct _EFI_IFR_STRING
