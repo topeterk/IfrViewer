@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016 Peter Kirmeier
+//Copyright(c) 2016-2017 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -36,6 +36,17 @@ namespace IFR
     /// </summary>
     class HPKElement
     {
+        #region UniqueID
+        /// <summary>
+        /// Holds last unique ID of HPKElement instances 
+        /// </summary>
+        private static int GlobalLastUniqueID = 0;
+        /// <summary>
+        /// Unique ID of instance
+        /// </summary>
+        public readonly int UniqueID;
+        #endregion
+
         #region Raw Data Blocks
         /// <summary>
         /// Raw data representation of this object
@@ -191,6 +202,7 @@ namespace IFR
 
         public HPKElement(IfrRawDataBlock raw)
         {
+            UniqueID = GlobalLastUniqueID++;
             data = raw;
             Childs = new List<HPKElement>();
         }
@@ -201,7 +213,7 @@ namespace IFR
         /// <param name="msg">Message string</param>
         protected void LogMessage(LogSeverity severity, string msg)
         {
-            CreateLogEntry(severity, this.ToString(), msg);
+            CreateLogEntry(severity, this.ToString() + " [" + this.UniqueID + "]", msg);
         }
         #endregion
     }
