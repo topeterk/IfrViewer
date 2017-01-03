@@ -101,6 +101,10 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT16>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT32>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT64>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
@@ -182,10 +186,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_READ_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP:
