@@ -59,6 +59,57 @@ namespace IFR
     {
         public Guid Guid;
     };
+    /// <summary>
+    /// Wrapper for UINT16
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct IfrTypeUINT8
+    {
+        public UINT8 u8;
+    };
+    /// <summary>
+    /// Wrapper for UINT16
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct IfrTypeUINT16
+    {
+        public UINT16 u16;
+    };
+    /// <summary>
+    /// Wrapper for UINT16
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct IfrTypeUINT32
+    {
+        public UINT32 u32;
+    };
+    /// <summary>
+    /// Wrapper for UINT16
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
+    struct IfrTypeUINT64
+    {
+        public UINT64 u64;
+    };
+    /// <summary>
+    /// Wrapper for BOOLEAN
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
+    struct IfrTypeBOOLEAN
+    {
+        /// <summary>
+        /// 0 = false, 1 = true
+        /// </summary>
+        public UINT8 b;
+    };
+    /// <summary>
+    /// Wrapper for EFI_STRING_ID
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct IfrTypeEFI_STRING_ID
+    {
+        public UINT16 stringid; // = "string" but not working in C#
+    };
     #endregion
 
     #region Common stuff (not related to UEFI source)
@@ -1275,58 +1326,6 @@ namespace IFR
         public EFI_STRING_ID DevicePath;
     };
 
-    #region EFI_IFR_TYPE_VALUE types
-    /// <summary>
-    /// Wrapper for UINT8
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
-    struct EFI_IFR_TYPE_NUM_SIZE_8
-    {
-        public UINT8 u8;
-    };
-    /// <summary>
-    /// Wrapper for UINT16
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
-    struct EFI_IFR_TYPE_NUM_SIZE_16
-    {
-        public UINT16 u16;
-    };
-    /// <summary>
-    /// Wrapper for UINT32
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
-    struct EFI_IFR_TYPE_NUM_SIZE_32
-    {
-        public UINT32 u32;
-    };
-    /// <summary>
-    /// Wrapper for UINT64
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
-    struct EFI_IFR_TYPE_NUM_SIZE_64
-    {
-        public UINT64 u64;
-    };
-    /// <summary>
-    /// Wrapper for BOOLEAN.
-    /// Value: (0 = false, 1 = true)
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 1)]
-    struct EFI_IFR_TYPE_BOOLEAN
-    {
-        public UINT8 boolean;
-    };
-    /// <summary>
-    /// Wrapper for EFI_STRING_ID
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
-    struct IFRStruct_EFI_STRING_ID
-    {
-        public UINT16 stringid;
-    };
-    #endregion
-
     /// <summary>
     /// Value of IFR opcodes
     /// </summary>
@@ -1980,16 +1979,16 @@ namespace IFR
         public EFI_QUESTION_ID QuestionId;
         public UINT16 Value;
     };
-/*
-                    typedef struct _EFI_IFR_EQ_ID_VAL_LIST
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_QUESTION_ID QuestionId;
-                    UINT16 ListLength;
-                    UINT16 ValueList[1];
-                }
-                EFI_IFR_EQ_ID_VAL_LIST;
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_EQ_ID_VAL_LIST
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_QUESTION_ID QuestionId;
+        public UINT16 ListLength;
+        // UINT16 ValueList[...];
+    };
+/*
                     typedef struct _EFI_IFR_UINT8
                 {
                     EFI_IFR_OP_HEADER Header;

@@ -95,6 +95,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP: hpk_element = new HiiIfrOpCodeEqIdList(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
@@ -169,7 +170,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:
@@ -245,8 +245,8 @@ namespace IFR
                 data_payload.IncreaseOffset(this._Header.GetPhysSize());
             }
         }
-    #endregion
-}
+        #endregion
+    }
 
     /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
@@ -282,7 +282,7 @@ namespace IFR
             }
 
             if (this._Header.Flags_ClassGuidCount != _Payload.Count) // information doubled in structure, so we use it for sanity check
-                LogMessage(LogSeverity.ERROR, Name + ": Size of payload does not match with header!");
+                LogMessage(LogSeverity.ERROR, Name + ": Size of payload (" + _Payload.Count +  ") does not match with header (" + this._Header.Flags_ClassGuidCount + ")!");
         }
     }
 
@@ -358,21 +358,60 @@ namespace IFR
             EFI_IFR_TYPE_e efiifrtype = ((dynamic)this._Header).Type;
             switch (efiifrtype)
             {
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_8>(); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_16>(); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_32: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_32>(); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_64: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_NUM_SIZE_64>(); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BOOLEAN: _Payload = data_payload.ToIfrType<EFI_IFR_TYPE_BOOLEAN>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<IfrTypeUINT8>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: _Payload = data_payload.ToIfrType<IfrTypeUINT16>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_32: _Payload = data_payload.ToIfrType<IfrTypeUINT32>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_64: _Payload = data_payload.ToIfrType<IfrTypeUINT64>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BOOLEAN: _Payload = data_payload.ToIfrType<IfrTypeBOOLEAN>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_TIME: _Payload = data_payload.ToIfrType<EFI_HII_TIME>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_DATE: _Payload = data_payload.ToIfrType<EFI_HII_DATE>(); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: _Payload = data_payload.ToIfrType<IFRStruct_EFI_STRING_ID>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: _Payload = data_payload.ToIfrType<IfrTypeEFI_STRING_ID>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER: break; // There is no value. It is nested and part of next IFR OpCode object
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_UNDEFINED: LogMessage(LogSeverity.WARNING, Name + ": Data type not speficied"); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: _Payload = data_payload.ToIfrType<IFRStruct_EFI_STRING_ID>(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: _Payload = data_payload.ToIfrType<IfrTypeEFI_STRING_ID>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BUFFER: _Payload = data_payload.CopyOfSelectedBytes; break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_REF: _Payload = data_payload.ToIfrType<EFI_HII_REF>(); break;
                 default: LogMessage(LogSeverity.ERROR, Name + ": Unknown data type of EFI_IFR_TYPE_VALUE"); break;
             }
+        }
+    }
+
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_EQ_ID_VAL_LIST_OP
+    /// </summary>
+    class HiiIfrOpCodeEqIdList : HiiIfrOpCode<EFI_IFR_EQ_ID_VAL_LIST>
+    {
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        protected List<IfrTypeUINT16> _Payload;
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiIfrOpCodeEqIdList(IfrRawDataBlock raw) : base(raw)
+        {
+            this._Payload = new List<IfrTypeUINT16>();
+
+            // Parse all GUIDs..
+            uint offset = 0;
+            while (offset < data_payload.Length)
+            {
+                if (data_payload.Length < typeof(IfrTypeUINT16).StructLayoutAttribute.Size)
+                {
+                    LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
+                    break;
+                }
+
+                _Payload.Add(data_payload.ToIfrType<IfrTypeUINT16>());
+
+                offset += (uint)typeof(IfrTypeUINT16).StructLayoutAttribute.Size;
+            }
+
+            if (this._Header.ListLength != _Payload.Count) // information doubled in structure, so we use it for sanity check
+                LogMessage(LogSeverity.ERROR, Name + ": Size of payload (" + _Payload.Count + ") does not match with header (" + this._Header.ListLength + ")!");
         }
     }
     #endregion
