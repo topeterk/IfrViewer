@@ -1613,18 +1613,24 @@ namespace IFR
     {
         EFI_IFR_FLAGS_HORIZONTAL = 0x01,
     };
-    /*
-        typedef struct _EFI_IFR_CHECKBOX
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_IFR_QUESTION_HEADER Question;
-        UINT8 Flags;
-    }
-    EFI_IFR_CHECKBOX;
 
-        #define EFI_IFR_CHECKBOX_DEFAULT       0x01
-        #define EFI_IFR_CHECKBOX_DEFAULT_MFG   0x02
-*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
+    struct EFI_IFR_CHECKBOX
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Statement;
+        private UINT8 _Flags;
+
+        public EFI_IFR_CHECKBOX_e Flags { get { return _Flags.GetBits<EFI_IFR_CHECKBOX_e>(); } set { _Flags = SetBits(_Flags, value); } }
+    };
+
+    [Flags]
+    enum EFI_IFR_CHECKBOX_e
+    {
+        EFI_IFR_CHECKBOX_DEFAULT = 0x01,
+        EFI_IFR_CHECKBOX_DEFAULT_MFG = 0x02,
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
     struct EFI_IFR_TEXT
     {

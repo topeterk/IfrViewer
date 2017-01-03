@@ -90,6 +90,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_CHECKBOX>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
@@ -163,7 +164,6 @@ namespace IFR
                     #region IFR OpCodes (not yet implemented)
                     /*
                     case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
