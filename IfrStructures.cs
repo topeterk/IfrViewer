@@ -1710,7 +1710,7 @@ namespace IFR
         public EFI_IFR_QUESTION_HEADER Question;
         private UINT8 _Flags;
 
-        public EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e Flags_Supress { get { return _Flags.GetBits<EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_QF_DATE_SUPPRESS_FLAGS_e Flags_Supress { get { return _Flags.GetBits<EFI_QF_DATE_SUPPRESS_FLAGS_e>(0x07); } set { _Flags = SetBits(_Flags, value, 0x07); } }
         public EFI_QF_DATE_STORAGE_e Flags_Storage { get { return _Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { _Flags = SetBits(_Flags, value, 0x30); } }
     };
 
@@ -1718,7 +1718,7 @@ namespace IFR
     /// Flags that describe the behavior of the question.
     /// </summary>
     [Flags]
-    enum EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e
+    enum EFI_QF_DATE_SUPPRESS_FLAGS_e
     {
         EFI_QF_DATE_YEAR_SUPPRESS = 0x01,
         EFI_QF_DATE_MONTH_SUPPRESS = 0x02,
@@ -1841,27 +1841,40 @@ namespace IFR
 
                 #define EFI_IFR_UNIQUE_SET             0x01
                 #define EFI_IFR_NO_EMPTY_SET           0x02
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
+    struct EFI_IFR_TIME
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        private UINT8 _Flags;
 
-                typedef struct _EFI_IFR_TIME
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 Flags;
-            }
-            EFI_IFR_TIME;
+        public EFI_QF_TIME_SUPPRESS_FLAGS_e Flags_Suppress { get { return _Flags.GetBits<EFI_QF_TIME_SUPPRESS_FLAGS_e>(0x07); } set { _Flags = SetBits(_Flags, value, 0x07); } }
+        public EFI_QF_TIME_STORAGE_e Flags_Storage { get { return _Flags.GetBits<EFI_QF_TIME_STORAGE_e>(0x30); } set { _Flags = SetBits(_Flags, value, 0x30); } }
+    };
 
-                //
-                // A bit-mask that determines which unique settings are active for this opcode.
-                //
-                #define QF_TIME_HOUR_SUPPRESS          0x01
-                #define QF_TIME_MINUTE_SUPPRESS        0x02
-                #define QF_TIME_SECOND_SUPPRESS        0x04
+    /// <summary>
+    /// A bit-mask that determines which unique settings are active for this opcode.
+    /// </summary>
+    [Flags]
+    enum EFI_QF_TIME_SUPPRESS_FLAGS_e
+    {
+        QF_TIME_HOUR_SUPPRESS = 0x01,
+        QF_TIME_MINUTE_SUPPRESS = 0x02,
+        QF_TIME_SECOND_SUPPRESS = 0x04,
+    };
 
-                #define QF_TIME_STORAGE                0x30
-                #define   QF_TIME_STORAGE_NORMAL       0x00
-                #define   QF_TIME_STORAGE_TIME         0x10
-                #define   QF_TIME_STORAGE_WAKEUP       0x20
-    
+    /// <summary>
+    /// A bit-mask that determines which unique settings are active for this opcode.
+    /// </summary>
+    enum EFI_QF_TIME_STORAGE_e
+    {
+        //QF_TIME_STORAGE = 0x30,
+        QF_TIME_STORAGE_NORMAL = 0x00,
+        QF_TIME_STORAGE_TIME = 0x10,
+        QF_TIME_STORAGE_WAKEUP = 0x20,
+    };
+/*
                     typedef struct _EFI_IFR_INCONSISTENT_IF
                 {
                     EFI_IFR_OP_HEADER Header;
