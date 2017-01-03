@@ -113,6 +113,18 @@ namespace IFR
     #endregion
 
     #region Common stuff (not related to UEFI source)
+
+    #region Interfaces
+    public interface IEfiIfrNumericValue
+    {
+        EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get; }
+    }
+    public interface IEfiIfrType
+    {
+        EFI_IFR_TYPE_e Type { get; }
+    }
+    #endregion
+
     /// <summary>
     /// Wrapper to access raw data directly as single memory source
     /// </summary>
@@ -249,7 +261,7 @@ namespace IFR
         {
             // Sanity check of broken structs..
             if (0 == typeof(T).StructLayoutAttribute.Size)
-                throw new Exception("Hey dev, get your structure size of \"" + typeof(T).ToString() + "\" fixed!");
+                throw new Exception("Hey dev, assign structure size for \"" + typeof(T).ToString() + "\" in order to allow size checking!");
 
             // Pin the buffer and copy structure into managed type..
             int PtrOffset = (int)(Offset + startindex);
@@ -259,7 +271,7 @@ namespace IFR
 
             // Check if casted structure is within our memory
             if (Length < typeof(T).StructLayoutAttribute.Size)
-                throw new Exception("Out of memory!");
+                throw new Exception("Data has " + Length + " bytes left. Casting to " + typeof(T).StructLayoutAttribute.Size  + " bytes long \"" + typeof(T).ToString() + "\" failed!");
 
             return result;
         }
@@ -1588,7 +1600,7 @@ namespace IFR
     /// Same as _EFI_IFR_DEFAULT_2
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 5)]
-    struct EFI_IFR_DEFAULT
+    struct EFI_IFR_DEFAULT : IEfiIfrType
     {
         public EFI_IFR_OP_HEADER Header;
         public UINT16 DefaultId;
@@ -1769,20 +1781,26 @@ namespace IFR
         public UINT64 MaxValue;
         public UINT64 Step;
     };
-    /*
-                    typedef struct _EFI_IFR_NUMERIC
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_IFR_QUESTION_HEADER Question;
-                    UINT8 Flags;
-                    MINMAXSTEP_DATA data;
-                }
-                EFI_IFR_NUMERIC;
-    */
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
+    struct EFI_IFR_NUMERIC : IEfiIfrNumericValue
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        /// <summary>
+        /// Use Flags_DataSize or Flags_DisplayType if you want to access implemented bits only!
+        /// </summary>
+        public UINT8 Flags;
+        // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
+
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(Flags & 0x03); } set { Flags = (UINT8)((Flags & 0xFC) | ((UINT8)value & 0x03)); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(Flags & 0x30); } set { Flags = (UINT8)((Flags & 0xCF) | ((UINT8)value & 0x30)); } }
+    };
+
     /// <summary>
     /// Flags related to the numeric question
     /// </summary>
-    enum EFI_IFR_NUMERIC_SIZE_e
+    public enum EFI_IFR_NUMERIC_SIZE_e
     {
         //EFI_IFR_NUMERIC_SIZE = 0x03,
         EFI_IFR_NUMERIC_SIZE_1 = 0x00,
@@ -1803,10 +1821,13 @@ namespace IFR
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
-    struct EFI_IFR_ONE_OF
+    struct EFI_IFR_ONE_OF : IEfiIfrNumericValue
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_QUESTION_HEADER Question;
+        /// <summary>
+        /// Use Flags_DataSize or Flags_DisplayType if you want to access implemented bits only!
+        /// </summary>
         public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
@@ -1917,7 +1938,7 @@ namespace IFR
                 EFI_IFR_VARSTORE_DEVICE;
 */
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
-    struct EFI_IFR_ONE_OF_OPTION
+    struct EFI_IFR_ONE_OF_OPTION : IEfiIfrType
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_STRING_ID Option;
@@ -1932,7 +1953,7 @@ namespace IFR
     /// <summary>
     /// Types of the option's value.
     /// </summary>
-    enum EFI_IFR_TYPE_e
+    public enum EFI_IFR_TYPE_e
     {
         EFI_IFR_TYPE_NUM_SIZE_8 = 0x00,
         EFI_IFR_TYPE_NUM_SIZE_16 = 0x01,

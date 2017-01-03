@@ -89,8 +89,9 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeOneOf(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_ONE_OF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_CHECKBOX>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_NUMERIC>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
@@ -168,7 +169,6 @@ namespace IFR
                     #region IFR OpCodes (not yet implemented)
                     /*
                     case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
@@ -311,9 +311,9 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_ONE_OF_OP
+    /// Hii Ifr Opcode class which has EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x as payload
     /// </summary>
-    class HiiIfrOpCodeOneOf : HiiIfrOpCode<EFI_IFR_ONE_OF>
+    class HiiIfrOpCodeWithEfiIfrNumericValue<T> : HiiIfrOpCode<T> where T : struct, IEfiIfrNumericValue
     {
         /// <summary>
         /// Managed structure payload
@@ -324,7 +324,7 @@ namespace IFR
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
-        public HiiIfrOpCodeOneOf(IfrRawDataBlock raw) : base(raw)
+        public HiiIfrOpCodeWithEfiIfrNumericValue(IfrRawDataBlock raw) : base(raw)
         {
             switch (this._Header.Flags_DataSize)
             {
@@ -342,7 +342,7 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode class which has EFI_IFR_TYPE_VALUE as payload
     /// </summary>
-    class HiiIfrOpCodeWithEfiIfrTypeValue<T> : HiiIfrOpCode<T> where T : struct
+    class HiiIfrOpCodeWithEfiIfrTypeValue<T> : HiiIfrOpCode<T> where T : struct, IEfiIfrType
     {
         /// <summary>
         /// Managed structure payload
@@ -355,8 +355,7 @@ namespace IFR
 
         public HiiIfrOpCodeWithEfiIfrTypeValue(IfrRawDataBlock raw) : base(raw)
         {
-            EFI_IFR_TYPE_e efiifrtype = ((dynamic)this._Header).Type;
-            switch (efiifrtype)
+            switch (this._Header.Type)
             {
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<IfrTypeUINT8>(); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: _Payload = data_payload.ToIfrType<IfrTypeUINT16>(); break;

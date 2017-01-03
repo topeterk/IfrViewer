@@ -59,7 +59,7 @@ namespace IfrViewer
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    CreateLogEntry(LogSeverity.ERROR, "Main", "Loading file failed!");
+                    CreateLogEntry(LogSeverity.ERROR, "Main", "Loading file failed!" + Environment.NewLine + ex.ToString());
                     MessageBox.Show("Loading file failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
