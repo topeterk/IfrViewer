@@ -108,7 +108,7 @@ namespace IFR
         /// <summary>
         /// Managed structure payload (raw)
         /// </summary>
-        public byte[] PayloadRaw { get { return data_payload?.CopyOfSelectedBytes; } }
+        public byte[] PayloadRaw { get { return (data_payload == null ? null : (data_payload.Length == 0 ? null : data_payload.CopyOfSelectedBytes)); } }
 
         /// <summary>
         /// Managed structure payload

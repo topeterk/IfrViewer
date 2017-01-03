@@ -95,6 +95,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
@@ -169,7 +170,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:

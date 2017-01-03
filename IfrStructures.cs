@@ -1702,27 +1702,40 @@ namespace IFR
                 EFI_IFR_QUESTION_HEADER Question;
             }
             EFI_IFR_ACTION_1;
-
-                typedef struct _EFI_IFR_DATE
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 Flags;
-            }
-            EFI_IFR_DATE;
-
-                //
-                // Flags that describe the behavior of the question.
-                //
-                #define EFI_QF_DATE_YEAR_SUPPRESS      0x01
-                #define EFI_QF_DATE_MONTH_SUPPRESS     0x02
-                #define EFI_QF_DATE_DAY_SUPPRESS       0x04
-
-                #define EFI_QF_DATE_STORAGE            0x30
-                #define     QF_DATE_STORAGE_NORMAL     0x00
-                #define     QF_DATE_STORAGE_TIME       0x10
-                #define     QF_DATE_STORAGE_WAKEUP     0x20
 */
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
+    struct EFI_IFR_DATE
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        private UINT8 _Flags;
+
+        public EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e Flags_Supress { get { return _Flags.GetBits<EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_QF_DATE_STORAGE_e Flags_Storage { get { return _Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { _Flags = SetBits(_Flags, value, 0x30); } }
+    };
+
+    /// <summary>
+    /// Flags that describe the behavior of the question.
+    /// </summary>
+    [Flags]
+    enum EFI_QF_DATE_YEAR_SUPPRESS_FLAGS_e
+    {
+        EFI_QF_DATE_YEAR_SUPPRESS = 0x01,
+        EFI_QF_DATE_MONTH_SUPPRESS = 0x02,
+        EFI_QF_DATE_DAY_SUPPRESS = 0x04,
+    };
+
+    /// <summary>
+    /// Flags that describe the behavior of the question.
+    /// </summary>
+    enum EFI_QF_DATE_STORAGE_e
+    {
+        //EFI_QF_DATE_STORAGE = 0x30,
+        QF_DATE_STORAGE_NORMAL = 0x00,
+        QF_DATE_STORAGE_TIME = 0x10,
+        QF_DATE_STORAGE_WAKEUP = 0x20,
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
     struct EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8
     {
