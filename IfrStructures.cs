@@ -1581,21 +1581,21 @@ namespace IFR
         public UINT16 FormId;
         public EFI_STRING_ID FormTitle;
     };
-    /*
-    typedef struct _EFI_IFR_IMAGE
-    {
-        EFI_IFR_OP_HEADER Header;
-        EFI_IMAGE_ID Id;
-    }
-    EFI_IFR_IMAGE;
 
-            typedef struct _EFI_IFR_RULE
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_IMAGE
     {
-        EFI_IFR_OP_HEADER Header;
-        UINT8 RuleId;
-    }
-    EFI_IFR_RULE;
-*/
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IMAGE_ID Id;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_RULE
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public UINT8 RuleId;
+    };
+
     /// <summary>
     /// Same as _EFI_IFR_DEFAULT_2
     /// </summary>
@@ -2065,29 +2065,35 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         public EFI_QUESTION_ID QuestionId;
     };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_IFR_QUESTION_REF3
+    {
+        public EFI_IFR_OP_HEADER Header;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_QUESTION_REF3_2
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID DevicePath;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 20)]
+    struct EFI_IFR_QUESTION_REF3_3
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID DevicePath;
+        public EFI_GUID Guid;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_RULE_REF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public UINT8 RuleId;
+    };
 /*
-            typedef struct _EFI_IFR_QUESTION_REF3_2
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_STRING_ID DevicePath;
-        }
-        EFI_IFR_QUESTION_REF3_2;
-
-            typedef struct _EFI_IFR_QUESTION_REF3_3
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_STRING_ID DevicePath;
-            EFI_GUID Guid;
-        }
-        EFI_IFR_QUESTION_REF3_3;
-
-            typedef struct _EFI_IFR_RULE_REF
-        {
-            EFI_IFR_OP_HEADER Header;
-            UINT8 RuleId;
-        }
-        EFI_IFR_RULE_REF;
-
             typedef struct _EFI_IFR_STRING_REF1
         {
             EFI_IFR_OP_HEADER Header;

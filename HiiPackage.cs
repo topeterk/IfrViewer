@@ -89,6 +89,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_IMAGE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_ONE_OF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_CHECKBOX>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_NUMERIC>(raw_data); break;
@@ -101,16 +102,19 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_ID>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP: hpk_element = new HiiIfrOpCodeEqIdList(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT16>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT32>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT64>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF3_OP: hpk_element = new HiiIfrOpCodeQuestionRef(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
@@ -156,7 +160,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_TOKEN_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF2_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_CONDITIONAL_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF3_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ZERO_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONES_OP:
@@ -173,10 +176,8 @@ namespace IFR
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
                     #region IFR OpCodes (not yet implemented)
                     /*
-                    case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP:
@@ -186,7 +187,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_READ_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP:
@@ -376,7 +376,6 @@ namespace IFR
         }
     }
 
-
     /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_EQ_ID_VAL_LIST_OP
     /// </summary>
@@ -412,6 +411,37 @@ namespace IFR
 
             if (this._Header.ListLength != _Payload.Count) // information doubled in structure, so we use it for sanity check
                 LogMessage(LogSeverity.ERROR, Name + ": Size of payload (" + _Payload.Count + ") does not match with header (" + this._Header.ListLength + ")!");
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_QUESTION_REF3_OP
+    /// </summary>
+    class HiiIfrOpCodeQuestionRef : HiiIfrOpCode<EFI_IFR_QUESTION_REF3>
+    {
+        /// <summary>
+        /// Managed structure header (Extended due to successfull header validation)
+        /// </summary>
+        protected object _HeaderEx;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Header { get { return _HeaderEx; } }
+   
+        public HiiIfrOpCodeQuestionRef(IfrRawDataBlock raw) : base(raw)
+        {
+            if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_2).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_QUESTION_REF3_2>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_3).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_QUESTION_REF3_3>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else
+                LogMessage(LogSeverity.ERROR, Name + ": Unknown data size of EFI_IFR_QUESTION_REF3");
         }
     }
     #endregion
