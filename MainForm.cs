@@ -45,12 +45,14 @@ namespace IfrViewer
             Width = (int)(Screen.GetWorkingArea(DesktopLocation).Width * 0.80);
             Height = (int)(Screen.GetWorkingArea(DesktopLocation).Height * 0.80);
             CenterToScreen();
+            Show();
 
             // Load project from command line argument (when available)
             for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
             {
                 string hpk_filename = Environment.GetCommandLineArgs()[i];
-                CreateLogEntry(LogSeverity.INFO, "Main", "Loading file \"" + hpk_filename + "\"...");
+                CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + hpk_filename + "\"...");
+
                 HPKfile hpk = null;
                 try
                 {
@@ -59,24 +61,33 @@ namespace IfrViewer
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
-                    CreateLogEntry(LogSeverity.ERROR, "Main", "Loading file failed!" + Environment.NewLine + ex.ToString());
+                    CreateLogEntryMain(LogSeverity.ERROR, "Loading file failed!" + Environment.NewLine + ex.ToString());
                     MessageBox.Show("Loading file failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 if (null != hpk) // Loaded successfully?
                 {
+                    tv.BeginUpdate();
                     TreeNode root = tv.Nodes.Add(hpk.Name);
                     LoadHpkElementIntoTreeView(hpk, root);
-                    CreateLogEntry(LogSeverity.SUCCESS, "Main", "Loading file \"" + hpk_filename + "\" completed!");
                     root.Expand();
+                    tv.EndUpdate();
+                    CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + hpk_filename + "\" completed!");
                 }
             }
+        }
+
+        private void CreateLogEntryMain(LogSeverity severity, string msg)
+        {
+            CreateLogEntry(severity, "Main", msg);
 
             log.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
             log.AutoResizeRows(DataGridViewAutoSizeRowsMode.AllCells);
             log.FirstDisplayedScrollingRowIndex = log.Rows[log.RowCount - 1].Index; // Scroll to bottom
-        }
 
+            Update();
+        }
+    
         private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode root)
         {
             const uint BytesPerLine = 16;
