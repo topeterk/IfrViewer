@@ -599,7 +599,7 @@ namespace IFR
         // UINT8  Data[...];
 
         public UINT32 Length { get { return _Length.GetBits<UINT32>(0x00FFFFFF); } set { _Length = SetBits<UINT32>(_Length, value, 0x00FFFFFF); } }
-        public EFI_HII_PACKAGE_e Type { get { return (EFI_HII_PACKAGE_e)_Type; } set { _Type = (byte)value; } }
+        public EFI_HII_PACKAGE_e Type { get { return _Type.GetBits<EFI_HII_PACKAGE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     /// <summary>
@@ -918,8 +918,8 @@ namespace IFR
     {
         private UINT8 _BlockType;
         // UINT8 BlockBody[...];
-        
-        public EFI_HII_SIBT_e BlockType { get { return (EFI_HII_SIBT_e)_BlockType; } set { _BlockType = (UINT8)value; } }
+
+        public EFI_HII_SIBT_e BlockType { get { return _BlockType.GetBits<EFI_HII_SIBT_e>(); } set { _BlockType = SetBits(_BlockType, value); } }
     }
 
     /// <summary>
@@ -1455,8 +1455,8 @@ namespace IFR
     {
         private UINT8 _OpCode;
         private UINT8 _LengthAndscope;
-
-        public EFI_IFR_OPCODE_e OpCode { get { return (EFI_IFR_OPCODE_e)_OpCode; } set { _OpCode = (byte)value; } }
+        
+        public EFI_IFR_OPCODE_e OpCode { get { return _OpCode.GetBits<EFI_IFR_OPCODE_e>(); } set { _OpCode = SetBits(_OpCode, value); } }
         public UINT8 Length { get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x7F); } }
         public UINT8 Scope { get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x01, 7); } }
     };
@@ -1606,8 +1606,8 @@ namespace IFR
         public UINT16 DefaultId;
         private UINT8 _Type;
         // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
-
-        public EFI_IFR_TYPE_e Type { get { return (EFI_IFR_TYPE_e)_Type; } set { _Type = (UINT8)value; } }
+        
+        public EFI_IFR_TYPE_e Type { get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
@@ -1793,8 +1793,8 @@ namespace IFR
         public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
-        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(Flags & 0x03); } set { Flags = (UINT8)((Flags & 0xFC) | ((UINT8)value & 0x03)); } }
-        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(Flags & 0x30); } set { Flags = (UINT8)((Flags & 0xCF) | ((UINT8)value & 0x30)); } }
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -1831,43 +1831,49 @@ namespace IFR
         public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
-        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return (EFI_IFR_NUMERIC_SIZE_e)(Flags & 0x03); } set { Flags = (UINT8)((Flags & 0xFC) | ((UINT8)value & 0x03)); } }
-        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return (EFI_IFR_DISPLAY_e)(Flags & 0x30); } set { Flags = (UINT8)((Flags & 0xCF) | ((UINT8)value & 0x30)); } }
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
-/*
-                typedef struct _EFI_IFR_STRING
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 MinSize;
-                UINT8 MaxSize;
-                UINT8 Flags;
-            }
-            EFI_IFR_STRING;
 
-                #define EFI_IFR_STRING_MULTI_LINE      0x01
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
+    struct EFI_IFR_STRING
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public UINT8 MinSize;
+        public UINT8 MaxSize;
+        private UINT8 _Flags;
 
-                typedef struct _EFI_IFR_PASSWORD
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT16 MinSize;
-                UINT16 MaxSize;
-            }
-            EFI_IFR_PASSWORD;
+        public EFI_IFR_STRING_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_STRING_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+    };
 
-                typedef struct _EFI_IFR_ORDERED_LIST
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                UINT8 MaxContainers;
-                UINT8 Flags;
-            }
-            EFI_IFR_ORDERED_LIST;
+    [Flags]
+    enum EFI_IFR_STRING_FLAGS_e
+    {
+        EFI_IFR_STRING_MULTI_LINE = 0x01,
+    };
+    /*
+                    typedef struct _EFI_IFR_PASSWORD
+                {
+                    EFI_IFR_OP_HEADER Header;
+                    EFI_IFR_QUESTION_HEADER Question;
+                    UINT16 MinSize;
+                    UINT16 MaxSize;
+                }
+                EFI_IFR_PASSWORD;
 
-                #define EFI_IFR_UNIQUE_SET             0x01
-                #define EFI_IFR_NO_EMPTY_SET           0x02
-*/
+                    typedef struct _EFI_IFR_ORDERED_LIST
+                {
+                    EFI_IFR_OP_HEADER Header;
+                    EFI_IFR_QUESTION_HEADER Question;
+                    UINT8 MaxContainers;
+                    UINT8 Flags;
+                }
+                EFI_IFR_ORDERED_LIST;
+
+                    #define EFI_IFR_UNIQUE_SET             0x01
+                    #define EFI_IFR_NO_EMPTY_SET           0x02
+    */
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
     struct EFI_IFR_TIME
     {
@@ -1900,43 +1906,43 @@ namespace IFR
         QF_TIME_STORAGE_TIME = 0x10,
         QF_TIME_STORAGE_WAKEUP = 0x20,
     };
-/*
-                    typedef struct _EFI_IFR_INCONSISTENT_IF
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_STRING_ID Error;
-                }
-                EFI_IFR_INCONSISTENT_IF;
 
-                    typedef struct _EFI_IFR_NO_SUBMIT_IF
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_STRING_ID Error;
-                }
-                EFI_IFR_NO_SUBMIT_IF;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_INCONSISTENT_IF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID Error;
+    };
+    /*
+                        typedef struct _EFI_IFR_NO_SUBMIT_IF
+                    {
+                        EFI_IFR_OP_HEADER Header;
+                        EFI_STRING_ID Error;
+                    }
+                    EFI_IFR_NO_SUBMIT_IF;
 
-                    typedef struct _EFI_IFR_WARNING_IF
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_STRING_ID Warning;
-                    UINT8 TimeOut;
-                }
-                EFI_IFR_WARNING_IF;
+                        typedef struct _EFI_IFR_WARNING_IF
+                    {
+                        EFI_IFR_OP_HEADER Header;
+                        EFI_STRING_ID Warning;
+                        UINT8 TimeOut;
+                    }
+                    EFI_IFR_WARNING_IF;
 
-                    typedef struct _EFI_IFR_REFRESH
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    UINT8 RefreshInterval;
-                }
-                EFI_IFR_REFRESH;
+                        typedef struct _EFI_IFR_REFRESH
+                    {
+                        EFI_IFR_OP_HEADER Header;
+                        UINT8 RefreshInterval;
+                    }
+                    EFI_IFR_REFRESH;
 
-                    typedef struct _EFI_IFR_VARSTORE_DEVICE
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_STRING_ID DevicePath;
-                }
-                EFI_IFR_VARSTORE_DEVICE;
-*/
+                        typedef struct _EFI_IFR_VARSTORE_DEVICE
+                    {
+                        EFI_IFR_OP_HEADER Header;
+                        EFI_STRING_ID DevicePath;
+                    }
+                    EFI_IFR_VARSTORE_DEVICE;
+    */
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_ONE_OF_OPTION : IEfiIfrType
     {
@@ -1946,8 +1952,8 @@ namespace IFR
         private UINT8 _Type;
         // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
 
-        public EFI_IFR_OPTION_e Flags { get { return (EFI_IFR_OPTION_e)_Flags; } set { _Flags = (UINT8)value; } }
-        public EFI_IFR_TYPE_e Type { get { return (EFI_IFR_TYPE_e)_Type; } set { _Type = (UINT8)value; } }
+        public EFI_IFR_OPTION_e Flags { get { return _Flags.GetBits<EFI_IFR_OPTION_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_TYPE_e Type { get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     /// <summary>
@@ -1990,15 +1996,15 @@ namespace IFR
                     EFI_GUID RefreshEventGroupId;
                 }
                 EFI_IFR_REFRESH_ID;
-
-                    typedef struct _EFI_IFR_EQ_ID_ID
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_QUESTION_ID QuestionId1;
-                    EFI_QUESTION_ID QuestionId2;
-                }
-                EFI_IFR_EQ_ID_ID;
 */
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_IFR_EQ_ID_ID
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_QUESTION_ID QuestionId1;
+        public EFI_QUESTION_ID QuestionId2;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_EQ_ID_VAL
     {
@@ -2043,14 +2049,14 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         public UINT64 Value;
     };
-/*
-            typedef struct _EFI_IFR_QUESTION_REF1
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_QUESTION_ID QuestionId;
-        }
-        EFI_IFR_QUESTION_REF1;
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_QUESTION_REF1
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_QUESTION_ID QuestionId;
+    };
+/*
             typedef struct _EFI_IFR_QUESTION_REF3_2
         {
             EFI_IFR_OP_HEADER Header;
