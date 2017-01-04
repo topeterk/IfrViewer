@@ -1852,6 +1852,15 @@ namespace IFR
     {
         EFI_IFR_STRING_MULTI_LINE = 0x01,
     };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
+    struct EFI_IFR_PASSWORD
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public UINT8 MinSize;
+        public UINT8 MaxSize;
+    };
     /*
                     typedef struct _EFI_IFR_PASSWORD
                 {
