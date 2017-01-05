@@ -177,8 +177,11 @@ namespace IFR
                         }
                         else if (fi.FieldType.FullName == "System.String")
                         {
-                            string value = fi.GetValue(obj) as System.String;
-                            list.Add(new KeyValuePair<string, object>("String", "\"" + value + "\""));
+                            if (fi.Name != "Empty") // filter Empty member of basic string class
+                            {
+                                string value = fi.GetValue(obj) as System.String;
+                                list.Add(new KeyValuePair<string, object>(fi.Name, "\"" + value + "\""));
+                            }
                         }
                         else if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
                             list.Add(new KeyValuePair<string, object>(fi.Name, fi.GetValue(obj)));

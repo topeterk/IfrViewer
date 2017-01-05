@@ -214,6 +214,7 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode base class
     /// </summary>
+    /// <typeparam name="T">Type of IFR opcode header</typeparam>
     class HiiIfrOpCode<T> : HPKElement where T : struct
     {
         #region HiiIfrOpCode definition
@@ -250,19 +251,29 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// Hii Ifr Opcode base class with payload
     /// </summary>
-    class HiiIfrOpCodeFormSet : HiiIfrOpCode<EFI_IFR_FORM_SET>
+    /// <typeparam name="T">Type of IFR opcode header</typeparam>
+    /// <typeparam name="P">Type of payload</typeparam>
+    class HiiIfrOpCodeWithPayload<T, P> : HiiIfrOpCode<T> where T : struct
     {
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        protected List<EFI_GUID> _Payload;
+        protected P _Payload;
         /// <summary>
         /// Managed structure payload
         /// </summary>
         public override object Payload { get { return _Payload; } }
 
+        public HiiIfrOpCodeWithPayload(IfrRawDataBlock raw) : base(raw) { return; }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_FORM_SET_OP
+    /// </summary>
+    class HiiIfrOpCodeFormSet : HiiIfrOpCodeWithPayload<EFI_IFR_FORM_SET, List<EFI_GUID>>
+    {
         public HiiIfrOpCodeFormSet(IfrRawDataBlock raw) : base(raw)
         {
             this._Payload = new List<EFI_GUID>();
@@ -288,43 +299,29 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Ifr Opcode class of EFI_IFR_VARSTORE_OP
+    /// Hii Ifr Opcode class which has a null terminated ASCII string as payload
     /// </summary>
-    class HiiIfrOpCodeWithAsciiNullTerminatedString<T> : HiiIfrOpCode<T> where T : struct
+    /// <typeparam name="T">Type of IFR opcode header</typeparam>
+    class HiiIfrOpCodeWithAsciiNullTerminatedString<T> : HiiIfrOpCodeWithPayload<T, object> where T : struct
     {
-        private struct Payload_t
+        private struct NamedPayload_t
         {
             public string Name;
         }
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        private Payload_t _Payload;
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
         public HiiIfrOpCodeWithAsciiNullTerminatedString(IfrRawDataBlock raw) : base(raw)
         {
-            _Payload.Name = data_payload.CopyOfAsciiNullTerminatedString;
+            NamedPayload_t pl = new NamedPayload_t();
+            pl.Name = data_payload.CopyOfAsciiNullTerminatedString;
+            _Payload = pl;
         }
     }
 
     /// <summary>
     /// Hii Ifr Opcode class which has EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x as payload
     /// </summary>
-    class HiiIfrOpCodeWithEfiIfrNumericValue<T> : HiiIfrOpCode<T> where T : struct, IEfiIfrNumericValue
+    /// <typeparam name="T">Type of IFR opcode header</typeparam>
+    class HiiIfrOpCodeWithEfiIfrNumericValue<T> : HiiIfrOpCodeWithPayload<T, object> where T : struct, IEfiIfrNumericValue
     {
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        private object _Payload;
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
         public HiiIfrOpCodeWithEfiIfrNumericValue(IfrRawDataBlock raw) : base(raw)
         {
             switch (this._Header.Flags_DataSize)
@@ -343,17 +340,9 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode class which has EFI_IFR_TYPE_VALUE as payload
     /// </summary>
-    class HiiIfrOpCodeWithEfiIfrTypeValue<T> : HiiIfrOpCode<T> where T : struct, IEfiIfrType
+    /// <typeparam name="T">Type of IFR opcode header</typeparam>
+    class HiiIfrOpCodeWithEfiIfrTypeValue<T> : HiiIfrOpCodeWithPayload<T, object> where T : struct, IEfiIfrType
     {
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        private object _Payload;
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
         public HiiIfrOpCodeWithEfiIfrTypeValue(IfrRawDataBlock raw) : base(raw)
         {
             switch (this._Header.Type)
@@ -379,17 +368,8 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode class of EFI_IFR_EQ_ID_VAL_LIST_OP
     /// </summary>
-    class HiiIfrOpCodeEqIdList : HiiIfrOpCode<EFI_IFR_EQ_ID_VAL_LIST>
+    class HiiIfrOpCodeEqIdList : HiiIfrOpCodeWithPayload<EFI_IFR_EQ_ID_VAL_LIST, List<IfrTypeUINT16>>
     {
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        protected List<IfrTypeUINT16> _Payload;
-        /// <summary>
-        /// Managed structure payload
-        /// </summary>
-        public override object Payload { get { return _Payload; } }
-
         public HiiIfrOpCodeEqIdList(IfrRawDataBlock raw) : base(raw)
         {
             this._Payload = new List<IfrTypeUINT16>();
