@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016 Peter Kirmeier
+//Copyright(c) 2016-2017 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
