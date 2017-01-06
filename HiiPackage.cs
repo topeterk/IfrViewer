@@ -95,9 +95,10 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_NUMERIC>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_PASSWORD>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ACTION>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCodeAction(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RESET_BUTTON>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCodeRef(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_INCONSISTENT_IF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_ID>(raw_data); break;
@@ -107,6 +108,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
@@ -176,13 +178,11 @@ namespace IFR
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
                     #region IFR OpCodes (not yet implemented)
                     /*
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP:
@@ -407,7 +407,7 @@ namespace IFR
         /// Managed structure header
         /// </summary>
         public override object Header { get { return _HeaderEx; } }
-   
+
         public HiiIfrOpCodeQuestionRef(IfrRawDataBlock raw) : base(raw)
         {
             if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_2).StructLayoutAttribute.Size)
@@ -418,6 +418,83 @@ namespace IFR
             else if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_3).StructLayoutAttribute.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_QUESTION_REF3_3>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else
+                LogMessage(LogSeverity.ERROR, Name + ": Unknown data size of EFI_IFR_QUESTION_REF3");
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_REF_OP
+    /// </summary>
+    class HiiIfrOpCodeRef : HiiIfrOpCode<EFI_IFR_REF>
+    {
+        /// <summary>
+        /// Managed structure header (Extended due to successfull header validation)
+        /// </summary>
+        protected object _HeaderEx;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Header { get { return _HeaderEx; } }
+
+        public HiiIfrOpCodeRef(IfrRawDataBlock raw) : base(raw)
+        {
+            if (_Header.Header.Length == typeof(EFI_IFR_REF).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_REF>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF2).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_REF2>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF3).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_REF3>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF4).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_REF4>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF5).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_REF5>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else
+                LogMessage(LogSeverity.ERROR, Name + ": Unknown data size of EFI_IFR_REF");
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_ACTION_OP
+    /// </summary>
+    class HiiIfrOpCodeAction : HiiIfrOpCode<EFI_IFR_ACTION_1>
+    {
+        /// <summary>
+        /// Managed structure header (Extended due to successfull header validation)
+        /// </summary>
+        protected object _HeaderEx;
+        /// <summary>
+        /// Managed structure header
+        /// </summary>
+        public override object Header { get { return _HeaderEx; } }
+
+        public HiiIfrOpCodeAction(IfrRawDataBlock raw) : base(raw)
+        {
+            if (_Header.Header.Length == typeof(EFI_IFR_ACTION).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_ACTION>();
+                this.data_payload = null; // payload is part of header, now
+            }
+            else if (_Header.Header.Length == typeof(EFI_IFR_ACTION_1).StructLayoutAttribute.Size)
+            {
+                _HeaderEx = raw.ToIfrType<EFI_IFR_ACTION_1>();
                 this.data_payload = null; // payload is part of header, now
             }
             else

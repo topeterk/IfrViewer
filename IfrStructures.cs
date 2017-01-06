@@ -1551,15 +1551,14 @@ namespace IFR
         public UINT16 Size;
         // UINT8 Name[...];
     };
-/*
-            typedef struct _EFI_IFR_VARSTORE_NAME_VALUE
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_VARSTORE_ID VarStoreId;
-            EFI_GUID Guid;
-        }
-        EFI_IFR_VARSTORE_NAME_VALUE;
-        */
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 20)]
+    struct EFI_IFR_VARSTORE_NAME_VALUE
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_VARSTORE_ID VarStoreId;
+        public EFI_GUID Guid;
+    };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack=1, Size=23)]
     struct EFI_IFR_FORM_SET
@@ -1658,52 +1657,51 @@ namespace IFR
         public EFI_IFR_QUESTION_HEADER Question;
         public EFI_FORM_ID FormId;
     };
-/*
-                typedef struct _EFI_IFR_REF2
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                EFI_FORM_ID FormId;
-                EFI_QUESTION_ID QuestionId;
-            }
-            EFI_IFR_REF2;
 
-                typedef struct _EFI_IFR_REF3
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                EFI_FORM_ID FormId;
-                EFI_QUESTION_ID QuestionId;
-                EFI_GUID FormSetId;
-            }
-            EFI_IFR_REF3;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 17)]
+    struct EFI_IFR_REF2
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public EFI_FORM_ID FormId;
+        public EFI_QUESTION_ID QuestionId;
+    };
 
-                typedef struct _EFI_IFR_REF4
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-                EFI_FORM_ID FormId;
-                EFI_QUESTION_ID QuestionId;
-                EFI_GUID FormSetId;
-                EFI_STRING_ID DevicePath;
-            }
-            EFI_IFR_REF4;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 33)]
+    struct EFI_IFR_REF3
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public EFI_FORM_ID FormId;
+        public EFI_QUESTION_ID QuestionId;
+        public EFI_GUID FormSetId;
+    };
 
-                typedef struct _EFI_IFR_REF5
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-            }
-            EFI_IFR_REF5;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 35)]
+    struct EFI_IFR_REF4
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public EFI_FORM_ID FormId;
+        public EFI_QUESTION_ID QuestionId;
+        public EFI_GUID FormSetId;
+        public EFI_STRING_ID DevicePath;
+    };
 
-                typedef struct _EFI_IFR_RESET_BUTTON
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_STATEMENT_HEADER Statement;
-                EFI_DEFAULT_ID DefaultId;
-            }
-            EFI_IFR_RESET_BUTTON;
-            */
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 13)]
+    struct EFI_IFR_REF5
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 8)]
+    struct EFI_IFR_RESET_BUTTON
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_STATEMENT_HEADER Statement;
+        public EFI_DEFAULT_ID DefaultId;
+    };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
     struct EFI_IFR_ACTION
@@ -1712,14 +1710,14 @@ namespace IFR
         public EFI_IFR_QUESTION_HEADER Question;
         public EFI_STRING_ID QuestionConfig;
     };
-/*
-                typedef struct _EFI_IFR_ACTION_1
-            {
-                EFI_IFR_OP_HEADER Header;
-                EFI_IFR_QUESTION_HEADER Question;
-            }
-            EFI_IFR_ACTION_1;
-*/
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 13)]
+    struct EFI_IFR_ACTION_1
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
     struct EFI_IFR_DATE
     {
