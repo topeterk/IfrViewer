@@ -73,6 +73,12 @@ namespace IFR
 
             // Parse all IFR opcodes..
             uint offset = 0;
+            ParseIfrScope(null, ref offset);
+        }
+
+        private void ParseIfrScope(HiiIfrOpCode parent, ref uint offset)
+        {
+            // Parse all IFR opcodes of this scope..
             while (offset < data_payload.Length)
             {
                 EFI_IFR_OP_HEADER ifr_hdr = data_payload.ToIfrType<EFI_IFR_OP_HEADER>(offset);
@@ -80,62 +86,62 @@ namespace IFR
                     throw new Exception("Payload length invalid");
 
                 IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
-                HPKElement hpk_element;
+                HiiIfrOpCode ifr_element;
 
                 switch (ifr_hdr.OpCode)
                 {
                     // OpCodes which have more data rather just the header (each type has a specific class type)..
                     #region IFR OpCodes (more than just the header)
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_IMAGE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_ONE_OF>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_CHECKBOX>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_NUMERIC>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_PASSWORD>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: hpk_element = new HiiIfrOpCodeAction(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RESET_BUTTON>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCodeRef(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_NO_SUBMIT_IF>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_INCONSISTENT_IF>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_ID>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP: hpk_element = new HiiIfrOpCodeEqIdList(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ANIMATION>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ORDERED_LIST>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_DEVICE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GET>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SET>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT16>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT32>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT64>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TO_STRING>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FIND>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING_REF1>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF3_OP: hpk_element = new HiiIfrOpCodeQuestionRef(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SPAN>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP: hpk_element = new HiiIfrOpCodeFormMap(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SECURITY>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH_ID>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_WARNING_IF>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_MATCH2_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_MATCH2>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_FORM>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_SUBTITLE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_TEXT>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_IMAGE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP: ifr_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_ONE_OF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_CHECKBOX>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP: ifr_element = new HiiIfrOpCodeWithEfiIfrNumericValue<EFI_IFR_NUMERIC>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_PASSWORD>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP: ifr_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_ONE_OF_OPTION>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP: ifr_element = new HiiIfrOpCodeAction(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_RESET_BUTTON>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: ifr_element = new HiiIfrOpCodeFormSet(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: ifr_element = new HiiIfrOpCodeRef(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_NO_SUBMIT_IF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_INCONSISTENT_IF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_ID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP: ifr_element = new HiiIfrOpCodeEqIdList(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_RULE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_REFRESH>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_ANIMATION>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_ORDERED_LIST>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: ifr_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: ifr_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_DEVICE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_GET>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_SET>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_UINT16>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_UINT32>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_UINT64>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_TO_STRING>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_FIND>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_STRING_REF1>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF3_OP: ifr_element = new HiiIfrOpCodeQuestionRef(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_SPAN>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: ifr_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP: ifr_element = new HiiIfrOpCodeFormMap(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_SECURITY>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_REFRESH_ID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_WARNING_IF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_MATCH2_OP: ifr_element = new HiiIfrOpCode<EFI_IFR_MATCH2>(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
                     #region IFR OpCodes (just the header)
@@ -190,19 +196,56 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_CATENATE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_MODAL_TAG_OP:
                     #endregion
-                        hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
+                        ifr_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
                     default:
                         //raw_data.GenerateAndLogDump(ifr_hdr.OpCode.ToString());
                         LogMessage(LogSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());
-                        hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
+                        ifr_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
                 }
-                Childs.Add(hpk_element);
+
+                // add element as child..
+                if (parent == null)
+                    this.Childs.Add(ifr_element);
+                else
+                    parent.Childs.Add(ifr_element);
 
                 offset += ifr_hdr.Length;
+
+                if (ifr_element.OpCode == EFI_IFR_OPCODE_e.EFI_IFR_END_OP)
+                    return; // Scope is done!
+                else if (ifr_element.HasOwnScope)
+                    ParseIfrScope(ifr_element, ref offset);
             }
+        }
+    }
+
+    /// <summary>
+    /// Hii Ifr Opcode super base class
+    /// </summary>
+    class HiiIfrOpCode : HPKElement
+    {
+        /// <summary>
+        /// Type of IFR opcode
+        /// </summary>
+        public readonly EFI_IFR_OPCODE_e OpCode;
+        /// <summary>
+        /// Signals if own IFR scope is opened by this IFR opcode
+        /// </summary>
+        public readonly bool HasOwnScope;
+
+        /// <summary>
+        /// Friendly name of this object
+        /// </summary> 
+        public override string Name { get { string name = Enum.GetName(OpCode.GetType(), OpCode); return name == null ? "UNKNOWN" : name; } }
+
+        public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
+        {
+            EFI_IFR_OP_HEADER hdr = data.ToIfrType<EFI_IFR_OP_HEADER>();
+            this.OpCode = hdr.OpCode;
+            this.HasOwnScope = hdr.Scope == 1 ? true : false;
         }
     }
 
@@ -210,14 +253,8 @@ namespace IFR
     /// Hii Ifr Opcode base class
     /// </summary>
     /// <typeparam name="T">Type of IFR opcode header</typeparam>
-    class HiiIfrOpCode<T> : HPKElement where T : struct
+    class HiiIfrOpCode<T> : HiiIfrOpCode where T : struct
     {
-        #region HiiIfrOpCode definition
-        /// <summary>
-        /// Type of IFR opcode
-        /// </summary>
-        public readonly EFI_IFR_OPCODE_e OpCode;
-
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -227,14 +264,8 @@ namespace IFR
         /// </summary>
         public override object Header { get { return _Header; } }
 
-        /// <summary>
-        /// Friendly name of this object
-        /// </summary> 
-        public override string Name { get { string name = Enum.GetName(OpCode.GetType(), OpCode); return name == null ? "UNKNOWN" : name; } }
-
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
-            this.OpCode = data.ToIfrType<EFI_IFR_OP_HEADER>().OpCode; // Do not take value from "this._Header" because casting might fail. Keep using common header!
             this._Header = data.ToIfrType<T>();
             if (data.Length != 0)
             {
@@ -242,7 +273,6 @@ namespace IFR
                 data_payload.IncreaseOffset(this._Header.GetPhysSize());
             }
         }
-        #endregion
     }
 
     /// <summary>
