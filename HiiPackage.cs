@@ -109,6 +109,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ANIMATION>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ORDERED_LIST>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
@@ -120,12 +121,19 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT16>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT32>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT64>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TO_STRING>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_FIND>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING_REF1>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF3_OP: hpk_element = new HiiIfrOpCodeQuestionRef(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SPAN>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
-                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
+                    case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP: hpk_element = new HiiIfrOpCodeFormMap(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SECURITY>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH_ID>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_WARNING_IF>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_MATCH2_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_MATCH2>(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
                     #region IFR OpCodes (just the header)
@@ -142,6 +150,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_VERSION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_END_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_MATCH_OP:
+                    case EFI_IFR_OPCODE_e.EFI_IFR_READ_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_WRITE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQUAL_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_NOT_EQUAL_OP:
@@ -184,19 +193,8 @@ namespace IFR
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
                     #region IFR OpCodes (not yet implemented)
                     /*
-                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_READ_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FIND_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_MATCH2_OP:
                     */
                     #endregion
                     default:
@@ -283,7 +281,7 @@ namespace IFR
             uint offset = 0;
             while (offset < data_payload.Length)
             {
-                if (data_payload.Length < 16)
+                if ((data_payload.Length + offset) < 16)
                 {
                     LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
                     break;
@@ -375,17 +373,17 @@ namespace IFR
         {
             this._Payload = new List<IfrTypeUINT16>();
 
-            // Parse all GUIDs..
+            // Parse all IDs..
             uint offset = 0;
             while (offset < data_payload.Length)
             {
-                if (data_payload.Length < typeof(IfrTypeUINT16).StructLayoutAttribute.Size)
+                if ((data_payload.Length + offset) < typeof(IfrTypeUINT16).StructLayoutAttribute.Size)
                 {
                     LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
                     break;
                 }
 
-                _Payload.Add(data_payload.ToIfrType<IfrTypeUINT16>());
+                _Payload.Add(data_payload.ToIfrType<IfrTypeUINT16>(offset));
 
                 offset += (uint)typeof(IfrTypeUINT16).StructLayoutAttribute.Size;
             }
@@ -502,6 +500,33 @@ namespace IFR
                 LogMessage(LogSeverity.ERROR, Name + ": Unknown data size of EFI_IFR_QUESTION_REF3");
         }
     }
+
+    /// <summary>
+    /// Hii Ifr Opcode class of EFI_IFR_FORM_MAP_OP
+    /// </summary>
+    class HiiIfrOpCodeFormMap : HiiIfrOpCodeWithPayload<EFI_IFR_FORM_MAP, List<EFI_IFR_FORM_MAP_METHOD>>
+    {
+        public HiiIfrOpCodeFormMap(IfrRawDataBlock raw) : base(raw)
+        {
+            this._Payload = new List<EFI_IFR_FORM_MAP_METHOD>();
+
+            // Parse all methods..
+            uint offset = 0;
+            while (offset < data_payload.Length)
+            {
+                if ((data_payload.Length + offset) < typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute.Size)
+                {
+                    LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
+                    break;
+                }
+
+                _Payload.Add(data_payload.ToIfrType<EFI_IFR_FORM_MAP_METHOD>(offset));
+
+                offset += (uint)typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute.Size;
+            }
+        }
+    }
+
     #endregion
 
     #region Definitions for String Package

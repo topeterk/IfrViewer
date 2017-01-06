@@ -2088,147 +2088,163 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         public UINT8 RuleId;
     };
-/*
-            typedef struct _EFI_IFR_STRING_REF1
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_STRING_ID StringId;
-        }
-        EFI_IFR_STRING_REF1;
+    
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_STRING_REF1
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID StringId;
+    };
 
-            ///
-            /// For EFI_IFR_TO_STRING, when converting from
-            /// unsigned integers, these flags control the format:
-            /// 0 = unsigned decimal.
-            /// 1 = signed decimal.
-            /// 2 = hexadecimal (lower-case alpha).
-            /// 3 = hexadecimal (upper-case alpha).
-            ///@{
-            #define EFI_IFR_STRING_UNSIGNED_DEC      0
-            #define EFI_IFR_STRING_SIGNED_DEC        1
-            #define EFI_IFR_STRING_LOWERCASE_HEX     2
-            #define EFI_IFR_STRING_UPPERCASE_HEX     3
-            ///@}
+    /// <summary>
+    /// For EFI_IFR_TO_STRING, when converting from
+    /// unsigned integers, these flags control the format:
+    /// 0 = unsigned decimal.
+    /// 1 = signed decimal.
+    /// 2 = hexadecimal (lower-case alpha).
+    /// 3 = hexadecimal (upper-case alpha).
+    /// </summary>
+    public enum EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e
+    {
+        EFI_IFR_STRING_UNSIGNED_DEC = 0x00,
+        EFI_IFR_STRING_SIGNED_DEC = 0x01,
+        EFI_IFR_STRING_LOWERCASE_HEX = 0x02,
+        EFI_IFR_STRING_UPPERCASE_HEX = 0x03,
+    };
 
-            ///
-            /// When converting from a buffer, these flags control the format:
-            /// 0 = ASCII.
-            /// 8 = Unicode.
-            ///@{
-            #define EFI_IFR_STRING_ASCII             0
-            #define EFI_IFR_STRING_UNICODE           8
-            ///@}
+    /// <summary>
+    /// When converting from a buffer, these flags control the format:
+    /// 0 = ASCII.
+    /// 8 = Unicode.
+    /// </summary>
+    public enum EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e
+    {
+        EFI_IFR_STRING_ASCII = 0x00,
+        EFI_IFR_STRING_UNICODE = 0x08,
+    };
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_TO_STRING
+    {
+        public EFI_IFR_OP_HEADER Header;
+        private UINT8 _Format;
 
-            typedef struct _EFI_IFR_TO_STRING
-        {
-            EFI_IFR_OP_HEADER Header;
-            UINT8 Format;
-        }
-        EFI_IFR_TO_STRING;
+        public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { _Format = SetBits(_Format, value); } }
+        public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { _Format = SetBits(_Format, value); } }
+    };
 
-            typedef struct _EFI_IFR_MATCH2
-        {
-            EFI_IFR_OP_HEADER Header;
-            EFI_GUID SyntaxType;
-        }
-        EFI_IFR_MATCH2;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_MATCH2
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_GUID SyntaxType;
+    };
 
-            //
-            // Flags governing the matching criteria of EFI_IFR_FIND
-            //
-            #define EFI_IFR_FF_CASE_SENSITIVE    0x00
-            #define EFI_IFR_FF_CASE_INSENSITIVE  0x01
+    /// <summary>
+    /// Flags governing the matching criteria of EFI_IFR_FIND
+    /// </summary>
+    public enum EFI_IFR_FIND_FORMAT_e
+    {
+        EFI_IFR_FF_CASE_SENSITIVE = 0x00,
+        EFI_IFR_FF_CASE_INSENSITIVE = 0x01,
+    };
 
-            typedef struct _EFI_IFR_FIND
-        {
-            EFI_IFR_OP_HEADER Header;
-            UINT8 Format;
-        }
-        EFI_IFR_FIND;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_FIND
+    {
+        public EFI_IFR_OP_HEADER Header;
+        private UINT8 _Format;
 
-            //
-            // Flags specifying whether to find the first matching string
-            // or the first non-matching string.
-            //
-            #define EFI_IFR_FLAGS_FIRST_MATCHING     0x00
-            #define EFI_IFR_FLAGS_FIRST_NON_MATCHING 0x01
+        public EFI_IFR_FIND_FORMAT_e Format { get { return _Format.GetBits<EFI_IFR_FIND_FORMAT_e>(); } set { _Format = SetBits(_Format, value); } }
+    };
 
-            typedef struct _EFI_IFR_SPAN
-        {
-            EFI_IFR_OP_HEADER Header;
-            UINT8 Flags;
-        }
-        EFI_IFR_SPAN;
+    /// <summary>
+    /// Flags specifying whether to find the first matching string
+    /// or the first non-matching string.
+    /// </summary>
+    public enum EFI_IFR_SPAN_FLAGS_e
+    {
+        EFI_IFR_FLAGS_FIRST_MATCHING = 0x00,
+        EFI_IFR_FLAGS_FIRST_NON_MATCHING = 0x01,
+    };
 
-            typedef struct _EFI_IFR_SECURITY
-        {
-            ///
-            /// Standard opcode header, where Header.Op = EFI_IFR_SECURITY_OP.
-            ///
-            EFI_IFR_OP_HEADER Header;
-            ///
-            /// Security permission level.
-            ///
-            EFI_GUID Permissions;
-        }
-        EFI_IFR_SECURITY;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_SPAN
+    {
+        public EFI_IFR_OP_HEADER Header;
+        private UINT8 _Flags;
 
-            typedef struct _EFI_IFR_FORM_MAP_METHOD
-        {
-            ///
-            /// The string identifier which provides the human-readable name of 
-            /// the configuration method for this standards map form.
-            ///
-            EFI_STRING_ID MethodTitle;
-            ///
-            /// Identifier which uniquely specifies the configuration methods 
-            /// associated with this standards map form.
-            ///
-            EFI_GUID MethodIdentifier;
-        }
-        EFI_IFR_FORM_MAP_METHOD;
+        public EFI_IFR_SPAN_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_SPAN_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+    };
 
-            typedef struct _EFI_IFR_FORM_MAP
-        {
-            ///
-            /// The sequence that defines the type of opcode as well as the length 
-            /// of the opcode being defined. Header.OpCode = EFI_IFR_FORM_MAP_OP. 
-            ///
-            EFI_IFR_OP_HEADER Header;
-            ///
-            /// The unique identifier for this particular form.
-            ///
-            EFI_FORM_ID FormId;
-            ///
-            /// One or more configuration method's name and unique identifier.
-            ///
-            // EFI_IFR_FORM_MAP_METHOD  Methods[];
-        }
-        EFI_IFR_FORM_MAP;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_SECURITY
+    {
+        /// <summary>
+        /// Standard opcode header, where Header.Op = EFI_IFR_SECURITY_OP.
+        /// </summary>
+        public EFI_IFR_OP_HEADER Header;
+        /// <summary>
+        /// Security permission level.
+        /// </summary>
+        private EFI_GUID Permissions;
+    };
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_FORM_MAP_METHOD
+    {
+        /// <summary>
+        /// The string identifier which provides the human-readable name of 
+        /// the configuration method for this standards map form.
+        /// </summary>
+        public EFI_STRING_ID MethodTitle;
+        /// <summary>
+        /// Identifier which uniquely specifies the configuration methods 
+        /// associated with this standards map form.
+        /// </summary>
+        public EFI_GUID MethodIdentifier;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_FORM_MAP
+    {
+        /// <summary>
+        /// The sequence that defines the type of opcode as well as the length 
+        /// of the opcode being defined. Header.OpCode = EFI_IFR_FORM_MAP_OP. 
+        /// </summary>
+        public EFI_IFR_OP_HEADER Header;
+        /// <summary>
+        /// The unique identifier for this particular form.
+        /// </summary>
+        public EFI_FORM_ID FormId;
+        /// <summary>
+        /// One or more configuration method's name and unique identifier.
+        /// </summary>
+        // EFI_IFR_FORM_MAP_METHOD  Methods[...];
+    };
+    /*
             typedef struct _EFI_IFR_SET
-        {
-            ///
-            /// The sequence that defines the type of opcode as well as the length 
-            /// of the opcode being defined. Header.OpCode = EFI_IFR_SET_OP. 
-            ///
-            EFI_IFR_OP_HEADER Header;
-            ///
-            /// Specifies the identifier of a previously declared variable store to 
-            /// use when storing the question's value. 
-            ///
-            EFI_VARSTORE_ID VarStoreId;
-            union {
+            {
                 ///
-                /// A 16-bit Buffer Storage offset.
+                /// The sequence that defines the type of opcode as well as the length 
+                /// of the opcode being defined. Header.OpCode = EFI_IFR_SET_OP. 
                 ///
-                EFI_STRING_ID VarName;
-            ///
-            /// A Name Value or EFI Variable name (VarName).
-            ///
-            UINT16 VarOffset;
-        }
-        VarStoreInfo;
+                EFI_IFR_OP_HEADER Header;
+                ///
+                /// Specifies the identifier of a previously declared variable store to 
+                /// use when storing the question's value. 
+                ///
+                EFI_VARSTORE_ID VarStoreId;
+                union {
+                    ///
+                    /// A 16-bit Buffer Storage offset.
+                    ///
+                    EFI_STRING_ID VarName;
+                    ///
+                    /// A Name Value or EFI Variable name (VarName).
+                    ///
+                    UINT16 VarOffset;
+                }
+                VarStoreInfo;
                 ///
                 /// Specifies the type used for storage. 
                 ///
@@ -2236,40 +2252,34 @@ namespace IFR
             } EFI_IFR_SET;
 
             typedef struct _EFI_IFR_GET
-        {
-            ///
-            /// The sequence that defines the type of opcode as well as the length 
-            /// of the opcode being defined. Header.OpCode = EFI_IFR_GET_OP. 
-            ///
-            EFI_IFR_OP_HEADER Header;
-            ///
-            /// Specifies the identifier of a previously declared variable store to 
-            /// use when retrieving the value. 
-            ///
-            EFI_VARSTORE_ID VarStoreId;
-            union {
+            {
                 ///
-                /// A 16-bit Buffer Storage offset.
+                /// The sequence that defines the type of opcode as well as the length 
+                /// of the opcode being defined. Header.OpCode = EFI_IFR_GET_OP. 
                 ///
-                EFI_STRING_ID VarName;
-            ///
-            /// A Name Value or EFI Variable name (VarName).
-            ///
-            UINT16 VarOffset;
-        }
-        VarStoreInfo;
+                EFI_IFR_OP_HEADER Header;
+                ///
+                /// Specifies the identifier of a previously declared variable store to 
+                /// use when retrieving the value. 
+                ///
+                EFI_VARSTORE_ID VarStoreId;
+                union {
+                    ///
+                    /// A 16-bit Buffer Storage offset.
+                    ///
+                    EFI_STRING_ID VarName;
+                    ///
+                    /// A Name Value or EFI Variable name (VarName).
+                    ///
+                    UINT16 VarOffset;
+                }
+                VarStoreInfo;
                 ///
                 /// Specifies the type used for storage. 
                 ///
                 UINT8 VarStoreType;
             } EFI_IFR_GET;
-
-            typedef struct _EFI_IFR_READ
-        {
-            EFI_IFR_OP_HEADER Header;
-        }
-        EFI_IFR_READ;
-*/
+    */
     #endregion
     #region Definitions for Keyboard Package
     /*
@@ -2506,24 +2516,24 @@ namespace IFR
         */
     #endregion
     #region Animation Package
-    /*
-    ///
-    /// Animation IFR opcode
-    ///
-    typedef struct _EFI_IFR_ANIMATION
-    {
-    ///
-    /// Standard opcode header, where Header.OpCode is 
-    /// EFI_IFR_ANIMATION_OP.
-    ///
-    EFI_IFR_OP_HEADER Header;
-    ///
-    /// Animation identifier in the HII database.
-    ///
-    EFI_ANIMATION_ID Id;
-    }
-    EFI_IFR_ANIMATION;
 
+    /// <summary>
+    /// Animation IFR opcode
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_ANIMATION
+    {
+        /// <summary>
+        /// Standard opcode header, where Header.OpCode is EFI_IFR_ANIMATION_OP.
+        /// </summary>
+        public EFI_IFR_OP_HEADER Header;
+        /// <summary>
+        /// Animation identifier in the HII database.
+        /// </summary>
+        private EFI_ANIMATION_ID Id;
+    };
+
+    /*
     ///
     /// HII animation package header.
     ///
