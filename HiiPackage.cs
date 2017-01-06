@@ -115,6 +115,8 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_DEVICE>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GET>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_SET>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
@@ -191,12 +193,6 @@ namespace IFR
                         hpk_element = new HiiIfrOpCode<EFI_IFR_OP_HEADER>(raw_data);
                         break;
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
-                    #region IFR OpCodes (not yet implemented)
-                    /*
-                    case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP:
-                    */
-                    #endregion
                     default:
                         //raw_data.GenerateAndLogDump(ifr_hdr.OpCode.ToString());
                         LogMessage(LogSeverity.UNIMPLEMENTED, ifr_hdr.OpCode.ToString());

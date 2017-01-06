@@ -40,8 +40,6 @@ namespace IFR
     using UINT32 = UInt32;
     using UINT64 = UInt64;
     using CHAR16 = Char;
-    using EFI_HII_HANDLE = IntPtr;
-    using EFI_STRING = System.String;
     using EFI_IMAGE_ID = UInt16;
     using EFI_QUESTION_ID = UInt16;
     using EFI_STRING_ID = UInt16;
@@ -622,6 +620,7 @@ namespace IFR
         EFI_HII_PACKAGE_TYPE_SYSTEM_END = 0xFF,
     };
     #endregion
+
     #region Definitions for Simplified Font Package
     /*
         ///
@@ -863,6 +862,7 @@ namespace IFR
     EFI_HII_GIBT_SKIP2_BLOCK;
     */
     #endregion
+
     #region Definitions for Device Path Package (Section 27.3.4)
     /*
         ///
@@ -877,6 +877,7 @@ namespace IFR
     EFI_HII_DEVICE_PATH_PACKAGE_HDR;
     */
     #endregion
+
     #region Definitions for GUID Package (Section 27.3.5)
     /*
     ///
@@ -891,6 +892,7 @@ namespace IFR
     EFI_HII_GUID_PACKAGE_HDR;
     */
     #endregion
+
     #region Definitions for String Package (Section 27.3.6)
     /*
     #define UEFI_CONFIG_LANG   "x-UEFI"
@@ -1076,6 +1078,7 @@ namespace IFR
         EFI_HII_SIBT_STRINGS_UCS2_FONT_BLOCK;
         */
     #endregion
+
     #region Definitions for Image Package(Section 27.3.7)
     /*
         typedef struct _EFI_HII_IMAGE_PACKAGE_HDR
@@ -1295,6 +1298,7 @@ namespace IFR
     EFI_HII_IMAGE_PALETTE_INFO;
     */
     #endregion
+
     #region Definitions for Forms Package (Section 27.3.8)
 
     /// <summary>
@@ -2221,66 +2225,78 @@ namespace IFR
         /// </summary>
         // EFI_IFR_FORM_MAP_METHOD  Methods[...];
     };
-    /*
-            typedef struct _EFI_IFR_SET
-            {
-                ///
-                /// The sequence that defines the type of opcode as well as the length 
-                /// of the opcode being defined. Header.OpCode = EFI_IFR_SET_OP. 
-                ///
-                EFI_IFR_OP_HEADER Header;
-                ///
-                /// Specifies the identifier of a previously declared variable store to 
-                /// use when storing the question's value. 
-                ///
-                EFI_VARSTORE_ID VarStoreId;
-                union {
-                    ///
-                    /// A 16-bit Buffer Storage offset.
-                    ///
-                    EFI_STRING_ID VarName;
-                    ///
-                    /// A Name Value or EFI Variable name (VarName).
-                    ///
-                    UINT16 VarOffset;
-                }
-                VarStoreInfo;
-                ///
-                /// Specifies the type used for storage. 
-                ///
-                UINT8 VarStoreType;
-            } EFI_IFR_SET;
 
-            typedef struct _EFI_IFR_GET
-            {
-                ///
-                /// The sequence that defines the type of opcode as well as the length 
-                /// of the opcode being defined. Header.OpCode = EFI_IFR_GET_OP. 
-                ///
-                EFI_IFR_OP_HEADER Header;
-                ///
-                /// Specifies the identifier of a previously declared variable store to 
-                /// use when retrieving the value. 
-                ///
-                EFI_VARSTORE_ID VarStoreId;
-                union {
-                    ///
-                    /// A 16-bit Buffer Storage offset.
-                    ///
-                    EFI_STRING_ID VarName;
-                    ///
-                    /// A Name Value or EFI Variable name (VarName).
-                    ///
-                    UINT16 VarOffset;
-                }
-                VarStoreInfo;
-                ///
-                /// Specifies the type used for storage. 
-                ///
-                UINT8 VarStoreType;
-            } EFI_IFR_GET;
-    */
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_IFR_SET_HEADER_VarStoreInfo
+    {
+        /// <summary>
+        /// A 16-bit Buffer Storage offset.
+        /// </summary>
+        [FieldOffset(0)] // union type 1
+        public EFI_STRING_ID VarName;
+        /// <summary>
+        /// A Name Value or EFI Variable name (VarName).
+        /// </summary>
+        [FieldOffset(0)] // union type 2
+        public UINT16 VarOffset;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
+    struct EFI_IFR_SET
+    {
+        /// <summary>
+        /// The sequence that defines the type of opcode as well as the length 
+        /// of the opcode being defined. Header.OpCode = EFI_IFR_SET_OP. 
+        /// </summary>
+        public EFI_IFR_OP_HEADER Header;
+        /// <summary>
+        /// Specifies the identifier of a previously declared variable store to 
+        /// use when storing the question's value. 
+        /// </summary>
+        public EFI_VARSTORE_ID VarStoreId;
+        public EFI_IFR_SET_HEADER_VarStoreInfo VarStoreInfo;
+        /// <summary>
+        /// Specifies the type used for storage. 
+        /// </summary>
+        public UINT8 VarStoreType;
+    };
+
+    [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_IFR_GET_HEADER_VarStoreInfo
+    {
+        /// <summary>
+        /// A 16-bit Buffer Storage offset.
+        /// </summary>
+        [FieldOffset(0)] // union type 1
+        public EFI_STRING_ID VarName;
+        /// <summary>
+        /// A Name Value or EFI Variable name (VarName).
+        /// </summary>
+        [FieldOffset(0)] // union type 2
+        public UINT16 VarOffset;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
+    struct EFI_IFR_GET
+    {
+        /// <summary>
+        /// The sequence that defines the type of opcode as well as the length 
+        /// of the opcode being defined. Header.OpCode = EFI_IFR_GET_OP. 
+        /// </summary>
+        public EFI_IFR_OP_HEADER Header;
+        /// <summary>
+        /// Specifies the identifier of a previously declared variable store to 
+        /// use when retrieving the value. 
+        /// </summary>
+        public EFI_VARSTORE_ID VarStoreId;
+        public EFI_IFR_GET_HEADER_VarStoreInfo VarStoreInfo;
+        /// <summary>
+        /// Specifies the type used for storage. 
+        /// </summary>
+        public UINT8 VarStoreType;
+    };
     #endregion
+
     #region Definitions for Keyboard Package
     /*
         ///
@@ -2515,6 +2531,7 @@ namespace IFR
         #define EFI_MENU_MODIFIER                0x0029
         */
     #endregion
+
     #region Animation Package
 
     /// <summary>
