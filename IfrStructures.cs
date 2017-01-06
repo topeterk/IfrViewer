@@ -1859,28 +1859,25 @@ namespace IFR
         public UINT8 MinSize;
         public UINT8 MaxSize;
     };
-    /*
-                    typedef struct _EFI_IFR_PASSWORD
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_IFR_QUESTION_HEADER Question;
-                    UINT16 MinSize;
-                    UINT16 MaxSize;
-                }
-                EFI_IFR_PASSWORD;
 
-                    typedef struct _EFI_IFR_ORDERED_LIST
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_IFR_QUESTION_HEADER Question;
-                    UINT8 MaxContainers;
-                    UINT8 Flags;
-                }
-                EFI_IFR_ORDERED_LIST;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 15)]
+    struct EFI_IFR_ORDERED_LIST
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_IFR_QUESTION_HEADER Question;
+        public UINT8 MaxContainers;
+        private UINT8 _Flags;
+ 
+        public EFI_IFR_ORDERED_LIST_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_ORDERED_LIST_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+    };
 
-                    #define EFI_IFR_UNIQUE_SET             0x01
-                    #define EFI_IFR_NO_EMPTY_SET           0x02
-    */
+    [Flags]
+    enum EFI_IFR_ORDERED_LIST_FLAGS_e
+    {
+        EFI_IFR_UNIQUE_SET = 0x01,
+        EFI_IFR_NO_EMPTY_SET = 0x02,
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 14)]
     struct EFI_IFR_TIME
     {
@@ -1920,36 +1917,36 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         public EFI_STRING_ID Error;
     };
-    /*
-                        typedef struct _EFI_IFR_NO_SUBMIT_IF
-                    {
-                        EFI_IFR_OP_HEADER Header;
-                        EFI_STRING_ID Error;
-                    }
-                    EFI_IFR_NO_SUBMIT_IF;
 
-                        typedef struct _EFI_IFR_WARNING_IF
-                    {
-                        EFI_IFR_OP_HEADER Header;
-                        EFI_STRING_ID Warning;
-                        UINT8 TimeOut;
-                    }
-                    EFI_IFR_WARNING_IF;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_NO_SUBMIT_IF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID Error;
+    };
 
-                        typedef struct _EFI_IFR_REFRESH
-                    {
-                        EFI_IFR_OP_HEADER Header;
-                        UINT8 RefreshInterval;
-                    }
-                    EFI_IFR_REFRESH;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 5)]
+    struct EFI_IFR_WARNING_IF
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID Error;
+        public UINT8 TimeOut;
+    };
 
-                        typedef struct _EFI_IFR_VARSTORE_DEVICE
-                    {
-                        EFI_IFR_OP_HEADER Header;
-                        EFI_STRING_ID DevicePath;
-                    }
-                    EFI_IFR_VARSTORE_DEVICE;
-    */
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_IFR_REFRESH
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public UINT8 RefreshInterval;
+    };
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_IFR_VARSTORE_DEVICE
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_STRING_ID DevicePath;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_ONE_OF_OPTION : IEfiIfrType
     {
@@ -1996,14 +1993,14 @@ namespace IFR
         public EFI_GUID Guid;
         //Optional Data Follows
     };
-    /*
-                    typedef struct _EFI_IFR_REFRESH_ID
-                {
-                    EFI_IFR_OP_HEADER Header;
-                    EFI_GUID RefreshEventGroupId;
-                }
-                EFI_IFR_REFRESH_ID;
-*/
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
+    struct EFI_IFR_REFRESH_ID
+    {
+        public EFI_IFR_OP_HEADER Header;
+        public EFI_GUID RefreshEventGroupId;
+    };
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
     struct EFI_IFR_EQ_ID_ID
     {

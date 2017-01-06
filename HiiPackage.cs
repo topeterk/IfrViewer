@@ -99,6 +99,7 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_RESET_BUTTON_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RESET_BUTTON>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP: hpk_element = new HiiIfrOpCodeFormSet(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP: hpk_element = new HiiIfrOpCodeRef(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_NO_SUBMIT_IF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_INCONSISTENT_IF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_VAL>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_EQ_ID_ID>(raw_data); break;
@@ -107,9 +108,12 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DATE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_TIME>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_STRING>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_ORDERED_LIST>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_NAME_VALUE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP: hpk_element = new HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_VARSTORE_DEVICE>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_RULE_REF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_RULE_REF>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_QUESTION_REF1_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_QUESTION_REF1>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_UINT8>(raw_data); break;
@@ -120,6 +124,8 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP: hpk_element = new HiiIfrOpCodeWithEfiIfrTypeValue<EFI_IFR_DEFAULT>(raw_data); break;
                     case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_DEFAULTSTORE>(raw_data); break; 
                     case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_GUID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_REFRESH_ID>(raw_data); break;
+                    case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: hpk_element = new HiiIfrOpCode<EFI_IFR_WARNING_IF>(raw_data); break;
                     #endregion
                     // OpCode which consists of the header only (there is no special structure, we just use the header itself)..
                     #region IFR OpCodes (just the header)
@@ -178,12 +184,8 @@ namespace IFR
                     // All OpCodes that are unknown to this application must consist of at least the header, but will rise an error message..
                     #region IFR OpCodes (not yet implemented)
                     /*
-                    case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_GET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SET_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_READ_OP:
@@ -193,7 +195,6 @@ namespace IFR
                     case EFI_IFR_OPCODE_e.EFI_IFR_SPAN_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_SECURITY_OP:
-                    case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP:
                     case EFI_IFR_OPCODE_e.EFI_IFR_MATCH2_OP:
                     */
