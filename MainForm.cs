@@ -29,6 +29,8 @@ namespace IfrViewer
 {
     public partial class MainForm : Form
     {
+        private const string EmptyDetails = "No data available";
+
         public MainForm()
         {
             InitializeComponent();
@@ -67,14 +69,18 @@ namespace IfrViewer
 
                 if (null != hpk) // Loaded successfully?
                 {
-                    tv.BeginUpdate();
-                    TreeNode root = tv.Nodes.Add(hpk.Name);
-                    LoadHpkElementIntoTreeView(hpk, root);
+                    tv_tree.BeginUpdate();
+                    TreeNode root = tv_tree.Nodes.Add(hpk.Name);
+                    root.Tag = hpk;
+                    LoadHpkElementIntoTree(hpk, root);
                     root.Expand();
-                    tv.EndUpdate();
+                    tv_tree.EndUpdate();
                     CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + hpk_filename + "\" completed!");
                 }
             }
+
+            if (tv_tree.Nodes.Count == 0)
+                tv_details.Nodes.Add(EmptyDetails);
         }
 
         private void CreateLogEntryMain(LogSeverity severity, string msg)
@@ -87,68 +93,27 @@ namespace IfrViewer
 
             Update();
         }
-    
-        private void LoadHpkElementIntoTreeView(HPKElement elem, TreeNode root)
+
+        private void LoadHpkElementIntoTree(HPKElement elem, TreeNode root)
         {
-            const uint BytesPerLine = 16;
-
-            // add all header fields to the tree..
-            byte[] HeaderRaw = elem.HeaderRaw;
-            if ((elem.Header != null) || (HeaderRaw != null))
-            {
-                TreeNode branch = root.Nodes.Add("Header");
-                // handle raw..
-                if (HeaderRaw != null)
-                {
-                    TreeNode leaf = branch.Nodes.Add("__RAW");
-                    foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
-                        leaf.Nodes.Add(line);
-                }
-                // handle managed..
-                if (elem.Header != null)
-                {
-                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintableHeader(BytesPerLine))
-                    {
-                        branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
-                    }
-                }
-            }
-            // add all payload fields to the tree..
-            byte[] PayloadRaw = elem.PayloadRaw;
-            if ((elem.Payload != null) || (PayloadRaw != null))
-            {
-                TreeNode branch = root.Nodes.Add("Payload");
-                // handle raw..
-                if (PayloadRaw != null)
-                {
-                    TreeNode leaf = branch.Nodes.Add("__RAW");
-                    foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
-                        leaf.Nodes.Add(line);
-                }
-                // handle managed..
-                if (elem.Payload != null)
-                {
-                    foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintablePayload(BytesPerLine))
-                    {
-                        branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
-                    }
-                }
-            }
-
             // add all child elements to the tree..
             if (elem.Childs.Count > 0)
             {
-                TreeNode branch = root.Nodes.Add("Childs");
                 foreach (HPKElement child in elem.Childs)
                 {
-                    TreeNode leaf = branch.Nodes.Add(child.Name + " [" + child.UniqueID + "]");
-                    LoadHpkElementIntoTreeView(child, leaf);
-                    branch.Expand();
+                    LoadHpkElementIntoTree(child, AddTreeNode(root, child.Name + " [" + child.UniqueID + "]", child));
+                    root.Expand();
                 }
-                root.Expand();
             }
         }
 
+        private TreeNode AddTreeNode(TreeNode root, string text, object obj)
+        {
+            TreeNode leaf = root.Nodes.Add(text);
+            leaf.Tag = obj;
+            return leaf;
+        }
+ 
         private void MainForm_SizeChanged(object sender, EventArgs e)
         {
             // Check if window got minimized then stop changing sizes!
@@ -158,15 +123,93 @@ namespace IfrViewer
 
             splitContainer1.Width = ClientSize.Width - 24;
             splitContainer1.Height = ClientSize.Height - 24;
-            tv.Width = splitContainer1.Panel1.Width - 6;
-            tv.Height = splitContainer1.Panel1.Height - 6;
-            log.Width = splitContainer1.Panel2.Width - 6;
-            log.Height = splitContainer1.Panel2.Height - 6;
+            splitContainer1_SplitterMoved(sender, null);
         }
 
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            MainForm_SizeChanged(sender, e);
+            tv_tree.Width = splitContainer1.Panel1.Width - 6;
+            tv_tree.Height = splitContainer1.Panel1.Height - 6;
+            splitContainer2.Width = splitContainer1.Panel2.Width - 6;
+            splitContainer2.Height = splitContainer1.Panel2.Height - 6;
+            splitContainer2_SplitterMoved(sender, null);
+        }
+
+        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            tv_details.Width = splitContainer2.Panel1.Width - 6;
+            tv_details.Height = splitContainer2.Panel1.Height - 6;
+            log.Width = splitContainer2.Panel2.Width - 6;
+            log.Height = splitContainer2.Panel2.Height - 6;
+        }
+
+        private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            Cursor previousCursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+            tv_details.BeginUpdate();
+
+            tv_details.Nodes.Clear();
+            if (e.Node.Tag == null)
+            {
+                // should not happen because every node should have an objected bound!
+                tv_details.Nodes.Add(EmptyDetails);
+                CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + e.Node.ToString() + "\"!");
+            }
+            else
+            {
+                HPKElement elem = (HPKElement)e.Node.Tag;
+                const uint BytesPerLine = 16;
+
+                // add all header fields to the tree..
+                byte[] HeaderRaw = elem.HeaderRaw;
+                if ((elem.Header != null) || (HeaderRaw != null))
+                {
+                    TreeNode branch = tv_details.Nodes.Add("Header");
+                    // handle raw..
+                    if (HeaderRaw != null)
+                    {
+                        TreeNode leaf = branch.Nodes.Add("__RAW");
+                        foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                            leaf.Nodes.Add(line);
+                    }
+                    // handle managed..
+                    if (elem.Header != null)
+                    {
+                        foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintableHeader(BytesPerLine))
+                        {
+                            branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                        }
+                    }
+                    //branch.Expand();
+                }
+                // add all payload fields to the tree..
+                byte[] PayloadRaw = elem.PayloadRaw;
+                if ((elem.Payload != null) || (PayloadRaw != null))
+                {
+                    TreeNode branch = tv_details.Nodes.Add("Payload");
+                    // handle raw..
+                    if (PayloadRaw != null)
+                    {
+                        TreeNode leaf = branch.Nodes.Add("__RAW");
+                        foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                            leaf.Nodes.Add(line);
+                    }
+                    // handle managed..
+                    if (elem.Payload != null)
+                    {
+                        foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintablePayload(BytesPerLine))
+                        {
+                            branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                        }
+                    }
+                    //branch.Expand();
+                }
+                tv_details.ExpandAll();
+            }
+
+            tv_details.EndUpdate();
+            Cursor.Current = previousCursor;
         }
     }
 
