@@ -22,6 +22,7 @@
 
 using IFR;
 using System;
+using System.IO;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
 
@@ -51,14 +52,22 @@ namespace IfrViewer
 
             // Load project from command line argument (when available)
             for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
+                LoadFiles(new string[1] { Environment.GetCommandLineArgs()[i] });
+
+            if (tv_tree.Nodes.Count == 0)
+                tv_details.Nodes.Add(EmptyDetails);
+        }
+
+        private void LoadFiles(string[] filepaths)
+        {
+            foreach (string filename in filepaths)
             {
-                string hpk_filename = Environment.GetCommandLineArgs()[i];
-                CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + hpk_filename + "\"...");
+                CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + filename + "\"...");
 
                 HPKfile hpk = null;
                 try
                 {
-                    hpk = new HPKfile(hpk_filename);
+                    hpk = new HPKfile(filename);
                 }
                 catch (Exception ex)
                 {
@@ -75,12 +84,9 @@ namespace IfrViewer
                     LoadHpkElementIntoTree(hpk, root);
                     root.Expand();
                     tv_tree.EndUpdate();
-                    CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + hpk_filename + "\" completed!");
+                    CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + filename + "\" completed!");
                 }
             }
-
-            if (tv_tree.Nodes.Count == 0)
-                tv_details.Nodes.Add(EmptyDetails);
         }
 
         private void CreateLogEntryMain(LogSeverity severity, string msg)
@@ -210,6 +216,25 @@ namespace IfrViewer
 
             tv_details.EndUpdate();
             Cursor.Current = previousCursor;
+        }
+
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] DroppedPathList = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // get all files of the dropped object(s) and add them..
+            foreach (string path in DroppedPathList)
+            {
+                if (Directory.Exists(path))
+                    LoadFiles(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
+                else if (File.Exists(path))
+                    LoadFiles(new string[1] { path });
+            }
+        }
+
+        private void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Link; // Allow dopping files
         }
     }
 
