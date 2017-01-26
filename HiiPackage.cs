@@ -30,14 +30,30 @@ namespace IFR
     /// <summary>
     /// Hii package base class
     /// </summary>
-    class HiiPackage<T> : HPKElement
+    class HiiPackageBase : HPKElement
     {
-        #region HiiPackage definition
         /// <summary>
         /// Type of HII package
         /// </summary>
         public readonly EFI_HII_PACKAGE_e PackageType;
 
+        /// <summary>
+        /// Friendly name of this object
+        /// </summary> 
+        public override string Name { get { string name = Enum.GetName(PackageType.GetType(), PackageType); return name == null ? "UNKNOWN" : name; } }
+
+        public HiiPackageBase(IfrRawDataBlock raw) : base(raw)
+        {
+            this.PackageType = data.ToIfrType<EFI_HII_PACKAGE_HEADER>().Type;
+        }
+    }
+
+    /// <summary>
+    /// Hii package generic class
+    /// </summary>
+    class HiiPackage<T> : HiiPackageBase
+    {
+        #region HiiPackage definition
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -47,14 +63,8 @@ namespace IFR
         /// </summary>
         public override object Header { get { return _Header; } }
 
-        /// <summary>
-        /// Friendly name of this object
-        /// </summary> 
-        public override string Name { get { string name = Enum.GetName(PackageType.GetType(), PackageType); return name == null ? "UNKNOWN" : name; } }
-
         public HiiPackage(IfrRawDataBlock raw) : base(raw)
         {
-            this.PackageType = data.ToIfrType<EFI_HII_PACKAGE_HEADER>().Type;
             this._Header = data.ToIfrType<T>();
         }
         #endregion

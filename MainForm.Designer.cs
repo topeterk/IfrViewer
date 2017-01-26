@@ -53,16 +53,23 @@ namespace IfrViewer
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tv_tree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabrawtree = new System.Windows.Forms.TabPage();
+            this.tablogicaltree = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.tv_details = new System.Windows.Forms.TreeView();
             this.log = new System.Windows.Forms.DataGridView();
             this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Origin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Message = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tv_logical = new System.Windows.Forms.TreeView();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabrawtree.SuspendLayout();
+            this.tablogicaltree.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -74,9 +81,9 @@ namespace IfrViewer
             // 
             this.tv_tree.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tv_tree.FullRowSelect = true;
-            this.tv_tree.Location = new System.Drawing.Point(3, 3);
+            this.tv_tree.Location = new System.Drawing.Point(0, 0);
             this.tv_tree.Name = "tv_tree";
-            this.tv_tree.Size = new System.Drawing.Size(757, 276);
+            this.tv_tree.Size = new System.Drawing.Size(743, 250);
             this.tv_tree.TabIndex = 0;
             this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
             // 
@@ -88,7 +95,7 @@ namespace IfrViewer
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.tv_tree);
+            this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
             // 
             // splitContainer1.Panel2
             // 
@@ -99,6 +106,39 @@ namespace IfrViewer
             this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 2;
             this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabrawtree);
+            this.tabControl1.Controls.Add(this.tablogicaltree);
+            this.tabControl1.Location = new System.Drawing.Point(6, 3);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(751, 276);
+            this.tabControl1.TabIndex = 1;
+            this.tabControl1.SizeChanged += new System.EventHandler(this.tabControl1_SizeChanged);
+            // 
+            // tabrawtree
+            // 
+            this.tabrawtree.Controls.Add(this.tv_tree);
+            this.tabrawtree.Location = new System.Drawing.Point(4, 22);
+            this.tabrawtree.Name = "tabrawtree";
+            this.tabrawtree.Padding = new System.Windows.Forms.Padding(3);
+            this.tabrawtree.Size = new System.Drawing.Size(743, 250);
+            this.tabrawtree.TabIndex = 0;
+            this.tabrawtree.Text = "Raw Tree";
+            this.tabrawtree.UseVisualStyleBackColor = true;
+            // 
+            // tablogicaltree
+            // 
+            this.tablogicaltree.Controls.Add(this.tv_logical);
+            this.tablogicaltree.Location = new System.Drawing.Point(4, 22);
+            this.tablogicaltree.Name = "tablogicaltree";
+            this.tablogicaltree.Padding = new System.Windows.Forms.Padding(3);
+            this.tablogicaltree.Size = new System.Drawing.Size(743, 250);
+            this.tablogicaltree.TabIndex = 1;
+            this.tablogicaltree.Text = "Logical Tree";
+            this.tablogicaltree.UseVisualStyleBackColor = true;
             // 
             // splitContainer2
             // 
@@ -183,6 +223,16 @@ namespace IfrViewer
             this.Message.ReadOnly = true;
             this.Message.Width = 200;
             // 
+            // tv_logical
+            // 
+            this.tv_logical.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tv_logical.FullRowSelect = true;
+            this.tv_logical.Location = new System.Drawing.Point(0, 0);
+            this.tv_logical.Name = "tv_logical";
+            this.tv_logical.Size = new System.Drawing.Size(743, 250);
+            this.tv_logical.TabIndex = 1;
+            this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
+            // 
             // MainForm
             // 
             this.AllowDrop = true;
@@ -201,6 +251,9 @@ namespace IfrViewer
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabrawtree.ResumeLayout(false);
+            this.tablogicaltree.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
@@ -220,6 +273,10 @@ namespace IfrViewer
         private System.Windows.Forms.DataGridViewTextBoxColumn Type;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.TreeView tv_details;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabrawtree;
+        private System.Windows.Forms.TabPage tablogicaltree;
+        private System.Windows.Forms.TreeView tv_logical;
     }
 }
 

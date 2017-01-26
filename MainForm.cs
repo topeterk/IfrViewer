@@ -22,9 +22,11 @@
 
 using IFR;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
+using static IfrViewer.HpkParser;
 
 namespace IfrViewer
 {
@@ -37,6 +39,8 @@ namespace IfrViewer
             InitializeComponent();
             IFRHelper.log = log; // Use local window as logging window
         }
+
+        #region GUI
 
         private void MainForm_Load(object sender, EventArgs e)
         {
@@ -58,8 +62,102 @@ namespace IfrViewer
                 tv_details.Nodes.Add(EmptyDetails);
         }
 
+        private void CreateLogEntryMain(LogSeverity severity, string msg)
+        {
+            CreateLogEntry(severity, "Main", msg);
+
+            log.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+            log.AutoResizeRows(DataGridViewAutoSizeRowsMode.AllCells);
+            log.FirstDisplayedScrollingRowIndex = log.Rows[log.RowCount - 1].Index; // Scroll to bottom
+
+            Update();
+        }
+
+        private void MainForm_SizeChanged(object sender, EventArgs e)
+        {
+            // Check if window got minimized then stop changing sizes!
+            // When form gets maximized (means ClientSize changes back to normal) then SizeChanged event doesn't get fired   (;ﾟ︵ﾟ;)
+            if ((ClientSize.Width == 0) || (ClientSize.Height == 0))
+                return;
+
+            splitContainer1.Width = ClientSize.Width - 24;
+            splitContainer1.Height = ClientSize.Height - 24;
+            splitContainer1_SplitterMoved(sender, null);
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            tabControl1_SizeChanged(null, e);
+            tabControl1.Width = splitContainer1.Panel1.Width - 9;
+            tabControl1.Height = splitContainer1.Panel1.Height - 6;
+            splitContainer2.Width = splitContainer1.Panel2.Width - 6;
+            splitContainer2.Height = splitContainer1.Panel2.Height - 6;
+            splitContainer2_SplitterMoved(sender, null);
+        }
+
+        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            tv_details.Width = splitContainer2.Panel1.Width - 6;
+            tv_details.Height = splitContainer2.Panel1.Height - 6;
+            log.Width = splitContainer2.Panel2.Width - 6;
+            log.Height = splitContainer2.Panel2.Height - 6;
+        }
+
+        private void tabControl1_SizeChanged(object sender, EventArgs e)
+        {
+            tv_tree.Width = tv_tree.Parent.Width;
+            tv_tree.Height = tv_tree.Parent.Height;
+            tv_logical.Width = tv_tree.Parent.Width;
+            tv_logical.Height = tv_tree.Parent.Height;
+        }
+
+        private TreeNode AddTreeNode(TreeNode root, string text, object obj)
+        {
+            TreeNode leaf = root.Nodes.Add(text);
+            leaf.Tag = obj;
+            return leaf;
+        }
+
+        private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (e.Node.Tag == null)
+            {
+                // should not happen because every node should have an object bound!
+                ShowAtDetails(null);
+                CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + e.Node.ToString() + "\"!");
+            }
+            else
+            {
+                ShowAtDetails((HPKElement)e.Node.Tag);
+            }
+        }
+
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] DroppedPathList = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // get all files of the dropped object(s) and add them..
+            foreach (string path in DroppedPathList)
+            {
+                if (Directory.Exists(path))
+                    LoadFiles(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
+                else if (File.Exists(path))
+                    LoadFiles(new string[1] { path });
+            }
+        }
+
+        private void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Link; // Allow dopping files
+        }
+
+        #endregion
+
+        List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+
         private void LoadFiles(string[] filepaths)
         {
+            // Load HPKs into memory and build tree view
             foreach (string filename in filepaths)
             {
                 CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + filename + "\"...");
@@ -81,90 +179,75 @@ namespace IfrViewer
                     tv_tree.BeginUpdate();
                     TreeNode root = tv_tree.Nodes.Add(hpk.Name);
                     root.Tag = hpk;
-                    LoadHpkElementIntoTree(hpk, root);
+                    ShowAtRawTree(hpk, root);
                     root.Expand();
                     tv_tree.EndUpdate();
+
+                    // Collect all new packages of this file
+                    foreach (HiiPackageBase hpkpkg in hpk.Childs)
+                        Packages.Add(hpkpkg);
+
                     CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + filename + "\" completed!");
                 }
             }
+
+            List<ParsedHpkNode> ParsedPackages = ParseHpkPackages(Packages);
+
+            // Wipe existing data because new loaded HPK may provide any missed data
+            tv_logical.Nodes.Clear();
+
+            // Since HPKs interact with each other, build logical tree after loading is completely done
+            foreach (ParsedHpkNode pkg in ParsedPackages)
+            {
+                tv_logical.BeginUpdate();
+                TreeNode root = tv_logical.Nodes.Add(pkg.Name);
+                root.Tag = pkg.Origin;
+                ShowAtLogicalTree(pkg, root);
+                root.Expand();
+                tv_logical.EndUpdate();
+            }
         }
-
-        private void CreateLogEntryMain(LogSeverity severity, string msg)
-        {
-            CreateLogEntry(severity, "Main", msg);
-
-            log.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            log.AutoResizeRows(DataGridViewAutoSizeRowsMode.AllCells);
-            log.FirstDisplayedScrollingRowIndex = log.Rows[log.RowCount - 1].Index; // Scroll to bottom
-
-            Update();
-        }
-
-        private void LoadHpkElementIntoTree(HPKElement elem, TreeNode root)
+ 
+        private void ShowAtRawTree(HPKElement elem, TreeNode root)
         {
             // add all child elements to the tree..
             if (elem.Childs.Count > 0)
             {
                 foreach (HPKElement child in elem.Childs)
                 {
-                    LoadHpkElementIntoTree(child, AddTreeNode(root, child.Name + " [" + child.UniqueID + "]", child));
-                    root.Expand();
+                    ShowAtRawTree(child, AddTreeNode(root, child.Name + " [" + child.UniqueID + "]", child));
                 }
+                root.Expand();
+            }
+        }
+ 
+        private void ShowAtLogicalTree(ParsedHpkNode node, TreeNode root)
+        {
+            // add all child elements to the tree..
+            if (node.Childs.Count > 0)
+            {
+                foreach (ParsedHpkNode child in node.Childs)
+                {
+                    ShowAtLogicalTree(child, AddTreeNode(root, child.Name, child.Origin));
+                }
+                root.Expand();
             }
         }
 
-        private TreeNode AddTreeNode(TreeNode root, string text, object obj)
-        {
-            TreeNode leaf = root.Nodes.Add(text);
-            leaf.Tag = obj;
-            return leaf;
-        }
- 
-        private void MainForm_SizeChanged(object sender, EventArgs e)
-        {
-            // Check if window got minimized then stop changing sizes!
-            // When form gets maximized (means ClientSize changes back to normal) then SizeChanged event doesn't get fired   (;ﾟ︵ﾟ;)
-            if ((ClientSize.Width == 0) || (ClientSize.Height == 0))
-                return;
-
-            splitContainer1.Width = ClientSize.Width - 24;
-            splitContainer1.Height = ClientSize.Height - 24;
-            splitContainer1_SplitterMoved(sender, null);
-        }
-
-        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
-        {
-            tv_tree.Width = splitContainer1.Panel1.Width - 6;
-            tv_tree.Height = splitContainer1.Panel1.Height - 6;
-            splitContainer2.Width = splitContainer1.Panel2.Width - 6;
-            splitContainer2.Height = splitContainer1.Panel2.Height - 6;
-            splitContainer2_SplitterMoved(sender, null);
-        }
-
-        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
-        {
-            tv_details.Width = splitContainer2.Panel1.Width - 6;
-            tv_details.Height = splitContainer2.Panel1.Height - 6;
-            log.Width = splitContainer2.Panel2.Width - 6;
-            log.Height = splitContainer2.Panel2.Height - 6;
-        }
-
-        private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
+        private void ShowAtDetails(HPKElement elem)
         {
             Cursor previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
             tv_details.BeginUpdate();
 
             tv_details.Nodes.Clear();
-            if (e.Node.Tag == null)
+            if (elem == null)
             {
                 // should not happen because every node should have an objected bound!
                 tv_details.Nodes.Add(EmptyDetails);
-                CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + e.Node.ToString() + "\"!");
             }
             else
             {
-                HPKElement elem = (HPKElement)e.Node.Tag;
                 const uint BytesPerLine = 16;
 
                 // add all header fields to the tree..
@@ -216,25 +299,6 @@ namespace IfrViewer
 
             tv_details.EndUpdate();
             Cursor.Current = previousCursor;
-        }
-
-        private void MainForm_DragDrop(object sender, DragEventArgs e)
-        {
-            string[] DroppedPathList = (string[])e.Data.GetData(DataFormats.FileDrop);
-
-            // get all files of the dropped object(s) and add them..
-            foreach (string path in DroppedPathList)
-            {
-                if (Directory.Exists(path))
-                    LoadFiles(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
-                else if (File.Exists(path))
-                    LoadFiles(new string[1] { path });
-            }
-        }
-
-        private void MainForm_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Link; // Allow dopping files
         }
     }
 

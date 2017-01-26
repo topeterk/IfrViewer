@@ -25,7 +25,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
 using static IFR.IFRHelper;
 
 namespace IFR
@@ -229,7 +228,7 @@ namespace IFR
         /// <summary>
         /// Filename of the parsed file
         /// </summary>
-        private readonly string Filename;
+        public readonly string Filename;
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
