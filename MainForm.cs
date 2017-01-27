@@ -55,8 +55,10 @@ namespace IfrViewer
             Show();
 
             // Load project from command line argument (when available)
-            for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++)
-                LoadFiles(new string[1] { Environment.GetCommandLineArgs()[i] });
+            string[] Files = new string[Environment.GetCommandLineArgs().Length - 1];
+            for (int i = 0; i < Environment.GetCommandLineArgs().Length - 1; i++)
+                Files[i] = Environment.GetCommandLineArgs()[i+1];
+            LoadFiles(Files);
 
             if (tv_tree.Nodes.Count == 0)
                 tv_details.Nodes.Add(EmptyDetails);
@@ -135,15 +137,17 @@ namespace IfrViewer
         private void MainForm_DragDrop(object sender, DragEventArgs e)
         {
             string[] DroppedPathList = (string[])e.Data.GetData(DataFormats.FileDrop);
+            List<string> DroppedFiles = new List<string>();
 
             // get all files of the dropped object(s) and add them..
             foreach (string path in DroppedPathList)
             {
                 if (Directory.Exists(path))
-                    LoadFiles(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
+                    DroppedFiles.AddRange(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
                 else if (File.Exists(path))
-                    LoadFiles(new string[1] { path });
+                    DroppedFiles.Add(path);
             }
+            LoadFiles(DroppedFiles.ToArray());
         }
 
         private void MainForm_DragEnter(object sender, DragEventArgs e)
