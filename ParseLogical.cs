@@ -60,12 +60,14 @@ namespace IfrViewer
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
                             root.Name = "Form Package";
                             result.Add(root);
-                            foreach (HiiIfrOpCode child in root.Origin.Childs)
-                            {
-                                ParsedHpkNode node = new ParsedHpkNode(child, child.Name);
-                                root.Childs.Add(node);
-                                ParsePackageIfr(child, node, Packages);
-                            }
+                            foreach (HPKElement child in root.Origin.Childs)
+                                ParsePackageIfr(child, root, Packages);
+                            break;
+                        case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS:
+                            root.Name = "Strings Package";
+                            result.Add(root);
+                            foreach (HPKElement child in root.Origin.Childs)
+                                ParsePackageSibt(child, root, Packages);
                             break;
                         default:
                             CreateLogEntryParser(LogSeverity.UNIMPLEMENTED, root.Name);
@@ -83,31 +85,43 @@ namespace IfrViewer
             return result;
         }
 
-        private static void ParsePackageIfr(HiiIfrOpCode elem, ParsedHpkNode parent, List<HiiPackageBase> Packages)
+        private static void ParsePackageIfr(HPKElement hpkelem, ParsedHpkNode root, List<HiiPackageBase> Packages)
         {
-            // add all child elements to the tree..
-            if (elem.Childs.Count > 0)
+            ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
+            HiiIfrOpCode elem = (HiiIfrOpCode)hpkelem;
+
+            switch (elem.OpCode)
             {
-                foreach (HiiIfrOpCode child in elem.Childs)
-                {
-                    ParsedHpkNode node = new ParsedHpkNode(child, child.Name);
-
-                    switch (child.OpCode)
-                    {
-                        case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: continue; // Skip
-                        default: break; // simply add all others 1:1 when no specific handler exists
-                    }
-
-                    ParsePackageIfr(child, node, Packages);
-                    parent.Childs.Add(node);
-                }
+                case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: return; // Skip
+                default:
+                    foreach (HiiIfrOpCode child in elem.Childs)
+                        ParsePackageIfr(child, branch, Packages);
+                    break; // simply add all others 1:1 when no specific handler exists
             }
+
+            root.Childs.Add(branch);
+        }
+
+        private static void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, List<HiiPackageBase> Packages)
+        {
+            ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
+            HiiSibtBlockBase elem = (HiiSibtBlockBase)hpkelem;
+
+            switch (elem.BlockType)
+            {
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2: branch.Name = "\"" + ((HiiSibtBlockStringUcs2.Payload_t)elem.Payload).StringText + "\""; break;
+                default:
+                    foreach (HiiSibtBlockBase child in elem.Childs)
+                        ParsePackageIfr(child, branch, Packages);
+                    break; // simply add all others 1:1 when no specific handler exists
+            }
+
+            root.Childs.Add(branch);
         }
 
         private static void CreateLogEntryParser(LogSeverity severity, string msg)
         {
             CreateLogEntry(severity, "Parser", msg);
         }
-
     }
 }
