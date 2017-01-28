@@ -221,7 +221,7 @@ namespace IFR
                 int IdxNull = -1;
                 for (int i = IdxStart; i < IdxEnd - 1; i += 2)
                 {
-                    if ((Bytes[i] == '\0') && (Bytes[i] == '\0')) // null terminated string
+                    if ((Bytes[i] == '\0') && (Bytes[i+1] == '\0')) // null terminated string
                     {
                         IdxNull = i;
                         break;
@@ -957,31 +957,31 @@ namespace IFR
             EFI_STRING_ID StringId;
         }
         EFI_HII_SIBT_DUPLICATE_BLOCK;
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_HII_SIBT_EXT1_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        public UINT8 BlockType2;
+        public UINT8 Length;
+    }
 
-            typedef struct _EFI_HII_SIBT_EXT1_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-            UINT8 BlockType2;
-            UINT8 Length;
-        }
-        EFI_HII_SIBT_EXT1_BLOCK;
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
+    struct EFI_HII_SIBT_EXT2_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        public UINT8 BlockType2;
+        public UINT16 Length;
+    }
 
-            typedef struct _EFI_HII_SIBT_EXT2_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-            UINT8 BlockType2;
-            UINT16 Length;
-        }
-        EFI_HII_SIBT_EXT2_BLOCK;
-
-            typedef struct _EFI_HII_SIBT_EXT4_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-            UINT8 BlockType2;
-            UINT32 Length;
-        }
-        EFI_HII_SIBT_EXT4_BLOCK;
-
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
+    struct EFI_HII_SIBT_EXT4_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        public UINT8 BlockType2;
+        public UINT32 Length;
+    }
+/*
             typedef struct _EFI_HII_SIBT_FONT_BLOCK
         {
             EFI_HII_SIBT_EXT2_BLOCK Header;
@@ -991,21 +991,21 @@ namespace IFR
             CHAR16 FontName[1];
         }
         EFI_HII_SIBT_FONT_BLOCK;
+*/
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 2)]
+    struct EFI_HII_SIBT_SKIP1_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        public UINT8 SkipCount;
+    }
 
-            typedef struct _EFI_HII_SIBT_SKIP1_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-            UINT8 SkipCount;
-        }
-        EFI_HII_SIBT_SKIP1_BLOCK;
-
-            typedef struct _EFI_HII_SIBT_SKIP2_BLOCK
-        {
-            EFI_HII_STRING_BLOCK Header;
-            UINT16 SkipCount;
-        }
-        EFI_HII_SIBT_SKIP2_BLOCK;
-
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 3)]
+    struct EFI_HII_SIBT_SKIP2_BLOCK
+    {
+        public EFI_HII_STRING_BLOCK Header;
+        public UINT16 SkipCount;
+    }
+/*
             typedef struct _EFI_HII_SIBT_STRING_SCSU_BLOCK
         {
             EFI_HII_STRING_BLOCK Header;

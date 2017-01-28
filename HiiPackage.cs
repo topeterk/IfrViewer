@@ -601,7 +601,7 @@ namespace IFR
 
                 switch (block_hdr.BlockType)
                 {
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_END: hpk_element = new HiiSibtBlockNoPayload(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_END: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_STRING_BLOCK>(raw_data); break;
                     /*case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_SCSU:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_SCSU_FONT:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_SCSU:
@@ -610,13 +610,13 @@ namespace IFR
                     /*case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2_FONT:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2_FONT:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_DUPLICATE:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT1:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT2:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4:
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_FONT:*/
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_DUPLICATE:*/
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP1_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP2_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT1: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT1_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT2: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT2_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT4_BLOCK>(raw_data); break;
+                    /*case EFI_HII_SIBT_e.EFI_HII_SIBT_FONT:*/
                     default:
                         //raw_data.GenerateAndLogDump(ifr_hdr.OpCode.ToString());
                         LogMessage(LogSeverity.UNIMPLEMENTED, block_hdr.BlockType.ToString());
@@ -633,7 +633,7 @@ namespace IFR
     /// <summary>
     /// Hii Sibt base class
     /// </summary>
-    class HiiSibtBlock<T> : HPKElement
+    class HiiSibtBlock<T> : HPKElement where T : struct
     {
         #region HiiSibtBlock definition
         /// <summary>
@@ -659,12 +659,17 @@ namespace IFR
         {
             this.BlockType = data.ToIfrType<EFI_HII_STRING_BLOCK>().BlockType;
             this._Header = data.ToIfrType<T>();
+            if (data.Length != 0)
+            {
+                this.data_payload = new IfrRawDataBlock(data);
+                data_payload.IncreaseOffset(this._Header.GetPhysSize());
+            }
         }
         #endregion
     }
 
     /// <summary>
-    /// Hii Sibt class of EFI_IFR_FORM_SET_OP
+    /// Hii Sibt class with UCS2 string
     /// </summary>
     class HiiSibtBlockStringUcs2 : HiiSibtBlock<EFI_HII_SIBT_STRING_UCS2_BLOCK>
     {
@@ -683,8 +688,6 @@ namespace IFR
 
         public HiiSibtBlockStringUcs2(IfrRawDataBlock raw) : base(raw)
         {
-            this.data_payload = new IfrRawDataBlock(data);
-            data_payload.IncreaseOffset(this._Header.GetPhysSize());
             _Payload.StringText = data_payload.CopyOfUnicodeNullTerminatedString;
 
             // know we know actual data after parsing payload, so fix up lengths..
@@ -694,13 +697,71 @@ namespace IFR
     }
 
     /// <summary>
-    /// Hii Sibt class of EFI_IFR_FORM_SET_OP
+    /// Hii Sibt class without payload
     /// </summary>
-    class HiiSibtBlockNoPayload : HiiSibtBlock<EFI_HII_STRING_BLOCK>
+    /// <typeparam name="T">Type of SIBT block header</typeparam>
+    class HiiSibtBlockNoPayload<T> : HiiSibtBlock<T> where T : struct
     {
         public HiiSibtBlockNoPayload(IfrRawDataBlock raw) : base(raw)
         {
+            this.data_payload = null;
             data.Length = this._Header.GetPhysSize(); // shorten header length since we have no payload
+        }
+    }
+
+    /// <summary>
+    /// Hii Sibt class with payload
+    /// </summary>
+    /// <typeparam name="T">Type of SIBT block header</typeparam>
+    /// <typeparam name="P">Type of payload</typeparam>
+    class HiiSibtBlockWithPayload<T, P> : HiiSibtBlock<T> where T : struct
+    {
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        protected P _Payload;
+        /// <summary>
+        /// Managed structure payload
+        /// </summary>
+        public override object Payload { get { return _Payload; } }
+
+        public HiiSibtBlockWithPayload(IfrRawDataBlock raw) : base(raw) { return; }
+    }
+
+    /// <summary>
+    /// Hii Sibt class with future expansion
+    /// </summary>
+    class HiiSibtBlockExt<T> : HiiSibtBlockWithPayload<T, byte[]> where T : struct
+    {
+        public HiiSibtBlockExt(IfrRawDataBlock raw) : base(raw)
+        {
+            uint len = 0;
+
+            switch (this.BlockType)
+            {
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT1: len = data.ToIfrType<EFI_HII_SIBT_EXT1_BLOCK>().Length; break;
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT2: len = data.ToIfrType<EFI_HII_SIBT_EXT2_BLOCK>().Length; break;
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4: len = data.ToIfrType<EFI_HII_SIBT_EXT4_BLOCK>().Length; break;
+                default: LogMessage(LogSeverity.ERROR, Name + ": Unknown data type \"" + this.BlockType + "\""); break;
+            }
+
+            if (0 == len)
+            {
+                data_payload = null;
+                data.Length = this._Header.GetPhysSize(); // shorten header length since we have no payload
+            }
+            else if (data_payload.Length < len)
+            {
+                data_payload = null;
+                data.Length = this._Header.GetPhysSize(); // shorten header length since we removed payload
+                LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
+            }
+            else
+            {
+                data.Length = data_payload.Length = len;
+                data_payload.IncreaseOffset(this._Header.GetPhysSize());
+                _Payload = data_payload.CopyOfSelectedBytes;
+            }
         }
     }
     #endregion
