@@ -561,6 +561,8 @@ namespace IFR
             {
                 // print debug message and assign color
                 log.Rows[log.Rows.Add(new object[]{ typename, origin, msg.Replace(Environment.NewLine, Environment.NewLine + " > ") })].SetRowBackgroundColor(color);
+                log.AutoResizeColumns();
+                log.AutoResizeRow(log.Rows.Count - 1);
             }
         }
 
