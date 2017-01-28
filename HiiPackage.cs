@@ -611,8 +611,8 @@ namespace IFR
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_STRINGS_UCS2_FONT:
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_DUPLICATE:*/
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP1_BLOCK>(raw_data); break;
-                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP2_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP2_BLOCK>(raw_data); break;
+                    case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1: hpk_element = new HiiSibtBlockNoPayload<EFI_HII_SIBT_SKIP1_BLOCK>(raw_data); break;
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT1: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT1_BLOCK>(raw_data); break;
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT2: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT2_BLOCK>(raw_data); break;
                     case EFI_HII_SIBT_e.EFI_HII_SIBT_EXT4: hpk_element = new HiiSibtBlockExt<EFI_HII_SIBT_EXT4_BLOCK>(raw_data); break;
