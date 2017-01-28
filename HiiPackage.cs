@@ -53,7 +53,6 @@ namespace IFR
     /// </summary>
     class HiiPackage<T> : HiiPackageBase
     {
-        #region HiiPackage definition
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -67,7 +66,6 @@ namespace IFR
         {
             this._Header = data.ToIfrType<T>();
         }
-        #endregion
     }
 
     #region Definitions for Forms Package
@@ -571,7 +569,7 @@ namespace IFR
     /// </summary>
     class HiiPackageString : HiiPackage<EFI_HII_STRING_PACKAGE_HDR>
     {
-        private struct Payload_t
+        public struct Payload_t
         {
             public string Language;
         }
@@ -633,14 +631,29 @@ namespace IFR
     /// <summary>
     /// Hii Sibt base class
     /// </summary>
-    class HiiSibtBlock<T> : HPKElement where T : struct
+    class HiiSibtBlockBase : HPKElement
     {
-        #region HiiSibtBlock definition
         /// <summary>
         /// Type of string information block type
         /// </summary>
         public readonly EFI_HII_SIBT_e BlockType;
 
+        /// <summary>
+        /// Friendly name of this object
+        /// </summary> 
+        public override string Name { get { string name = Enum.GetName(BlockType.GetType(), BlockType); return name == null ? "UNKNOWN" : name; } }
+
+        public HiiSibtBlockBase(IfrRawDataBlock raw) : base(raw)
+        {
+            this.BlockType = data.ToIfrType<EFI_HII_STRING_BLOCK>().BlockType;
+        }
+    }
+
+    /// <summary>
+    /// Hii Sibt generic class
+    /// </summary>
+    class HiiSibtBlock<T> : HiiSibtBlockBase where T : struct
+    {
         /// <summary>
         /// Managed structure header
         /// </summary>
@@ -649,15 +662,9 @@ namespace IFR
         /// Managed structure header
         /// </summary>
         public override object Header { get { return _Header; } }
-
-        /// <summary>
-        /// Friendly name of this object
-        /// </summary> 
-        public override string Name { get { string name = Enum.GetName(BlockType.GetType(), BlockType); return name == null ? "UNKNOWN" : name; } }
-
+        
         public HiiSibtBlock(IfrRawDataBlock raw) : base(raw)
         {
-            this.BlockType = data.ToIfrType<EFI_HII_STRING_BLOCK>().BlockType;
             this._Header = data.ToIfrType<T>();
             if (data.Length != 0)
             {
@@ -665,7 +672,6 @@ namespace IFR
                 data_payload.IncreaseOffset(this._Header.GetPhysSize());
             }
         }
-        #endregion
     }
 
     /// <summary>
@@ -673,7 +679,7 @@ namespace IFR
     /// </summary>
     class HiiSibtBlockStringUcs2 : HiiSibtBlock<EFI_HII_SIBT_STRING_UCS2_BLOCK>
     {
-        private struct Payload_t
+        public struct Payload_t
         {
             public string StringText;
         }
