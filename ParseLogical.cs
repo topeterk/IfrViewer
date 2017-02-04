@@ -64,10 +64,14 @@ namespace IfrViewer
                                 ParsePackageIfr(child, root, Packages);
                             break;
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS:
-                            root.Name = "Strings Package";
+                            UInt16 StringID = 0;
+                            root.Name = "Strings Package \"" + ((HiiPackageString.Payload_t)pkg.Payload).Language + "\"";
                             result.Add(root);
                             foreach (HPKElement child in root.Origin.Childs)
-                                ParsePackageSibt(child, root, Packages);
+                            {
+                                StringID++;
+                                ParsePackageSibt(child, root, Packages, ref StringID);
+                            }
                             break;
                         default:
                             CreateLogEntryParser(LogSeverity.UNIMPLEMENTED, root.Name);
@@ -92,6 +96,15 @@ namespace IfrViewer
 
             switch (elem.OpCode)
             {
+                case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP:
+                    foreach (HiiIfrOpCode child in elem.Childs)
+                    {
+                        switch (child.OpCode)
+                        {
+                            default: ParsePackageIfr(child, branch, Packages); break;
+                        }
+                    }
+                    break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: return; // Skip
                 default:
                     foreach (HiiIfrOpCode child in elem.Childs)
@@ -102,17 +115,23 @@ namespace IfrViewer
             root.Childs.Add(branch);
         }
 
-        private static void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, List<HiiPackageBase> Packages)
+        private static void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, List<HiiPackageBase> Packages, ref UInt16 StringID)
         {
             ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
             HiiSibtBlockBase elem = (HiiSibtBlockBase)hpkelem;
 
             switch (elem.BlockType)
             {
-                case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2: branch.Name = "\"" + ((HiiSibtBlockStringUcs2.Payload_t)elem.Payload).StringText + "\""; break;
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2: branch.Name = StringID.ToString("00000") + " " + ((HiiSibtBlockStringUcs2.Payload_t)elem.Payload).StringText; break;
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1: StringID += ((EFI_HII_SIBT_SKIP1_BLOCK)elem.Header).SkipCount; return; // Skip
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2: StringID += ((EFI_HII_SIBT_SKIP2_BLOCK)elem.Header).SkipCount; return; // Skip
+                case EFI_HII_SIBT_e.EFI_HII_SIBT_END: return; // Skip
                 default:
                     foreach (HiiSibtBlockBase child in elem.Childs)
-                        ParsePackageIfr(child, branch, Packages);
+                    {
+                        StringID++;
+                        ParsePackageSibt(child, branch, Packages, ref StringID);
+                    }
                     break; // simply add all others 1:1 when no specific handler exists
             }
 
