@@ -254,6 +254,9 @@ namespace IfrViewer
             {
                 const uint BytesPerLine = 16;
 
+                // add common elements..
+                tv_details.Nodes.Add("UniqueID = " + elem.UniqueID);
+
                 // add all header fields to the tree..
                 byte[] HeaderRaw = elem.HeaderRaw;
                 if ((elem.Header != null) || (HeaderRaw != null))
@@ -303,6 +306,22 @@ namespace IfrViewer
 
             tv_details.EndUpdate();
             Cursor.Current = previousCursor;
+        }
+
+        private void tv_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TreeView)
+            {
+                TreeView tv = (TreeView)sender;
+                if (e.KeyData == (Keys.Control | Keys.C))
+                {
+                    if (tv.SelectedNode != null)
+                    {
+                        Clipboard.SetText(tv.SelectedNode.Text);
+                    }
+                    e.SuppressKeyPress = true;
+                }
+            }
         }
     }
 
