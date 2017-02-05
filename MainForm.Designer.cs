@@ -50,19 +50,19 @@ namespace IfrViewer
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tv_tree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabrawtree = new System.Windows.Forms.TabPage();
             this.tablogicaltree = new System.Windows.Forms.TabPage();
+            this.tv_logical = new System.Windows.Forms.TreeView();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.tv_details = new System.Windows.Forms.TreeView();
             this.log = new System.Windows.Forms.DataGridView();
             this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Origin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Message = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tv_logical = new System.Windows.Forms.TreeView();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -86,6 +86,7 @@ namespace IfrViewer
             this.tv_tree.Size = new System.Drawing.Size(743, 250);
             this.tv_tree.TabIndex = 0;
             this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
+            this.tv_tree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
             // 
             // splitContainer1
             // 
@@ -140,6 +141,17 @@ namespace IfrViewer
             this.tablogicaltree.Text = "Logical Tree";
             this.tablogicaltree.UseVisualStyleBackColor = true;
             // 
+            // tv_logical
+            // 
+            this.tv_logical.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tv_logical.FullRowSelect = true;
+            this.tv_logical.Location = new System.Drawing.Point(0, 0);
+            this.tv_logical.Name = "tv_logical";
+            this.tv_logical.Size = new System.Drawing.Size(743, 250);
+            this.tv_logical.TabIndex = 1;
+            this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
+            this.tv_logical.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
+            // 
             // splitContainer2
             // 
             this.splitContainer2.Location = new System.Drawing.Point(3, 3);
@@ -168,6 +180,7 @@ namespace IfrViewer
             this.tv_details.ShowRootLines = false;
             this.tv_details.Size = new System.Drawing.Size(317, 162);
             this.tv_details.TabIndex = 1;
+            this.tv_details.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
             // 
             // log
             // 
@@ -182,14 +195,14 @@ namespace IfrViewer
             this.Type,
             this.Origin,
             this.Message});
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.log.DefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.log.DefaultCellStyle = dataGridViewCellStyle5;
             this.log.EnableHeadersVisualStyles = false;
             this.log.Location = new System.Drawing.Point(3, 3);
             this.log.Name = "log";
@@ -222,16 +235,6 @@ namespace IfrViewer
             this.Message.Name = "Message";
             this.Message.ReadOnly = true;
             this.Message.Width = 200;
-            // 
-            // tv_logical
-            // 
-            this.tv_logical.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tv_logical.FullRowSelect = true;
-            this.tv_logical.Location = new System.Drawing.Point(0, 0);
-            this.tv_logical.Name = "tv_logical";
-            this.tv_logical.Size = new System.Drawing.Size(743, 250);
-            this.tv_logical.TabIndex = 1;
-            this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
             // 
             // MainForm
             // 
