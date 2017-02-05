@@ -337,7 +337,7 @@ namespace IFR
     /// <typeparam name="T">Type of IFR opcode header</typeparam>
     class HiiIfrOpCodeWithAsciiNullTerminatedString<T> : HiiIfrOpCodeWithPayload<T, object> where T : struct
     {
-        private struct NamedPayload_t
+        public struct NamedPayload_t
         {
             public string Name;
         }
