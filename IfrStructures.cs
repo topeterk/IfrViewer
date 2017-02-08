@@ -2295,7 +2295,8 @@ namespace IFR
         /// <summary>
         /// Specifies the type used for storage. 
         /// </summary>
-        public UINT8 VarStoreType;
+        private UINT8 _VarStoreType;
+        public EFI_IFR_TYPE_e VarStoreType { get { return _VarStoreType.GetBits<EFI_IFR_TYPE_e>(); } set { _VarStoreType = SetBits(_VarStoreType, value); } }
     };
     #endregion
 
