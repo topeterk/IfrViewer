@@ -2136,6 +2136,7 @@ namespace IFR
 
         public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { _Format = SetBits(_Format, value); } }
         public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { _Format = SetBits(_Format, value); } }
+        public UINT8 Format_FromAny { get { return _Format; } set { _Format = value; } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
@@ -2192,7 +2193,7 @@ namespace IFR
         /// <summary>
         /// Security permission level.
         /// </summary>
-        private EFI_GUID Permissions;
+        public EFI_GUID Permissions;
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
