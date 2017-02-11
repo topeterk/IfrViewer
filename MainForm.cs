@@ -45,7 +45,7 @@ namespace IfrViewer
         private void MainForm_Load(object sender, EventArgs e)
         {
             // Update Version
-            Text += " - v" + Application.ProductVersion;
+            Text += " - v" + Application.ProductVersion + " (UEFI 2.6)";
 
             // Set size of window to 80 percent by default
             MainForm_SizeChanged(sender, e);
