@@ -254,7 +254,11 @@ namespace IfrViewer
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: branch.Name = "GuidOp = " + ((EFI_IFR_GUID)hpkelem.Header).Guid.Guid.ToString(); break;
+//EFI_IFR_FORM_MAP_OP = 0x5D,
+//EFI_IFR_MODAL_TAG_OP = 0x61,
+//EFI_IFR_REFRESH_ID_OP = 0x62,
                 #endregion
+
                 #region Varstores
                 case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP:
                     {
@@ -291,6 +295,7 @@ namespace IfrViewer
                     }
                     break;
                 #endregion
+
                 #region Logic
                 case EFI_IFR_OPCODE_e.EFI_IFR_SUPPRESS_IF_OP:
                 case EFI_IFR_OPCODE_e.EFI_IFR_GRAY_OUT_IF_OP:
@@ -321,6 +326,7 @@ namespace IfrViewer
                     }
                     break;
                 #endregion
+
                 #region Visuals
                 case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP:
                     {
@@ -337,7 +343,26 @@ namespace IfrViewer
                             + " , Help = \"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"";
                     }
                     break;
-                #endregion
+//EFI_IFR_IMAGE_OP = 0x04,
+//EFI_IFR_ONE_OF_OP = 0x05,
+//EFI_IFR_CHECKBOX_OP = 0x06,
+//EFI_IFR_NUMERIC_OP = 0x07,
+//EFI_IFR_PASSWORD_OP = 0x08,
+//EFI_IFR_ONE_OF_OPTION_OP = 0x09,
+//EFI_IFR_LOCKED_OP = 0x0B,
+//EFI_IFR_ACTION_OP = 0x0C,
+//EFI_IFR_RESET_BUTTON_OP = 0x0D,
+//EFI_IFR_DATE_OP = 0x1A,
+//EFI_IFR_TIME_OP = 0x1B,
+//EFI_IFR_STRING_OP = 0x1C,
+//EFI_IFR_REFRESH_OP = 0x1D,
+//EFI_IFR_ANIMATION_OP = 0x1F,
+//EFI_IFR_ORDERED_LIST_OP = 0x23,
+//EFI_IFR_READ_OP = 0x2D,
+//EFI_IFR_WRITE_OP = 0x2E,
+//EFI_IFR_VALUE_OP = 0x5A,
+//EFI_IFR_DEFAULT_OP = 0x5B,
+                    #endregion
                 case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: return; // Skip
                 default: break; // simply add all others 1:1 when no specific handler exists
             }
@@ -631,6 +656,27 @@ namespace IfrViewer
                         string expr2 = Stack.Pop();
                         string expr3 = Stack.Pop();
                         Stack.Push("Span(" + expr3 + ", FromToCharPairs = " + expr2 + ", Start = " + expr1 + ", Flags = " + ((EFI_IFR_SPAN)ifrelem.Header).Flags.ToString() + ")");
+                    }
+                    break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_MAP_OP:
+                    {
+                        string expr = Stack.Pop();
+                        if ((ifrelem.Childs.Count % 2) != 0)
+                        {
+                            Stack.Push("INVALIDOPCODEPARAMETERS(" + ifrelem.OpCode.ToString() + ", Value = " + expr + ")");
+                            CreateLogEntryParser(LogSeverity.WARNING, "Map has invalid expression pairs [" + ifrelem.UniqueID + "]!");
+                        }
+                        else
+                        {
+                            string result = "Switch(" + expr;
+                            for (int i = 0; i < ifrelem.Childs.Count; i += 2) // for each expression pair
+                            {
+                                result += ", {" + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i], StringDB) // Match expression
+                                    + ", " + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i+1], StringDB) + "}"; // Result expression
+                            }
+                            result += ")";
+                            Stack.Push(result);
+                        }
                     }
                     break;
                 #endregion
