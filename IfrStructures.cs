@@ -1729,10 +1729,13 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_QUESTION_HEADER Question;
-        private UINT8 _Flags;
+        /// <summary>
+        /// Use Flags_Supress or Flags_Storage if you want to access implemented bits only!
+        /// </summary>
+        public UINT8 Flags;
 
-        public EFI_QF_DATE_SUPPRESS_FLAGS_e Flags_Supress { get { return _Flags.GetBits<EFI_QF_DATE_SUPPRESS_FLAGS_e>(0x07); } set { _Flags = SetBits(_Flags, value, 0x07); } }
-        public EFI_QF_DATE_STORAGE_e Flags_Storage { get { return _Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { _Flags = SetBits(_Flags, value, 0x30); } }
+        public EFI_QF_DATE_SUPPRESS_FLAGS_e Flags_Supress { get { return Flags.GetBits<EFI_QF_DATE_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
+        public EFI_QF_DATE_STORAGE_e Flags_Storage { get { return Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -1889,10 +1892,13 @@ namespace IFR
     {
         public EFI_IFR_OP_HEADER Header;
         public EFI_IFR_QUESTION_HEADER Question;
-        private UINT8 _Flags;
+        /// <summary>
+        /// Use Flags_Supress or Flags_Storage if you want to access implemented bits only!
+        /// </summary>
+        public UINT8 Flags;
 
-        public EFI_QF_TIME_SUPPRESS_FLAGS_e Flags_Suppress { get { return _Flags.GetBits<EFI_QF_TIME_SUPPRESS_FLAGS_e>(0x07); } set { _Flags = SetBits(_Flags, value, 0x07); } }
-        public EFI_QF_TIME_STORAGE_e Flags_Storage { get { return _Flags.GetBits<EFI_QF_TIME_STORAGE_e>(0x30); } set { _Flags = SetBits(_Flags, value, 0x30); } }
+        public EFI_QF_TIME_SUPPRESS_FLAGS_e Flags_Suppress { get { return Flags.GetBits<EFI_QF_TIME_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
+        public EFI_QF_TIME_STORAGE_e Flags_Storage { get { return Flags.GetBits<EFI_QF_TIME_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -2132,11 +2138,13 @@ namespace IFR
     struct EFI_IFR_TO_STRING
     {
         public EFI_IFR_OP_HEADER Header;
-        private UINT8 _Format;
+        /// <summary>
+        /// Use Format_FromUINT or Format_FromBUFFER if possible for type safe access
+        /// </summary>
+        public UINT8 Format;
 
-        public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { _Format = SetBits(_Format, value); } }
-        public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { get { return _Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { _Format = SetBits(_Format, value); } }
-        public UINT8 Format_FromAny { get { return _Format; } set { _Format = value; } }
+        public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { Format = SetBits(Format, value); } }
+        public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { Format = SetBits(Format, value); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]

@@ -255,8 +255,8 @@ namespace IfrViewer
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: branch.Name = "GuidOp = " + ((EFI_IFR_GUID)hpkelem.Header).Guid.Guid.ToString(); break;
 //EFI_IFR_FORM_MAP_OP = 0x5D,
-//EFI_IFR_MODAL_TAG_OP = 0x61,
-//EFI_IFR_REFRESH_ID_OP = 0x62,
+                case EFI_IFR_OPCODE_e.EFI_IFR_MODAL_TAG_OP: branch.Name = "ModalTag"; break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: branch.Name = "RefreshId = " + ((EFI_IFR_REFRESH_ID)hpkelem.Header).RefreshEventGroupId.Guid.ToString(); break;
                 #endregion
 
                 #region Varstores
@@ -343,18 +343,110 @@ namespace IfrViewer
                             + " , Help = \"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"";
                     }
                     break;
-//EFI_IFR_IMAGE_OP = 0x04,
-//EFI_IFR_ONE_OF_OP = 0x05,
+                case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: branch.Name = "Image Id = " + ((EFI_IFR_IMAGE)hpkelem.Header).Id; break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP:
+                    {
+                        EFI_IFR_ONE_OF ifr_hdr = (EFI_IFR_ONE_OF)hpkelem.Header;
+                        branch.Name = "OneOf Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                        switch (ifr_hdr.Flags_DataSize)
+                        {
+                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
+                                {
+                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
+                                    branch.Name += ", Min = " + data.MinValue.ToString() + ", Max = " + data.MaxValue.ToString() + ", Step = " + data.Step.ToString();
+                                }
+                                break;
+                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
+                                {
+                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
+                                    branch.Name += ", Min = " + data.MinValue.ToString() + ", Max = " + data.MaxValue.ToString() + ", Step = " + data.Step.ToString();
+                                }
+                                break;
+                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
+                                {
+                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
+                                    branch.Name += ", Min = " + data.MinValue.ToString() + ", Max = " + data.MaxValue.ToString() + ", Step = " + data.Step.ToString();
+                                }
+                                break;
+                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
+                                {
+                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
+                                    branch.Name += ", Min = " + data.MinValue.ToString() + ", Max = " + data.MaxValue.ToString() + ", Step = " + data.Step.ToString();
+                                }
+                                break;
+                            default:
+                                branch.Name += ", Min = ?, Max = ?, Step = ?";
+                                CreateLogEntryParser(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
+                                break;
+                        }
+                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                    }
+                    break;
 //EFI_IFR_CHECKBOX_OP = 0x06,
 //EFI_IFR_NUMERIC_OP = 0x07,
 //EFI_IFR_PASSWORD_OP = 0x08,
-//EFI_IFR_ONE_OF_OPTION_OP = 0x09,
-//EFI_IFR_LOCKED_OP = 0x0B,
-//EFI_IFR_ACTION_OP = 0x0C,
+                case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
+                    {
+                        EFI_IFR_ONE_OF_OPTION ifr_hdr = (EFI_IFR_ONE_OF_OPTION)hpkelem.Header;
+                        branch.Name = "OneOf Option = " + ifr_hdr.Option.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ifr_hdr.Option, hpkelem.UniqueID) + "\"]"
+                            + ", Flags = " + ifr_hdr.Flags.ToString()
+                            + ", " + GetIfrTypeValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, StringDB);
+                    }
+                    break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_LOCKED_OP: branch.Name = "Locked"; break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP:
+                    {
+                        branch.Name = "ActionButton ";
+                        switch (hpkelem.Header.GetType().Name)
+                        {
+                            case "EFI_IFR_ACTION":
+                                {
+                                    EFI_IFR_ACTION ifr_hdr = (EFI_IFR_ACTION)hpkelem.Header;
+                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                                    if (ifr_hdr.QuestionConfig != 0)
+                                        branch.Name += ", Config = \"" + GetStringOfPackages(StringDB, ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\" ";
+                                }
+                                break;
+                            case "EFI_IFR_ACTION_1":
+                                {
+                                    EFI_IFR_ACTION_1 ifr_hdr = (EFI_IFR_ACTION_1)hpkelem.Header;
+                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                                }
+                                break;
+                            default:
+                                branch.Name += "UNKNOWNTYPE";
+                                CreateLogEntryParser(LogSeverity.WARNING, "Unknown action type [" + hpkelem.UniqueID + "]!");
+                                break;
+                        }
+                    }
+                    break;
 //EFI_IFR_RESET_BUTTON_OP = 0x0D,
-//EFI_IFR_DATE_OP = 0x1A,
-//EFI_IFR_TIME_OP = 0x1B,
-//EFI_IFR_STRING_OP = 0x1C,
+                case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP:
+                    {
+                        EFI_IFR_DATE ifr_hdr = (EFI_IFR_DATE)hpkelem.Header;
+                        branch.Name = "Date "
+                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB)
+                            + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                    }
+                    break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP:
+                    {
+                        EFI_IFR_TIME ifr_hdr = (EFI_IFR_TIME)hpkelem.Header;
+                        branch.Name = "Time "
+                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB)
+                            + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                    }
+                    break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
+                    {
+                        EFI_IFR_STRING ifr_hdr = (EFI_IFR_STRING)hpkelem.Header;
+                        branch.Name = "String "
+                            + "Min = " + ifr_hdr.MinSize.ToString()
+                            + ", Max = " + ifr_hdr.MaxSize.ToString()
+                            + ", Flags = " + ifr_hdr.Flags.ToString()
+                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                    }
+                    break;
 //EFI_IFR_REFRESH_OP = 0x1D,
 //EFI_IFR_ANIMATION_OP = 0x1F,
 //EFI_IFR_ORDERED_LIST_OP = 0x23,
@@ -362,7 +454,7 @@ namespace IfrViewer
 //EFI_IFR_WRITE_OP = 0x2E,
 //EFI_IFR_VALUE_OP = 0x5A,
 //EFI_IFR_DEFAULT_OP = 0x5B,
-                    #endregion
+                #endregion
                 case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: return; // Skip
                 default: break; // simply add all others 1:1 when no specific handler exists
             }
@@ -372,6 +464,55 @@ namespace IfrViewer
                     ParsePackageIfr(child, branch, StringDB);
 
             root.Childs.Add(branch);
+        }
+
+        /// <summary>
+        /// Builds humand readable string of an IFR question header
+        /// </summary>
+        /// <param name="Question">Input IFR question header</param>
+        /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
+        /// <param name="StringDB">Databases for string searches</param>
+        /// <returns>Humand readable string</returns>
+        private static string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID, List<StringDataBase> StringDB)
+        {
+            return "Question(Id = " + Question.QuestionId.ToDecimalString(5)
+                + ", Prompt = " + Question.Header.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, Question.Header.Prompt, UniqueID) + "\"]"
+                + ", Help = " + Question.Header.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, Question.Header.Help, UniqueID) + "\"]"
+                + ", Flags = " + Question.Flags
+                + ", VarId = " + Question.VarStoreId.ToDecimalString(5)
+                + ", Offset/Name = " + Question.VarStoreInfo.VarOffset.ToDecimalString(5) + ")";
+        }
+
+        /// <summary>
+        /// Builds humand readable string of an IFR typed values including its type and value
+        /// </summary>
+        /// <param name="type">The IFR type of the value</param>
+        /// <param name="Value">Input value</param>
+        /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
+        /// <param name="StringDB">Databases for string searches</param>
+        /// <returns>Humand readable string</returns>
+        private static string GetIfrTypeValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID, List<StringDataBase> StringDB)
+        {
+            string TypeStr;
+            string ValueStr;
+            switch (type)
+            {
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: TypeStr = "UINT8"; ValueStr = ((IfrTypeUINT8)Value).u8.ToString(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_16: TypeStr = "UINT16"; ValueStr = ((IfrTypeUINT16)Value).u16.ToString(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_32: TypeStr = "UINT32"; ValueStr = ((IfrTypeUINT32)Value).u32.ToString(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_64: TypeStr = "UINT64"; ValueStr = ((IfrTypeUINT64)Value).u64.ToString(); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BOOLEAN: TypeStr = "BOOLEAN"; ValueStr = (((IfrTypeBOOLEAN)Value).b == 0 ? "FALSE" : "TRUE"); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_TIME: TypeStr = "TIME"; ValueStr = "(H=" + ((EFI_HII_TIME)Value).Hour.ToString("D2") + ", M=" + ((EFI_HII_TIME)Value).Minute.ToString("D2") + ", S=" + ((EFI_HII_TIME)Value).Second.ToString("D2") + ")"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_DATE: TypeStr = "DATE"; ValueStr = "(Y=" + ((EFI_HII_DATE)Value).Year.ToString("D4") + ", M=" + ((EFI_HII_DATE)Value).Month.ToString("D2") + ", D=" + ((EFI_HII_DATE)Value).Day.ToString("D2") + ")"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: TypeStr = "STRING"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER: TypeStr = "OTHER"; ValueStr = "<SEE NESTED IFR>"; break; // There is no value. It is nested and part of next IFR OpCode object
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_UNDEFINED: TypeStr = "UNDEFINED"; ValueStr = "<NOT AVAILABLE>"; CreateLogEntryParser(LogSeverity.WARNING, "Data type not speficied [" + UniqueID + "]!"); break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: TypeStr = "ACTION"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BUFFER: TypeStr = "BUFFER"; ValueStr = "<SEE DETAILS>"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_REF: TypeStr = "REF"; ValueStr = "<SEE DETAILS>"; break;
+                default: TypeStr = "?"; ValueStr = "?"; CreateLogEntryParser(LogSeverity.WARNING, "Unknown data type of [" + UniqueID + "]!"); break;
+            }
+            return "Type = " + TypeStr + ", Value = " + ValueStr;
         }
         #endregion
 
@@ -613,7 +754,7 @@ namespace IfrViewer
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TO_BOOLEAN_OP: Stack.Push("ToBoolen(" + Stack.Pop() + ")"); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP: Stack.Push("ToString((" + Stack.Pop() + ")), Format = 0x" + ((EFI_IFR_TO_STRING)ifrelem.Header).Format_FromAny.ToString("X2") + ")"); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_TO_STRING_OP: Stack.Push("ToString((" + Stack.Pop() + ")), Format = 0x" + ((EFI_IFR_TO_STRING)ifrelem.Header).Format.ToString("X2") + ")"); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TO_UINT_OP: Stack.Push("ToUint(" + Stack.Pop() + ")"); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TO_UPPER_OP: Stack.Push("ToUpper(" + Stack.Pop() + ")"); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TO_LOWER_OP: Stack.Push("ToLower(" + Stack.Pop() + ")"); break;
