@@ -1635,7 +1635,7 @@ namespace IFR
     struct EFI_IFR_CHECKBOX
     {
         public EFI_IFR_OP_HEADER Header;
-        public EFI_IFR_QUESTION_HEADER Statement;
+        public EFI_IFR_QUESTION_HEADER Question;
         private UINT8 _Flags;
 
         public EFI_IFR_CHECKBOX_e Flags { get { return _Flags.GetBits<EFI_IFR_CHECKBOX_e>(); } set { _Flags = SetBits(_Flags, value); } }
@@ -2559,7 +2559,7 @@ namespace IFR
         /// <summary>
         /// Animation identifier in the HII database.
         /// </summary>
-        private EFI_ANIMATION_ID Id;
+        public EFI_ANIMATION_ID Id;
     };
 
     /*
