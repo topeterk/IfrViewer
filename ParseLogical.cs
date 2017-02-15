@@ -985,7 +985,7 @@ namespace IfrViewer
                 }
             }
 
-            CreateLogEntryParser(LogSeverity.WARNING, "StringID " + StringID + " could not be translated [" + UniqueID + "]!");
+            //CreateLogEntryParser(LogSeverity.WARNING, "StringID " + StringID + " could not be translated [" + UniqueID + "]!"); // this may occur pretty often, so keep line inactive by default
             return "UNKNOWN_STRING_ID(" + StringID + ")";
         }
         #endregion
