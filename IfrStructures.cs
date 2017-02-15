@@ -605,7 +605,7 @@ namespace IFR
     /// <summary>
     /// Value of HII package type
     /// </summary>
-    enum EFI_HII_PACKAGE_e
+    public enum EFI_HII_PACKAGE_e
     {
         EFI_HII_PACKAGE_TYPE_ALL = 0x00,
         EFI_HII_PACKAGE_TYPE_GUID = 0x01,

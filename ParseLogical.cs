@@ -25,27 +25,18 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
+using static IfrViewer.HpkParser;
 
 namespace IfrViewer
 {
-    static class HpkParser
+    public static class HpkParser
     {
-        #region Internal Definitions
-        /// <summary>
-        /// Holds the StringID - String pairs for a language
-        /// </summary>
-        private struct StringDataBase
-        {
-            public string Language;
-            public List<KeyValuePair<UInt16, string>> Strings;
-        }
-
         /// <summary>
         /// Creates a log entry for the "Parser" module
         /// </summary>
         /// <param name="severity">Severity of message</param>
         /// <param name="msg">Message string</param>
-        private static void CreateLogEntryParser(LogSeverity severity, string msg)
+        public static void CreateLogEntryParser(LogSeverity severity, string msg)
         {
             CreateLogEntry(severity, "Parser", msg);
         }
@@ -56,13 +47,25 @@ namespace IfrViewer
         /// <param name="Obj">Obj to be converted</param>
         /// <param name="TotalWith">Amount of characters of resulting string</param>
         /// <returns>String with fixed size</returns>
-        private static string ToDecimalString(this object Obj, int TotalWith = 0)
+        public static string ToDecimalString(this object Obj, int TotalWith = 0)
         {
             return Obj.ToString().PadLeft(TotalWith);
         }
-        #endregion
+    }
 
-        #region External Definitions
+    /// <summary>
+    /// Parses HPK packages and gives access to a parsed HPK tree and a string database
+    /// </summary>
+    public class ParsedHpkContainer
+    {
+        /// <summary>
+        /// Holds the StringID - String pairs for a language
+        /// </summary>
+        public struct StringDataBase
+        {
+            public string Language;
+            public List<KeyValuePair<UInt16, string>> Strings;
+        }
 
         /// <summary>
         /// Parsed HPK tree
@@ -82,44 +85,68 @@ namespace IfrViewer
         };
 
         /// <summary>
-        /// Parses a set of packages and returnes a parsed HPK tree
+        /// Parsed HPK tree
         /// </summary>
-        /// <param name="Packages">List of packages that must be parsed</param>
-        /// <returns>Parsed HPK tree</returns>
-        public static List<ParsedHpkNode> ParseHpkPackages(List<HiiPackageBase> Packages)
+        public readonly List<ParsedHpkNode> HpkPackages;
+        /// <summary>
+        /// String database
+        /// </summary>
+        public readonly List<StringDataBase> StringDB;
+
+        /// <summary>
+        /// Parses a set of packages
+        /// </summary>
+        /// <param name="Packages">List of packages that will be parsed</param>
+        public ParsedHpkContainer(List<HiiPackageBase> Packages)
         {
-            List<ParsedHpkNode> result = new List<ParsedHpkNode>();
-            List<StringDataBase> StringDB = new List<StringDataBase>();
+            StringDB = new List<StringDataBase>();
+            HpkPackages = new List<ParsedHpkNode>();
+
+            // Parsing strings first..
+            foreach (HiiPackageBase pkg in Packages)
+            {
+                if (pkg.PackageType == EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS)
+                {
+                    try
+                    {
+                        ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
+                        UInt16 StringID = 0; // First ID is 1 (will be increased later)
+                        StringDataBase db;
+                        db.Language = ((HiiPackageString.Payload_t)pkg.Payload).Language;
+                        db.Strings = new List<KeyValuePair<UInt16, string>>();
+                        StringDB.Add(db);
+
+                        root.Name = "Strings Package \"" + db.Language + "\"";
+                        HpkPackages.Add(root);
+                        foreach (HPKElement child in root.Origin.Childs)
+                            ParsePackageSibt(child, root, ref StringID, db);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                        CreateLogEntryParser(LogSeverity.ERROR, "Parsing failed!" + Environment.NewLine + ex.ToString());
+                        MessageBox.Show("Parsing failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
 
             foreach (HiiPackageBase pkg in Packages)
             {
-                ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
-
                 try
                 {
+                    ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
                     switch (pkg.PackageType)
                     {
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
                             root.Name = "Form Package";
-                            result.Add(root);
+                            HpkPackages.Add(root);
                             foreach (HPKElement child in root.Origin.Childs)
-                                ParsePackageIfr(child, root, StringDB);
+                                ParsePackageIfr(child, root);
 
                             // clean up..
                             StringDB = new List<StringDataBase>();
                             break;
-                        case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS:
-                            UInt16 StringID = 0; // First ID is 1 (will be increased later)
-                            StringDataBase db;
-                            db.Language = ((HiiPackageString.Payload_t)pkg.Payload).Language;
-                            db.Strings = new List<KeyValuePair<UInt16, string>>();
-                            StringDB.Add(db);
-
-                            root.Name = "Strings Package \"" + db.Language + "\"";
-                            result.Add(root);
-                            foreach (HPKElement child in root.Origin.Childs)
-                                ParsePackageSibt(child, root, ref StringID, db);
-                            break;
+                        case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: break; // Already done
                         default:
                             CreateLogEntryParser(LogSeverity.UNIMPLEMENTED, root.Name);
                             break;
@@ -132,20 +159,15 @@ namespace IfrViewer
                     MessageBox.Show("Parsing failed!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-
-            return result;
         }
-        #endregion
 
         #region Parser - Internal Forms Representation
-
         /// <summary>
         /// Parses IFR elements and add them to a parsed HPK tree
         /// </summary>
         /// <param name="hpkelem">HPK element holding the input data</param>
         /// <param name="root">Tree node which new nodes will be added to</param>
-        /// <param name="StringDB">Databases for string searches</param>
-        private static void ParsePackageIfr(HPKElement hpkelem, ParsedHpkNode root, List<StringDataBase> StringDB)
+        private void ParsePackageIfr(HPKElement hpkelem, ParsedHpkNode root)
         {
             ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
             HiiIfrOpCode elem = (HiiIfrOpCode)hpkelem;
@@ -159,8 +181,8 @@ namespace IfrViewer
                         EFI_IFR_FORM_SET hdr = (EFI_IFR_FORM_SET)elem.Header;
                         ParsedHpkNode leaf = new ParsedHpkNode(hpkelem, "");
                         string prefix = "FormSet";
-                        branch.Name = prefix + " \"" + GetStringOfPackages(StringDB, hdr.FormSetTitle, hpkelem.UniqueID) + "\"";
-                        leaf.Name = prefix + "-Help = " + GetStringOfPackages(StringDB, hdr.Help, hpkelem.UniqueID);
+                        branch.Name = prefix + " \"" + GetStringOfPackages(hdr.FormSetTitle, hpkelem.UniqueID) + "\"";
+                        leaf.Name = prefix + "-Help = " + GetStringOfPackages(hdr.Help, hpkelem.UniqueID);
                         branch.Childs.Add(leaf);
                         leaf.Name = prefix + "-Guid = " + hdr.Guid.Guid.ToString();
                         branch.Childs.Add(leaf);
@@ -181,9 +203,9 @@ namespace IfrViewer
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP:
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP:
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
-                                    ParsePackageIfr(child, varstores, StringDB); break;
+                                    ParsePackageIfr(child, varstores); break;
                                 default:
-                                    ParsePackageIfr(child, branch, StringDB); break;
+                                    ParsePackageIfr(child, branch); break;
                             }
                         }
                         bProcessChilds = false;
@@ -194,7 +216,7 @@ namespace IfrViewer
                         EFI_IFR_FORM ifr_hdr = (EFI_IFR_FORM)hpkelem.Header;
                         branch.Name = "Form"
                             + " [Id = " + ifr_hdr.FormId.ToDecimalString(5) + "]"
-                            + " \"" + GetStringOfPackages(StringDB, ifr_hdr.FormTitle, hpkelem.UniqueID) + "\"";
+                            + " \"" + GetStringOfPackages(ifr_hdr.FormTitle, hpkelem.UniqueID) + "\"";
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP:
@@ -210,7 +232,7 @@ namespace IfrViewer
                                     EFI_IFR_REF ifr_hdr = (EFI_IFR_REF)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
                                     InfoString = FormIdString;
-                                    RefName = GetStringOfPackages(StringDB, ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
+                                    RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF2":
@@ -218,7 +240,7 @@ namespace IfrViewer
                                     EFI_IFR_REF2 ifr_hdr = (EFI_IFR_REF2)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
                                     InfoString = FormIdString;
-                                    RefName = GetStringOfPackages(StringDB, ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
+                                    RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF3":
@@ -227,7 +249,7 @@ namespace IfrViewer
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
                                     FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
                                     InfoString = FormIdString + ", " + FormSetIdString;
-                                    RefName = GetStringOfPackages(StringDB, ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
+                                    RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF4":
@@ -235,8 +257,8 @@ namespace IfrViewer
                                     EFI_IFR_REF4 ifr_hdr = (EFI_IFR_REF4)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
                                     FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
-                                    InfoString = FormIdString + ", " + FormSetIdString + ", DevicePath = \"" + GetStringOfPackages(StringDB, ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
-                                    RefName = GetStringOfPackages(StringDB, ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
+                                    InfoString = FormIdString + ", " + FormSetIdString + ", DevicePath = \"" + GetStringOfPackages(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
+                                    RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF5":
@@ -265,7 +287,7 @@ namespace IfrViewer
                         foreach (EFI_IFR_FORM_MAP_METHOD method in (List<EFI_IFR_FORM_MAP_METHOD>)elem.Payload)
                         {
                             leaf.Name = prefix + "-Method = " + method.MethodIdentifier.Guid.ToString()
-                                + " " + method.MethodTitle.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, method.MethodTitle, hpkelem.UniqueID) + "\"]";
+                                + " " + method.MethodTitle.ToDecimalString(5) + " [\"" + GetStringOfPackages(method.MethodTitle, hpkelem.UniqueID) + "\"]";
                             branch.Childs.Add(leaf);
                         }
                     }
@@ -306,7 +328,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
                     {
                         EFI_IFR_VARSTORE_DEVICE ifr_hdr = (EFI_IFR_VARSTORE_DEVICE)hpkelem.Header;
-                        branch.Name = "VarStore" + " \"" + GetStringOfPackages(StringDB, ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
+                        branch.Name = "VarStore" + " \"" + GetStringOfPackages(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
                     }
                     break;
                 #endregion
@@ -333,9 +355,9 @@ namespace IfrViewer
                             CreateLogEntryParser(LogSeverity.WARNING, "Too few logic elements [" + hpkelem.UniqueID + "]!");
                         else
                         {
-                            branch.Name += GetIfrLogicString((HiiIfrOpCode)elem.Childs[0], StringDB);
+                            branch.Name += GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]);
                             for (int i = 1; i < elem.Childs.Count; i++) // skip first element, because it contains the (nested) logic
-                                ParsePackageIfr(elem.Childs[i], branch, StringDB);
+                                ParsePackageIfr(elem.Childs[i], branch);
                             bProcessChilds = false;
                         }
                     }
@@ -346,16 +368,16 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP:
                     {
                         EFI_IFR_SUBTITLE ifr_hdr = (EFI_IFR_SUBTITLE)hpkelem.Header;
-                        branch.Name = "Subtitle" + " \"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\"";
+                        branch.Name = "Subtitle" + " \"" + GetStringOfPackages(ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\"";
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP:
                     {
                         EFI_IFR_TEXT ifr_hdr = (EFI_IFR_TEXT)hpkelem.Header;
                         branch.Name = "Text"
-                            + " \"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\""
-                            + " , \"" + GetStringOfPackages(StringDB, ifr_hdr.TextTwo, hpkelem.UniqueID) + "\""
-                            + " , Help = \"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"";
+                            + " \"" + GetStringOfPackages(ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\""
+                            + " , \"" + GetStringOfPackages(ifr_hdr.TextTwo, hpkelem.UniqueID) + "\""
+                            + " , Help = \"" + GetStringOfPackages(ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"";
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: branch.Name = "Image Id = " + ((EFI_IFR_IMAGE)hpkelem.Header).Id; break;
@@ -394,7 +416,7 @@ namespace IfrViewer
                                 CreateLogEntryParser(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
                                 break;
                         }
-                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP:
@@ -402,7 +424,7 @@ namespace IfrViewer
                         EFI_IFR_CHECKBOX ifr_hdr = (EFI_IFR_CHECKBOX)hpkelem.Header;
                         branch.Name = "Checkbox "
                             + "Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
@@ -440,7 +462,7 @@ namespace IfrViewer
                                 CreateLogEntryParser(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
                                 break;
                         }
-                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
@@ -449,15 +471,15 @@ namespace IfrViewer
                         branch.Name = "Password "
                             + "Min = " + ifr_hdr.MinSize.ToString()
                             + ", Max = " + ifr_hdr.MaxSize.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
                     {
                         EFI_IFR_ONE_OF_OPTION ifr_hdr = (EFI_IFR_ONE_OF_OPTION)hpkelem.Header;
-                        branch.Name = "OneOf Option = " + ifr_hdr.Option.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ifr_hdr.Option, hpkelem.UniqueID) + "\"]"
+                        branch.Name = "OneOf Option = " + ifr_hdr.Option.ToDecimalString(5) + " [\"" + GetStringOfPackages(ifr_hdr.Option, hpkelem.UniqueID) + "\"]"
                             + ", Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrTypeValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrTypeValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID);
 
                         // Parse nested value logic..
                         if (ifr_hdr.Type == EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER)
@@ -469,7 +491,7 @@ namespace IfrViewer
                             else
                             {
                                 // Child index: 0 = Value opcode, 1 = END opcode
-                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + GetIfrLogicString((HiiIfrOpCode)elem.Childs[0], StringDB));
+                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
                                 branch.Childs.Add(leaf);
                                 bProcessChilds = false;
                             }
@@ -485,15 +507,15 @@ namespace IfrViewer
                             case "EFI_IFR_ACTION":
                                 {
                                     EFI_IFR_ACTION ifr_hdr = (EFI_IFR_ACTION)hpkelem.Header;
-                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                                     if (ifr_hdr.QuestionConfig != 0)
-                                        branch.Name += ", Config = \"" + GetStringOfPackages(StringDB, ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\" ";
+                                        branch.Name += ", Config = \"" + GetStringOfPackages(ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\" ";
                                 }
                                 break;
                             case "EFI_IFR_ACTION_1":
                                 {
                                     EFI_IFR_ACTION_1 ifr_hdr = (EFI_IFR_ACTION_1)hpkelem.Header;
-                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                                 }
                                 break;
                             default:
@@ -507,8 +529,8 @@ namespace IfrViewer
                     {
                         EFI_IFR_RESET_BUTTON ifr_hdr = (EFI_IFR_RESET_BUTTON)hpkelem.Header;
                         branch.Name = "ResetButton "
-                            + ", Prompt = " + ifr_hdr.Statement.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\"]"
-                            + ", Help = " + ifr_hdr.Statement.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"]"
+                            + ", Prompt = " + ifr_hdr.Statement.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(ifr_hdr.Statement.Prompt, hpkelem.UniqueID) + "\"]"
+                            + ", Help = " + ifr_hdr.Statement.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(ifr_hdr.Statement.Help, hpkelem.UniqueID) + "\"]"
                             + ", DefaultId = " + ifr_hdr.DefaultId.ToDecimalString(5);
                     }
                     break;
@@ -516,7 +538,7 @@ namespace IfrViewer
                     {
                         EFI_IFR_DATE ifr_hdr = (EFI_IFR_DATE)hpkelem.Header;
                         branch.Name = "Date "
-                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB)
+                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
                     }
                     break;
@@ -524,7 +546,7 @@ namespace IfrViewer
                     {
                         EFI_IFR_TIME ifr_hdr = (EFI_IFR_TIME)hpkelem.Header;
                         branch.Name = "Time "
-                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB)
+                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
                     }
                     break;
@@ -535,7 +557,7 @@ namespace IfrViewer
                             + "Min = " + ifr_hdr.MinSize.ToString()
                             + ", Max = " + ifr_hdr.MaxSize.ToString()
                             + ", Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: branch.Name = "Refresh Interval = " + ((EFI_IFR_REFRESH)hpkelem.Header).RefreshInterval.ToString(); break;
@@ -546,7 +568,7 @@ namespace IfrViewer
                         branch.Name = "OrderedList "
                             + "MaxContainers = " + ifr_hdr.MaxContainers.ToString()
                             + ", Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                     }
                     break;
                 //EFI_IFR_READ_OP // Unclear what it does, therefore no implementation by now. If you know it, let me know ;)
@@ -563,7 +585,7 @@ namespace IfrViewer
                     {
                         EFI_IFR_DEFAULT ifr_hdr = (EFI_IFR_DEFAULT)hpkelem.Header;
                         branch.Name = "Default Id = " + ifr_hdr.DefaultId.ToDecimalString(5)
-                            + ", " + GetIfrTypeValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, StringDB);
+                            + ", " + GetIfrTypeValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID);
 
                         // Parse nested value logic..
                         if (ifr_hdr.Type == EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER)
@@ -575,7 +597,7 @@ namespace IfrViewer
                             else
                             {
                                 // Child index: 0 = Value opcode, 1 = END opcode
-                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + GetIfrLogicString((HiiIfrOpCode)elem.Childs[0], StringDB));
+                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
                                 branch.Childs.Add(leaf);
                                 bProcessChilds = false;
                             }
@@ -590,7 +612,7 @@ namespace IfrViewer
 
             if (bProcessChilds)
                 foreach (HiiIfrOpCode child in elem.Childs)
-                    ParsePackageIfr(child, branch, StringDB);
+                    ParsePackageIfr(child, branch);
 
             root.Childs.Add(branch);
         }
@@ -600,13 +622,12 @@ namespace IfrViewer
         /// </summary>
         /// <param name="Question">Input IFR question header</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
-        /// <param name="StringDB">Databases for string searches</param>
         /// <returns>Humand readable string</returns>
-        private static string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID, List<StringDataBase> StringDB)
+        private string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
             return "Question(Id = " + Question.QuestionId.ToDecimalString(5)
-                + ", Prompt = " + Question.Header.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, Question.Header.Prompt, UniqueID) + "\"]"
-                + ", Help = " + Question.Header.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, Question.Header.Help, UniqueID) + "\"]"
+                + ", Prompt = " + Question.Header.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(Question.Header.Prompt, UniqueID) + "\"]"
+                + ", Help = " + Question.Header.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(Question.Header.Help, UniqueID) + "\"]"
                 + ", Flags = " + Question.Flags
                 + ", VarId = " + Question.VarStoreId.ToDecimalString(5)
                 + ", Offset/Name = " + Question.VarStoreInfo.VarOffset.ToDecimalString(5) + ")";
@@ -618,9 +639,8 @@ namespace IfrViewer
         /// <param name="type">The IFR type of the value</param>
         /// <param name="Value">Input value</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
-        /// <param name="StringDB">Databases for string searches</param>
         /// <returns>Humand readable string</returns>
-        private static string GetIfrTypeValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID, List<StringDataBase> StringDB)
+        private string GetIfrTypeValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID)
         {
             string TypeStr;
             string ValueStr;
@@ -633,10 +653,10 @@ namespace IfrViewer
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BOOLEAN: TypeStr = "BOOLEAN"; ValueStr = (((IfrTypeBOOLEAN)Value).b == 0 ? "FALSE" : "TRUE"); break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_TIME: TypeStr = "TIME"; ValueStr = "(H=" + ((EFI_HII_TIME)Value).Hour.ToString("D2") + ", M=" + ((EFI_HII_TIME)Value).Minute.ToString("D2") + ", S=" + ((EFI_HII_TIME)Value).Second.ToString("D2") + ")"; break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_DATE: TypeStr = "DATE"; ValueStr = "(Y=" + ((EFI_HII_DATE)Value).Year.ToString("D4") + ", M=" + ((EFI_HII_DATE)Value).Month.ToString("D2") + ", D=" + ((EFI_HII_DATE)Value).Day.ToString("D2") + ")"; break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: TypeStr = "STRING"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_STRING: TypeStr = "STRING"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER: TypeStr = "OTHER"; ValueStr = "<SEE NESTED IFR>"; break; // There is no value. It is nested and part of next IFR OpCode object
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_UNDEFINED: TypeStr = "UNDEFINED"; ValueStr = "<NOT AVAILABLE>"; CreateLogEntryParser(LogSeverity.WARNING, "Data type not speficied [" + UniqueID + "]!"); break;
-                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: TypeStr = "ACTION"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, ((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
+                case EFI_IFR_TYPE_e.EFI_IFR_TYPE_ACTION: TypeStr = "ACTION"; ValueStr = ((IfrTypeEFI_STRING_ID)Value).stringid.ToDecimalString(5) + " [\"" + GetStringOfPackages(((IfrTypeEFI_STRING_ID)Value).stringid, UniqueID) + "\"]"; break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_BUFFER: TypeStr = "BUFFER"; ValueStr = "<SEE DETAILS>"; break;
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_REF: TypeStr = "REF"; ValueStr = "<SEE DETAILS>"; break;
                 default: TypeStr = "?"; ValueStr = "?"; CreateLogEntryParser(LogSeverity.WARNING, "Unknown data type of [" + UniqueID + "]!"); break;
@@ -646,77 +666,17 @@ namespace IfrViewer
         #endregion
 
         #region Parser - IFR Logic
-
-        #region Logic stack
-        /// <summary>
-        /// Structure for IFR logic stack implementation
-        /// </summary>
-        private class IfrLogicStack
-        {
-            public List<string> Elements;
-            public IfrLogicStack() { Elements = new List<string>(); }
-        }
-        /// <summary>
-        /// Adds a value ontop of the stack
-        /// </summary>
-        /// <param name="Stack">Stack to push to</param>
-        /// <param name="Expression">Value to add</param>
-        private static void Push(this IfrLogicStack Stack, string ExpressionString)
-        {
-            Stack.Elements.Add(ExpressionString);
-        }
-        /// <summary>
-        /// Retrieves top value on stack and removes it from stack
-        /// </summary>
-        /// <param name="Stack">Stack to pop from</param>
-        /// <returns>Top stack value</returns>
-        private static string Pop(this IfrLogicStack Stack)
-        {
-            if (Stack.Elements.Count == 0)
-            {
-                CreateLogEntryParser(LogSeverity.WARNING, "Logic stack empty!");
-                return "EMPTYSTACK";
-            }
-            string LogicStr = Stack.Elements[Stack.Elements.Count - 1];
-            Stack.Elements.RemoveAt(Stack.Elements.Count - 1);
-            return LogicStr;
-        }
-        /// <summary>
-        /// Performs an operation with 2 operands (first left, second right)
-        /// </summary>
-        /// <param name="Stack">Stack used for operation</param>
-        /// <param name="Operation">Operation name/sign</param>
-        private static void Op12(this IfrLogicStack Stack, string Operation)
-        {
-            string expr1 = Stack.Pop();
-            string expr2 = Stack.Pop();
-            Stack.Push("(" + expr1 + " " + Operation + " " + expr2 + ")");
-        }
-        /// <summary>
-        /// Performs an operation with 2 operands (first right, second left)
-        /// </summary>
-        /// <param name="Stack">Stack used for operation</param>
-        /// <param name="Operation">Operation name/sign</param>
-        private static void Op21(this IfrLogicStack Stack, string Operation)
-        {
-            string expr1 = Stack.Pop();
-            string expr2 = Stack.Pop();
-            Stack.Push("(" + expr2 + " " + Operation + " " + expr1 + ")");
-        }
-        #endregion
-
         /// <summary>
         /// Translates IFR logic Opcodes into human readable string
         /// </summary>
         /// <param name="ifrelem">IFR element holding the input data</param>
-        /// <param name="StringDB">Databases for string searches</param>
         /// <returns>Human readable string</returns>
-        private static string GetIfrLogicString(HiiIfrOpCode ifrelem, List<StringDataBase> StringDB)
+        private string GetIfrLogicString(HiiIfrOpCode ifrelem)
         {
             IfrLogicStack Stack = new IfrLogicStack();
             string LogicString;
 
-            ParseIfrLogicStack(ifrelem, Stack, StringDB);
+            ParseIfrLogicStack(ifrelem, Stack);
 
             if (Stack.Elements.Count != 1)
             {
@@ -738,8 +698,7 @@ namespace IfrViewer
         /// </summary>
         /// <param name="ifrelem">IFR element holding the input data</param>
         /// <param name="Stack">Input: Current stack, Output: Remaining stack</param>
-        /// <param name="StringDB">Databases for string searches</param>
-        private static void ParseIfrLogicStack(HiiIfrOpCode ifrelem, IfrLogicStack Stack, List<StringDataBase> StringDB)
+        private void ParseIfrLogicStack(HiiIfrOpCode ifrelem, IfrLogicStack Stack)
         {
             switch (ifrelem.OpCode)
             {
@@ -782,13 +741,13 @@ namespace IfrViewer
                             case "EFI_IFR_QUESTION_REF3_2":
                                 {
                                     EFI_IFR_QUESTION_REF3_2 ifr_hdr = (EFI_IFR_QUESTION_REF3_2)ifrelem.Header;
-                                    Stack.Push("ValueOfId(" + Stack.Pop() + (ifr_hdr.DevicePath == 0 ? "" : ", DevicePath = \"" + GetStringOfPackages(StringDB, ifr_hdr.DevicePath, ifrelem.UniqueID) + "\"") + ")");
+                                    Stack.Push("ValueOfId(" + Stack.Pop() + (ifr_hdr.DevicePath == 0 ? "" : ", DevicePath = \"" + GetStringOfPackages(ifr_hdr.DevicePath, ifrelem.UniqueID) + "\"") + ")");
                                 }
                                 break;
                             case "EFI_IFR_QUESTION_REF3_3":
                                 {
                                     EFI_IFR_QUESTION_REF3_3 ifr_hdr = (EFI_IFR_QUESTION_REF3_3)ifrelem.Header;
-                                    Stack.Push("ValueOfId(" + Stack.Pop() + ", Guid = " + ifr_hdr.Guid.Guid.ToString() + (ifr_hdr.DevicePath == 0 ? "" : ", DevicePath = \"" + GetStringOfPackages(StringDB, ifr_hdr.DevicePath, ifrelem.UniqueID) + "\"") + ")");
+                                    Stack.Push("ValueOfId(" + Stack.Pop() + ", Guid = " + ifr_hdr.Guid.Guid.ToString() + (ifr_hdr.DevicePath == 0 ? "" : ", DevicePath = \"" + GetStringOfPackages(ifr_hdr.DevicePath, ifrelem.UniqueID) + "\"") + ")");
                                 }
                                 break;
                             default:
@@ -802,7 +761,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_STRING_REF1_OP:
                     {
                         UInt16 StringID = ((EFI_IFR_STRING_REF1)ifrelem.Header).StringId;
-                        Stack.Push("GetString(Id = " + StringID.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, StringID, ifrelem.UniqueID) + "\"])");
+                        Stack.Push("GetString(Id = " + StringID.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringID, ifrelem.UniqueID) + "\"])");
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_THIS_OP: Stack.Push("THIS"); break;
@@ -877,7 +836,7 @@ namespace IfrViewer
                         UInt16 StringID;
                         string expr = Stack.Pop();
                         if (UInt16.TryParse(expr, out StringID))
-                            Stack.Push("GetString(Id = " + StringID.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringDB, StringID, ifrelem.UniqueID) + "\"])");
+                            Stack.Push("GetString(Id = " + StringID.ToDecimalString(5) + " [\"" + GetStringOfPackages(StringID, ifrelem.UniqueID) + "\"])");
                         else
                             Stack.Push("GetString(Id = (" + expr + "))");
                     }
@@ -941,8 +900,8 @@ namespace IfrViewer
                             string result = "Switch(" + expr;
                             for (int i = 0; i < ifrelem.Childs.Count; i += 2) // for each expression pair
                             {
-                                result += ", {" + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i], StringDB) // Match expression
-                                    + ", " + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i+1], StringDB) + "}"; // Result expression
+                                result += ", {" + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i]) // Match expression
+                                    + ", " + GetIfrLogicString((HiiIfrOpCode)ifrelem.Childs[i+1]) + "}"; // Result expression
                             }
                             result += ")";
                             Stack.Push(result);
@@ -961,7 +920,7 @@ namespace IfrViewer
             if (ifrelem.HasOwnScope)
             {
                 foreach (HiiIfrOpCode child in ifrelem.Childs)
-                    ParseIfrLogicStack(child, Stack, StringDB);
+                    ParseIfrLogicStack(child, Stack);
             }
         }
         #endregion
@@ -975,7 +934,7 @@ namespace IfrViewer
         /// <param name="root">Tree node which new nodes will be added to</param>
         /// <param name="StringID">Last used string ID (increased when string found)</param>
         /// <param name="db">String database where new strings will be added to</param>
-        private static void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, ref UInt16 StringID, StringDataBase db)
+        private void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, ref UInt16 StringID, StringDataBase db)
         {
             ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
             HiiSibtBlockBase elem = (HiiSibtBlockBase)hpkelem;
@@ -1003,13 +962,12 @@ namespace IfrViewer
         /// <summary>
         /// Returns a string from the database
         /// </summary>
-        /// <param name="StringDB">Databases to search</param>
         /// <param name="StringID">ID of the requested string</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
         /// <param name="bZeroIsEmpty">When true: In case StringID equals 0 then return "" instead of rising an error</param>
         /// <param name="Language">Language of the string to be returned</param>
         /// <returns>String from database</returns>
-        private static string GetStringOfPackages(List<StringDataBase> StringDB, UInt16 StringID, int UniqueID, bool bZeroIsEmpty = true, string Language = "en-US")
+        private string GetStringOfPackages(UInt16 StringID, int UniqueID, bool bZeroIsEmpty = true, string Language = "en-US")
         {
             if (StringID == 0 && bZeroIsEmpty)
                 return "";
@@ -1031,5 +989,65 @@ namespace IfrViewer
             return "UNKNOWN_STRING_ID(" + StringID + ")";
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Structure for IFR logic stack implementation
+    /// </summary>
+    public class IfrLogicStack
+    {
+        public List<string> Elements;
+
+        public IfrLogicStack()
+        {
+            Elements = new List<string>();
+        }
+
+        /// <summary>
+        /// Adds a value ontop of the stack
+        /// </summary>
+        /// <param name="Expression">Value to add</param>
+        public void Push(string ExpressionString)
+        {
+            Elements.Add(ExpressionString);
+        }
+
+        /// <summary>
+        /// Retrieves top value on stack and removes it from stack
+        /// </summary>
+        /// <returns>Top stack value</returns>
+        public string Pop()
+        {
+            if (Elements.Count == 0)
+            {
+                CreateLogEntryParser(LogSeverity.WARNING, "Logic stack empty!");
+                return "EMPTYSTACK";
+            }
+            string LogicStr = Elements[Elements.Count - 1];
+            Elements.RemoveAt(Elements.Count - 1);
+            return LogicStr;
+        }
+
+        /// <summary>
+        /// Performs an operation with 2 operands (first left, second right)
+        /// </summary>
+        /// <param name="Operation">Operation name/sign</param>
+        public void Op12(string Operation)
+        {
+            string expr1 = Pop();
+            string expr2 = Pop();
+            Push("(" + expr1 + " " + Operation + " " + expr2 + ")");
+        }
+
+        /// <summary>
+        /// Performs an operation with 2 operands (first right, second left)
+        /// </summary>
+        /// <param name="Operation">Operation name/sign</param>
+        public void Op21(string Operation)
+        {
+            string expr1 = Pop();
+            string expr2 = Pop();
+            Push("(" + expr2 + " " + Operation + " " + expr1 + ")");
+        }
     }
 }

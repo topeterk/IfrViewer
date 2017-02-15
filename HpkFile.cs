@@ -20,7 +20,6 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using IFR;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,7 +32,7 @@ namespace IFR
     /// Used as a core element that enables iterating through the HPK file tree
     /// and providing some generic information about the object.
     /// </summary>
-    class HPKElement
+    public class HPKElement
     {
         #region UniqueID
         /// <summary>
@@ -223,7 +222,7 @@ namespace IFR
     /// <summary>
     /// Represents a whole file including multiple packages
     /// </summary>
-    class HPKfile : HPKElement
+    public class HPKfile : HPKElement
     {
         /// <summary>
         /// Filename of the parsed file

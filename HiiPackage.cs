@@ -20,17 +20,15 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using IFR;
 using System;
 using System.Collections.Generic;
-using static IFR.IFRHelper;
 
 namespace IFR
 {
     /// <summary>
     /// Hii package base class
     /// </summary>
-    class HiiPackageBase : HPKElement
+    public class HiiPackageBase : HPKElement
     {
         /// <summary>
         /// Type of HII package

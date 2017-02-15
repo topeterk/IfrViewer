@@ -195,20 +195,24 @@ namespace IfrViewer
                 }
             }
 
-            List<ParsedHpkNode> ParsedPackages = ParseHpkPackages(Packages);
+            ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages);
 
             // Wipe existing data because new loaded HPK may provide any missed data
             tv_logical.Nodes.Clear();
 
             // Since HPKs interact with each other, build logical tree after loading is completely done
-            foreach (ParsedHpkNode pkg in ParsedPackages)
+            foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
             {
+                CreateLogEntryMain(LogSeverity.INFO, "Parsing package \"" + pkg.Name + "\" ...");
+
                 tv_logical.BeginUpdate();
                 TreeNode root = tv_logical.Nodes.Add(pkg.Name);
                 root.Tag = pkg.Origin;
                 ShowAtLogicalTree(pkg, root);
                 root.Expand();
                 tv_logical.EndUpdate();
+
+                CreateLogEntryMain(LogSeverity.SUCCESS, "Parsing package \"" + pkg.Name + "\" completed!");
             }
         }
  
@@ -225,12 +229,12 @@ namespace IfrViewer
             }
         }
  
-        private void ShowAtLogicalTree(ParsedHpkNode node, TreeNode root)
+        private void ShowAtLogicalTree(ParsedHpkContainer.ParsedHpkNode node, TreeNode root)
         {
             // add all child elements to the tree..
             if (node.Childs.Count > 0)
             {
-                foreach (ParsedHpkNode child in node.Childs)
+                foreach (ParsedHpkContainer.ParsedHpkNode child in node.Childs)
                 {
                     ShowAtLogicalTree(child, AddTreeNode(root, child.Name, child.Origin));
                 }
