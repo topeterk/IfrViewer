@@ -416,15 +416,14 @@ namespace IfrViewer
                                 CreateLogEntryParser(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
                                 break;
                         }
-                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "OneOf-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_CHECKBOX_OP:
                     {
                         EFI_IFR_CHECKBOX ifr_hdr = (EFI_IFR_CHECKBOX)hpkelem.Header;
-                        branch.Name = "Checkbox "
-                            + "Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                        branch.Name = "Checkbox Flags = " + ifr_hdr.Flags.ToString();
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "Checkbox-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_NUMERIC_OP:
@@ -462,7 +461,7 @@ namespace IfrViewer
                                 CreateLogEntryParser(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
                                 break;
                         }
-                        branch.Name += ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "Numeric-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
@@ -470,8 +469,8 @@ namespace IfrViewer
                         EFI_IFR_PASSWORD ifr_hdr = (EFI_IFR_PASSWORD)hpkelem.Header;
                         branch.Name = "Password "
                             + "Min = " + ifr_hdr.MinSize.ToString()
-                            + ", Max = " + ifr_hdr.MaxSize.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                            + ", Max = " + ifr_hdr.MaxSize.ToString();
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "Password-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
@@ -501,21 +500,21 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_LOCKED_OP: branch.Name = "Locked"; break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP:
                     {
-                        branch.Name = "ActionButton ";
+                        branch.Name = "ActionButton";
                         switch (hpkelem.Header.GetType().Name)
                         {
                             case "EFI_IFR_ACTION":
                                 {
                                     EFI_IFR_ACTION ifr_hdr = (EFI_IFR_ACTION)hpkelem.Header;
-                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
                                     if (ifr_hdr.QuestionConfig != 0)
-                                        branch.Name += ", Config = \"" + GetStringOfPackages(ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\" ";
+                                        branch.Name += " Config = \"" + GetStringOfPackages(ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\" ";
+                                    branch.Childs.Add(new ParsedHpkNode(hpkelem, "ActionButton-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                                 }
                                 break;
                             case "EFI_IFR_ACTION_1":
                                 {
                                     EFI_IFR_ACTION_1 ifr_hdr = (EFI_IFR_ACTION_1)hpkelem.Header;
-                                    branch.Name += GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                                    branch.Childs.Add(new ParsedHpkNode(hpkelem, "ActionButton-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                                 }
                                 break;
                             default:
@@ -537,17 +536,15 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_DATE_OP:
                     {
                         EFI_IFR_DATE ifr_hdr = (EFI_IFR_DATE)hpkelem.Header;
-                        branch.Name = "Date "
-                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
-                            + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                        branch.Name = "Date Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "Date-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP:
                     {
                         EFI_IFR_TIME ifr_hdr = (EFI_IFR_TIME)hpkelem.Header;
-                        branch.Name = "Time "
-                            + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
-                            + ", Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                        branch.Name = "Time Flags = 0x" + ifr_hdr.Flags.ToString("X2");
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "Time-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
@@ -556,8 +553,8 @@ namespace IfrViewer
                         branch.Name = "String "
                             + "Min = " + ifr_hdr.MinSize.ToString()
                             + ", Max = " + ifr_hdr.MaxSize.ToString()
-                            + ", Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                            + ", Flags = " + ifr_hdr.Flags.ToString();
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "String-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: branch.Name = "Refresh Interval = " + ((EFI_IFR_REFRESH)hpkelem.Header).RefreshInterval.ToString(); break;
@@ -567,8 +564,8 @@ namespace IfrViewer
                         EFI_IFR_ORDERED_LIST ifr_hdr = (EFI_IFR_ORDERED_LIST)hpkelem.Header;
                         branch.Name = "OrderedList "
                             + "MaxContainers = " + ifr_hdr.MaxContainers.ToString()
-                            + ", Flags = " + ifr_hdr.Flags.ToString()
-                            + ", " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID);
+                            + ", Flags = " + ifr_hdr.Flags.ToString();
+                        branch.Childs.Add(new ParsedHpkNode(hpkelem, "OrderedList-Question " + GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)));
                     }
                     break;
                 //EFI_IFR_READ_OP // Unclear what it does, therefore no implementation by now. If you know it, let me know ;)
@@ -625,12 +622,12 @@ namespace IfrViewer
         /// <returns>Humand readable string</returns>
         private string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
-            return "Question(Id = " + Question.QuestionId.ToDecimalString(5)
+            return "Id = " + Question.QuestionId.ToDecimalString(5)
                 + ", Prompt = " + Question.Header.Prompt.ToDecimalString(5) + " [\"" + GetStringOfPackages(Question.Header.Prompt, UniqueID) + "\"]"
                 + ", Help = " + Question.Header.Help.ToDecimalString(5) + " [\"" + GetStringOfPackages(Question.Header.Help, UniqueID) + "\"]"
                 + ", Flags = " + Question.Flags
                 + ", VarId = " + Question.VarStoreId.ToDecimalString(5)
-                + ", Offset/Name = " + Question.VarStoreInfo.VarOffset.ToDecimalString(5) + ")";
+                + ", Offset/Name = " + Question.VarStoreInfo.VarOffset.ToDecimalString(5);
         }
 
         /// <summary>
