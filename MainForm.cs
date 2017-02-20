@@ -23,6 +23,7 @@
 using IFR;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
@@ -33,11 +34,14 @@ namespace IfrViewer
     public partial class MainForm : Form
     {
         private const string EmptyDetails = "No data available";
+        private readonly BackgroundWorker DragDropWorker;
 
         public MainForm()
         {
             InitializeComponent();
             IFRHelper.log = log; // Use local window as logging window
+            DragDropWorker = new BackgroundWorker();
+            DragDropWorker.DoWork += DragDropWorker_DoWork;
         }
 
         #region GUI
@@ -134,9 +138,9 @@ namespace IfrViewer
             }
         }
 
-        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        void DragDropWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            string[] DroppedPathList = (string[])e.Data.GetData(DataFormats.FileDrop);
+            string[] DroppedPathList = (string[])((DragEventArgs)e.Argument).Data.GetData(DataFormats.FileDrop);
             List<string> DroppedFiles = new List<string>();
 
             // get all files of the dropped object(s) and add them..
@@ -147,20 +151,30 @@ namespace IfrViewer
                 else if (File.Exists(path))
                     DroppedFiles.Add(path);
             }
-            LoadFiles(DroppedFiles.ToArray());
+
+            Invoke(Delegate.CreateDelegate(typeof(LoadFilesFunc), this, "LoadFiles"), (object)DroppedFiles.ToArray());
+        }
+
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            DragDropWorker.RunWorkerAsync(e);
         }
 
         private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Link; // Allow dopping files
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; // Allow dopping files
         }
 
         #endregion
 
         List<HiiPackageBase> Packages = new List<HiiPackageBase>();
 
+        private delegate void LoadFilesFunc(string[] filepaths);
         private void LoadFiles(string[] filepaths)
         {
+            Cursor previousCursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+
             // Load HPKs into memory and build tree view
             foreach (string filename in filepaths)
             {
@@ -214,6 +228,8 @@ namespace IfrViewer
 
                 CreateLogEntryMain(LogSeverity.SUCCESS, "Parsing package \"" + pkg.Name + "\" completed!");
             }
+
+            Cursor.Current = previousCursor;
         }
  
         private void ShowAtRawTree(HPKElement elem, TreeNode root)
