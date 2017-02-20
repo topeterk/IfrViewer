@@ -161,16 +161,7 @@ namespace IfrViewer
         /// </summary>
         private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node.Tag == null)
-            {
-                // should not happen because every node should have an object bound!
-                ShowAtDetails(null);
-                CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + e.Node.ToString() + "\"!");
-            }
-            else
-            {
-                ShowAtDetails((HPKElement)e.Node.Tag);
-            }
+            ShowAtDetails(e.Node.Tag, e.Node.Name);
         }
 
         /// <summary>
@@ -217,10 +208,15 @@ namespace IfrViewer
 
             List<HiiPackageBase> Packages = new List<HiiPackageBase>();
 
+            TreeNode PkgNodeRaw = tv_tree.Nodes.Add("Package");
+            PkgNodeRaw.Tag = EmptyDetails;
+
+            CreateLogEntryMain(LogSeverity.INFO, "Loading and parsing package...");
+
             // Load HPKs into memory and build tree view
             foreach (string filename in filepaths)
             {
-                CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + filename + "\"...");
+                CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + filename + "\" ...");
 
                 HPKfile hpk = null;
                 try
@@ -237,7 +233,7 @@ namespace IfrViewer
                 if (null != hpk) // Loaded successfully?
                 {
                     tv_tree.BeginUpdate();
-                    TreeNode root = tv_tree.Nodes.Add(hpk.Name);
+                    TreeNode root = PkgNodeRaw.Nodes.Add(hpk.Name);
                     root.Tag = hpk;
                     ShowAtRawTree(hpk, root);
                     root.Expand();
@@ -246,27 +242,35 @@ namespace IfrViewer
                     // Collect all new packages of this file
                     foreach (HiiPackageBase hpkpkg in hpk.Childs)
                         Packages.Add(hpkpkg);
-
-                    CreateLogEntryMain(LogSeverity.SUCCESS, "Loading file \"" + filename + "\" completed!");
                 }
             }
 
-            ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, DisplayLanguage);
-
-            // Since HPKs interact with each other, build logical tree after loading is completely done
-            foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
+            if (0 < PkgNodeRaw.Nodes.Count)
             {
-                CreateLogEntryMain(LogSeverity.INFO, "Parsing package \"" + pkg.Name + "\" ...");
+                PkgNodeRaw.Expand();
+                TreeNode PkgNodeLogical = tv_logical.Nodes.Add("Package");
+                PkgNodeLogical.Tag = EmptyDetails;
 
-                tv_logical.BeginUpdate();
-                TreeNode root = tv_logical.Nodes.Add(pkg.Name);
-                root.Tag = pkg.Origin;
-                ShowAtLogicalTree(pkg, root);
-                root.Expand();
-                tv_logical.EndUpdate();
+                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, DisplayLanguage);
 
-                CreateLogEntryMain(LogSeverity.SUCCESS, "Parsing package \"" + pkg.Name + "\" completed!");
+                // Since HPKs interact with each other, build logical tree after loading is completely done
+                foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
+                {
+                    CreateLogEntryMain(LogSeverity.INFO, "Parsing \"" + pkg.Name + "\" ...");
+
+                    tv_logical.BeginUpdate();
+                    TreeNode root = PkgNodeLogical.Nodes.Add(pkg.Name);
+                    root.Tag = pkg.Origin;
+                    ShowAtLogicalTree(pkg, root);
+                    root.Expand();
+                    tv_logical.EndUpdate();
+                }
+
+                PkgNodeLogical.Expand();
             }
+            else tv_tree.Nodes.Remove(PkgNodeRaw); // Cleanup if no file was loaded successfully
+
+            CreateLogEntryMain(LogSeverity.SUCCESS, "Loading and parsing package completed!");
 
             Cursor.Current = previousCursor;
         }
@@ -308,23 +312,26 @@ namespace IfrViewer
         }
 
         /// <summary>
-        /// Adds a subtree according to the HPK element's data
+        /// Shows object's data at details window
         /// </summary>
-        /// <param name="elem">To be displayed HPK element</param>
-        private void ShowAtDetails(HPKElement elem)
+        /// <param name="obj">Object to be displayed</param>
+        /// <param name="name">Name of the displayed object (in case of error)</param>
+        private void ShowAtDetails(object obj, string name)
         {
             Cursor previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
             tv_details.BeginUpdate();
 
             tv_details.Nodes.Clear();
-            if (elem == null)
+            if (obj == null)
             {
-                // should not happen because every node should have an objected bound!
+                // should not happen because every node should have an object!
                 tv_details.Nodes.Add(EmptyDetails);
+                CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + name + "\"!");
             }
-            else
+            else if (obj is HPKElement)
             {
+                HPKElement elem = (HPKElement)obj;
                 const uint BytesPerLine = 16;
 
                 // add common elements..
@@ -375,6 +382,15 @@ namespace IfrViewer
                     //branch.Expand();
                 }
                 tv_details.ExpandAll();
+            }
+            else if (obj is String)
+            {
+                tv_details.Nodes.Add((string)obj);
+            }
+            else // Unknown data type
+            {
+                tv_details.Nodes.Add(EmptyDetails);
+                CreateLogEntryMain(LogSeverity.UNIMPLEMENTED, "Unkown data found for \"" + name + "\"!");
             }
 
             tv_details.EndUpdate();
