@@ -36,6 +36,8 @@ namespace IfrViewer
         private const string EmptyDetails = "No data available";
         private readonly BackgroundWorker DragDropWorker;
 
+        private string DisplayLanguage = "en-US";
+
         public MainForm()
         {
             InitializeComponent();
@@ -49,7 +51,7 @@ namespace IfrViewer
         private void MainForm_Load(object sender, EventArgs e)
         {
             // Update Version
-            Text += " - v" + Application.ProductVersion + " (UEFI 2.6)";
+            Text += " - v" + Application.ProductVersion + " Alpha (UEFI 2.6)";
 
             // Set size of window to 80 percent by default
             MainForm_SizeChanged(sender, e);
@@ -59,15 +61,38 @@ namespace IfrViewer
             Show();
 
             // Load project from command line argument (when available)
-            string[] Files = new string[Environment.GetCommandLineArgs().Length - 1];
-            for (int i = 0; i < Environment.GetCommandLineArgs().Length - 1; i++)
-                Files[i] = Environment.GetCommandLineArgs()[i+1];
-            LoadFiles(Files);
+            List<string> Files = new List<string>();
+            foreach (string arg in Environment.GetCommandLineArgs().SubArray(1, Environment.GetCommandLineArgs().Length-1))
+            {
+                if (arg.StartsWith("-")) // is option?
+                {
+                    if (arg.Equals("-P")) // Start package
+                    {
+                        if (0 < Files.Count) // Parse previous package before loading next one..
+                        {
+                            LoadFiles(Files.ToArray()); // Load files of current package
+                            Files.Clear();
+                        }
+                    }
+                    else if (arg.StartsWith("-L=")) // Set display language
+                    {
+                        DisplayLanguage = arg.Substring(3);
+                    }
+                    else CreateLogEntry(LogSeverity.WARNING, "Main", "Argument unkown \"" + arg + "\"");
+                }
+                else Files.Add(arg); // argument is a file
+            }
+            LoadFiles(Files.ToArray()); // Load last package
 
             if (tv_tree.Nodes.Count == 0)
                 tv_details.Nodes.Add(EmptyDetails);
         }
 
+        /// <summary>
+        /// Creates a log entry for the "Main" module
+        /// </summary>
+        /// <param name="severity">Severity of message</param>
+        /// <param name="msg">Message string</param>
         private void CreateLogEntryMain(LogSeverity severity, string msg)
         {
             CreateLogEntry(severity, "Main", msg);
@@ -117,6 +142,13 @@ namespace IfrViewer
             tv_logical.Height = tv_tree.Parent.Height;
         }
 
+        /// <summary>
+        /// Adds a text-object pair to a tree
+        /// </summary>
+        /// <param name="root">Node which the new node is added to</param>
+        /// <param name="text">Displayed text of new node</param>
+        /// <param name="obj">Object added to node for reference</param>
+        /// <returns>New created tree node</returns>
         private TreeNode AddTreeNode(TreeNode root, string text, object obj)
         {
             TreeNode leaf = root.Nodes.Add(text);
@@ -124,6 +156,9 @@ namespace IfrViewer
             return leaf;
         }
 
+        /// <summary>
+        /// Updates the details window when a tree node gets selected by user
+        /// </summary>
         private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Tag == null)
@@ -138,6 +173,10 @@ namespace IfrViewer
             }
         }
 
+        /// <summary>
+        /// Handles drag and drop operation in order to load further files
+        /// </summary>
+        /// <param name="e">Argument must contain DragEventArgs</param>
         void DragDropWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             string[] DroppedPathList = (string[])((DragEventArgs)e.Argument).Data.GetData(DataFormats.FileDrop);
@@ -164,16 +203,19 @@ namespace IfrViewer
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; // Allow dopping files
         }
-
         #endregion
 
-        List<HiiPackageBase> Packages = new List<HiiPackageBase>();
-
         private delegate void LoadFilesFunc(string[] filepaths);
+        /// <summary>
+        /// Loads a bunch of files which are referring the same "package"
+        /// </summary>
+        /// <param name="filepaths"></param>
         private void LoadFiles(string[] filepaths)
         {
             Cursor previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
+
+            List<HiiPackageBase> Packages = new List<HiiPackageBase>();
 
             // Load HPKs into memory and build tree view
             foreach (string filename in filepaths)
@@ -209,10 +251,7 @@ namespace IfrViewer
                 }
             }
 
-            ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages);
-
-            // Wipe existing data because new loaded HPK may provide any missed data
-            tv_logical.Nodes.Clear();
+            ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, DisplayLanguage);
 
             // Since HPKs interact with each other, build logical tree after loading is completely done
             foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
@@ -232,6 +271,11 @@ namespace IfrViewer
             Cursor.Current = previousCursor;
         }
  
+        /// <summary>
+        /// Adds a subtree according to the given HPK tree
+        /// </summary>
+        /// <param name="elem">Root node of HPK tree</param>
+        /// <param name="root">Root node of target tree</param>
         private void ShowAtRawTree(HPKElement elem, TreeNode root)
         {
             // add all child elements to the tree..
@@ -244,7 +288,12 @@ namespace IfrViewer
                 root.Expand();
             }
         }
- 
+
+        /// <summary>
+        /// Adds a subtree according to the given parsed HPK tree
+        /// </summary>
+        /// <param name="node">Root node of parsed HPK tree</param>
+        /// <param name="root">Root node of target tree</param>
         private void ShowAtLogicalTree(ParsedHpkContainer.ParsedHpkNode node, TreeNode root)
         {
             // add all child elements to the tree..
@@ -258,6 +307,10 @@ namespace IfrViewer
             }
         }
 
+        /// <summary>
+        /// Adds a subtree according to the HPK element's data
+        /// </summary>
+        /// <param name="elem">To be displayed HPK element</param>
         private void ShowAtDetails(HPKElement elem)
         {
             Cursor previousCursor = Cursor.Current;
@@ -328,6 +381,10 @@ namespace IfrViewer
             Cursor.Current = previousCursor;
         }
 
+        /// <summary>
+        /// Handler for CTRL+C copy shortcut on tree view nodes
+        /// Copies the tree node's text to clipboard
+        /// </summary>
         private void tv_KeyDown(object sender, KeyEventArgs e)
         {
             if (sender is TreeView)

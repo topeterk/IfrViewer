@@ -59,6 +59,11 @@ namespace IfrViewer
     public class ParsedHpkContainer
     {
         /// <summary>
+        /// Language which is used for parsing
+        /// </summary>
+        private readonly string Language;
+
+        /// <summary>
         /// Holds the StringID - String pairs for a language
         /// </summary>
         public struct StringDataBase
@@ -97,8 +102,10 @@ namespace IfrViewer
         /// Parses a set of packages
         /// </summary>
         /// <param name="Packages">List of packages that will be parsed</param>
-        public ParsedHpkContainer(List<HiiPackageBase> Packages)
+        /// <param name="Language">Language which is used for parsing</param>
+        public ParsedHpkContainer(List<HiiPackageBase> Packages, string Language)
         {
+            this.Language = Language;
             StringDB = new List<StringDataBase>();
             HpkPackages = new List<ParsedHpkNode>();
 
@@ -962,22 +969,24 @@ namespace IfrViewer
         /// <param name="StringID">ID of the requested string</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
         /// <param name="bZeroIsEmpty">When true: In case StringID equals 0 then return "" instead of rising an error</param>
-        /// <param name="Language">Language of the string to be returned</param>
         /// <returns>String from database</returns>
-        private string GetStringOfPackages(UInt16 StringID, int UniqueID, bool bZeroIsEmpty = true, string Language = "en-US")
+        private string GetStringOfPackages(UInt16 StringID, int UniqueID, bool bZeroIsEmpty = true)
         {
             if (StringID == 0 && bZeroIsEmpty)
                 return "";
 
-            foreach (StringDataBase db in StringDB)
+            foreach (string lang in new string[]{Language, "en-US"}) // try current first and english as fallback
             {
-                if (db.Language != Language) continue;
-
-                foreach (KeyValuePair<UInt16, string> entry in db.Strings)
+                foreach (StringDataBase db in StringDB)
                 {
-                    if (entry.Key == StringID)
+                    if (db.Language != lang) continue;
+
+                    foreach (KeyValuePair<UInt16, string> entry in db.Strings)
                     {
-                        return entry.Value;
+                        if (entry.Key == StringID)
+                        {
+                            return entry.Value;
+                        }
                     }
                 }
             }
