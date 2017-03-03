@@ -50,7 +50,7 @@ namespace IfrViewer
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tv_tree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -63,6 +63,14 @@ namespace IfrViewer
             this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Origin = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Message = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.parseLogicalViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ts_parse_lang = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -75,6 +83,7 @@ namespace IfrViewer
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.log)).BeginInit();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tv_tree
@@ -83,14 +92,14 @@ namespace IfrViewer
             this.tv_tree.FullRowSelect = true;
             this.tv_tree.Location = new System.Drawing.Point(0, 0);
             this.tv_tree.Name = "tv_tree";
-            this.tv_tree.Size = new System.Drawing.Size(743, 250);
+            this.tv_tree.Size = new System.Drawing.Size(743, 240);
             this.tv_tree.TabIndex = 0;
             this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
             this.tv_tree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Location = new System.Drawing.Point(12, 12);
+            this.splitContainer1.Location = new System.Drawing.Point(12, 27);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -101,8 +110,8 @@ namespace IfrViewer
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-            this.splitContainer1.Size = new System.Drawing.Size(760, 464);
-            this.splitContainer1.SplitterDistance = 282;
+            this.splitContainer1.Size = new System.Drawing.Size(760, 449);
+            this.splitContainer1.SplitterDistance = 272;
             this.splitContainer1.SplitterIncrement = 14;
             this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 2;
@@ -115,7 +124,7 @@ namespace IfrViewer
             this.tabControl1.Location = new System.Drawing.Point(6, 3);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(751, 276);
+            this.tabControl1.Size = new System.Drawing.Size(751, 266);
             this.tabControl1.TabIndex = 1;
             this.tabControl1.SizeChanged += new System.EventHandler(this.tabControl1_SizeChanged);
             // 
@@ -125,7 +134,7 @@ namespace IfrViewer
             this.tabrawtree.Location = new System.Drawing.Point(4, 22);
             this.tabrawtree.Name = "tabrawtree";
             this.tabrawtree.Padding = new System.Windows.Forms.Padding(3);
-            this.tabrawtree.Size = new System.Drawing.Size(743, 250);
+            this.tabrawtree.Size = new System.Drawing.Size(743, 240);
             this.tabrawtree.TabIndex = 0;
             this.tabrawtree.Text = "Raw Tree";
             this.tabrawtree.UseVisualStyleBackColor = true;
@@ -136,7 +145,7 @@ namespace IfrViewer
             this.tablogicaltree.Location = new System.Drawing.Point(4, 22);
             this.tablogicaltree.Name = "tablogicaltree";
             this.tablogicaltree.Padding = new System.Windows.Forms.Padding(3);
-            this.tablogicaltree.Size = new System.Drawing.Size(743, 250);
+            this.tablogicaltree.Size = new System.Drawing.Size(743, 240);
             this.tablogicaltree.TabIndex = 1;
             this.tablogicaltree.Text = "Logical Tree";
             this.tablogicaltree.UseVisualStyleBackColor = true;
@@ -147,7 +156,7 @@ namespace IfrViewer
             this.tv_logical.FullRowSelect = true;
             this.tv_logical.Location = new System.Drawing.Point(0, 0);
             this.tv_logical.Name = "tv_logical";
-            this.tv_logical.Size = new System.Drawing.Size(743, 250);
+            this.tv_logical.Size = new System.Drawing.Size(743, 240);
             this.tv_logical.TabIndex = 1;
             this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
             this.tv_logical.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
@@ -195,14 +204,14 @@ namespace IfrViewer
             this.Type,
             this.Origin,
             this.Message});
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.log.DefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.log.DefaultCellStyle = dataGridViewCellStyle6;
             this.log.EnableHeadersVisualStyles = false;
             this.log.Location = new System.Drawing.Point(3, 3);
             this.log.Name = "log";
@@ -236,6 +245,66 @@ namespace IfrViewer
             this.Message.ReadOnly = true;
             this.Message.Width = 200;
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.ts_parse_lang,
+            this.parseLogicalViewToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.helpToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(784, 27);
+            this.menuStrip1.TabIndex = 3;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 23);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // parseLogicalViewToolStripMenuItem
+            // 
+            this.parseLogicalViewToolStripMenuItem.Name = "parseLogicalViewToolStripMenuItem";
+            this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(119, 23);
+            this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree..";
+            this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
+            // 
+            // ts_parse_lang
+            // 
+            this.ts_parse_lang.Name = "ts_parse_lang";
+            this.ts_parse_lang.Size = new System.Drawing.Size(100, 23);
+            this.ts_parse_lang.Text = "en-US";
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 23);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 23);
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(52, 23);
+            this.helpToolStripMenuItem.Text = "About";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AllowDrop = true;
@@ -243,6 +312,8 @@ namespace IfrViewer
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(784, 488);
             this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.menuStrip1);
+            this.MainMenuStrip = this.menuStrip1;
             this.MinimumSize = new System.Drawing.Size(800, 400);
             this.Name = "MainForm";
             this.Text = "IfrViewer";
@@ -262,7 +333,10 @@ namespace IfrViewer
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.log)).EndInit();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -280,6 +354,14 @@ namespace IfrViewer
         private System.Windows.Forms.TabPage tabrawtree;
         private System.Windows.Forms.TabPage tablogicaltree;
         private System.Windows.Forms.TreeView tv_logical;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem parseLogicalViewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripTextBox ts_parse_lang;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
     }
 }
 

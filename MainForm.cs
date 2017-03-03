@@ -36,8 +36,6 @@ namespace IfrViewer
         private const string EmptyDetails = "No data available";
         private readonly BackgroundWorker DragDropWorker;
 
-        private string DisplayLanguage = "en-US";
-
         public MainForm()
         {
             InitializeComponent();
@@ -76,7 +74,7 @@ namespace IfrViewer
                     }
                     else if (arg.StartsWith("-L=")) // Set display language
                     {
-                        DisplayLanguage = arg.Substring(3);
+                        ts_parse_lang.Text = arg.Substring(3);
                     }
                     else CreateLogEntry(LogSeverity.WARNING, "Main", "Argument unkown \"" + arg + "\"");
                 }
@@ -84,8 +82,11 @@ namespace IfrViewer
             }
             LoadFiles(Files.ToArray()); // Load last package
 
-            if (tv_tree.Nodes.Count == 0)
+            if (0 == tv_tree.Nodes.Count)
                 tv_details.Nodes.Add(EmptyDetails);
+
+            TreeNode EmptyTree = tv_logical.Nodes.Add("No parsed packages available");
+            EmptyTree.Tag = EmptyDetails;
         }
 
         /// <summary>
@@ -194,6 +195,22 @@ namespace IfrViewer
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; // Allow dopping files
         }
+
+        private void parseLogicalViewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ParseAllFiles(ts_parse_lang.Text);
+            tabControl1.SelectedIndex = 1;
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // TODO!
+        }
         #endregion
 
         private delegate void LoadFilesFunc(string[] filepaths);
@@ -211,7 +228,7 @@ namespace IfrViewer
             TreeNode PkgNodeRaw = tv_tree.Nodes.Add("Package");
             PkgNodeRaw.Tag = EmptyDetails;
 
-            CreateLogEntryMain(LogSeverity.INFO, "Loading and parsing package...");
+            CreateLogEntryMain(LogSeverity.INFO, "Loading files...");
 
             // Load HPKs into memory and build tree view
             foreach (string filename in filepaths)
@@ -245,13 +262,38 @@ namespace IfrViewer
                 }
             }
 
-            if (0 < PkgNodeRaw.Nodes.Count)
+            CreateLogEntryMain(LogSeverity.SUCCESS, "Loading files completed!");
+
+            Cursor.Current = previousCursor;
+        }
+
+        /// <summary>
+        /// Parses a bunch of files which are referring the same "package" using a given default language
+        /// </summary>
+        /// <param name="Language">Primary language</param>
+        private void ParseAllFiles(string Language)
+        {
+            Cursor previousCursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+
+            CreateLogEntryMain(LogSeverity.INFO, "Parsing packages...");
+
+            tv_logical.Parent.Text = "Logical Tree (\"" + Language + "\")";
+            tv_logical.Nodes.Clear();
+
+            foreach (TreeNode node_files in tv_tree.Nodes)
             {
-                PkgNodeRaw.Expand();
+                List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+
                 TreeNode PkgNodeLogical = tv_logical.Nodes.Add("Package");
                 PkgNodeLogical.Tag = EmptyDetails;
 
-                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, DisplayLanguage);
+                // Collect all HII packages of the files that are building a logical package
+                foreach (TreeNode node_pkg in node_files.Nodes)
+                    foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
+                        Packages.Add(hpk);
+
+                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, Language);
 
                 // Since HPKs interact with each other, build logical tree after loading is completely done
                 foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
@@ -268,13 +310,18 @@ namespace IfrViewer
 
                 PkgNodeLogical.Expand();
             }
-            else tv_tree.Nodes.Remove(PkgNodeRaw); // Cleanup if no file was loaded successfully
 
-            CreateLogEntryMain(LogSeverity.SUCCESS, "Loading and parsing package completed!");
+            if (0 == tv_logical.Nodes.Count)
+            {
+                TreeNode EmptyTree = tv_logical.Nodes.Add("No parsed packages available");
+                EmptyTree.Tag = EmptyDetails;
+            }
+
+            CreateLogEntryMain(LogSeverity.SUCCESS, "Parsing packages completed!");
 
             Cursor.Current = previousCursor;
         }
- 
+
         /// <summary>
         /// Adds a subtree according to the given HPK tree
         /// </summary>
