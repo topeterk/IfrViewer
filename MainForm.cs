@@ -24,6 +24,7 @@ using IFR;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
@@ -172,7 +173,8 @@ namespace IfrViewer
         /// <param name="e">Argument must contain DragEventArgs</param>
         void DragDropWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            string[] DroppedPathList = (string[])((DragEventArgs)e.Argument).Data.GetData(DataFormats.FileDrop);
+            DragEventArgs drag_args = (DragEventArgs)e.Argument;
+            string[] DroppedPathList = (string[])drag_args.Data.GetData(DataFormats.FileDrop);
             List<string> DroppedFiles = new List<string>();
 
             // get all files of the dropped object(s) and add them..
@@ -184,12 +186,20 @@ namespace IfrViewer
                     DroppedFiles.Add(path);
             }
 
-            Invoke(Delegate.CreateDelegate(typeof(LoadFilesFunc), this, "LoadFiles"), (object)DroppedFiles.ToArray());
+            Invoke(Delegate.CreateDelegate(typeof(DragDropFilesFunc), this, "DragDropFiles"), DroppedFiles.ToArray(), drag_args);
         }
 
         private void MainForm_DragDrop(object sender, DragEventArgs e)
         {
             DragDropWorker.RunWorkerAsync(e);
+        }
+
+        private void tv_tree_DragOver(object sender, DragEventArgs e)
+        {
+            if (null != GetTreeNodeAtPoint(sender, e.X, e.Y)) // Is draging onto a tree node?
+                e.Effect = DragDropEffects.Link; // Allow dropping files into existing package
+            else
+                e.Effect = DragDropEffects.Copy; // Allow dropping files into separate package
         }
 
         private void MainForm_DragEnter(object sender, DragEventArgs e)
@@ -214,20 +224,57 @@ namespace IfrViewer
         }
         #endregion
 
-        private delegate void LoadFilesFunc(string[] filepaths);
+        /// <summary>
+        /// Retrieves the TreeNode object of a TreeView at a given position
+        /// </summary>
+        /// <param name="sender">TreeView object to search</param>
+        /// <param name="x">Position X</param>
+        /// <param name="x">Position Y</param>
+        private TreeNode GetTreeNodeAtPoint(object sender, int x, int y)
+        {
+            if (!(sender is TreeView))
+                return null;
+
+            TreeView tv_sender = (TreeView)sender;
+            Point pt = tv_sender.PointToClient(new Point(x, y));
+            return tv_sender.GetNodeAt(pt);
+        }
+
+        private delegate void DragDropFilesFunc(string[] filepaths, DragEventArgs e);
+        /// <summary>
+        /// Loads a bunch of files via drag and drop
+        /// </summary>
+        /// <param name="filepaths">List of files to load</param>
+        /// <param name="e">Drag and drop event arguments</param>
+        private void DragDropFiles(string[] filepaths, DragEventArgs e)
+        {
+            TreeNode RootNode = null;
+            if (DragDropEffects.Link == e.Effect) // object needs to be linked with an existing node?
+            {
+                RootNode = GetTreeNodeAtPoint(tv_tree, e.X, e.Y);
+                while (null != RootNode.Parent) RootNode = RootNode.Parent;
+            }
+            LoadFiles(filepaths, RootNode);
+        }
+
         /// <summary>
         /// Loads a bunch of files which are referring the same "package"
         /// </summary>
-        /// <param name="filepaths"></param>
-        private void LoadFiles(string[] filepaths)
+        /// <param name="filepaths">List of files to load</param>
+        /// <param name="ParentNode">Optional node the loaded packages are added to</param>
+        private void LoadFiles(string[] filepaths, TreeNode ParentNode = null)
         {
             Cursor previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
 
             List<HiiPackageBase> Packages = new List<HiiPackageBase>();
 
-            TreeNode PkgNodeRaw = tv_tree.Nodes.Add("Package");
-            PkgNodeRaw.Tag = EmptyDetails;
+            TreeNode PkgNodeRaw = ParentNode;
+            if (null == PkgNodeRaw) // use given parent or create it
+            {
+                PkgNodeRaw = tv_tree.Nodes.Add("Package");
+                PkgNodeRaw.Tag = EmptyDetails;
+            }
 
             CreateLogEntryMain(LogSeverity.INFO, "Loading files...");
 

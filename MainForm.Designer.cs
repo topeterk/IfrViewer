@@ -88,6 +88,7 @@ namespace IfrViewer
             // 
             // tv_tree
             // 
+            this.tv_tree.AllowDrop = true;
             this.tv_tree.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tv_tree.FullRowSelect = true;
             this.tv_tree.Location = new System.Drawing.Point(0, 0);
@@ -95,6 +96,9 @@ namespace IfrViewer
             this.tv_tree.Size = new System.Drawing.Size(743, 240);
             this.tv_tree.TabIndex = 0;
             this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
+            this.tv_tree.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
+            this.tv_tree.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
+            this.tv_tree.DragOver += new System.Windows.Forms.DragEventHandler(this.tv_tree_DragOver);
             this.tv_tree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
             // 
             // splitContainer1
