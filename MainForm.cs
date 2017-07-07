@@ -119,9 +119,9 @@ namespace IfrViewer
 
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
         {
-            tabControl1_SizeChanged(null, e);
             tabControl1.Width = splitContainer1.Panel1.Width - 9;
             tabControl1.Height = splitContainer1.Panel1.Height - 6;
+            tabControl1_SizeChanged(sender, null);
             splitContainer2.Width = splitContainer1.Panel2.Width - 6;
             splitContainer2.Height = splitContainer1.Panel2.Height - 6;
             splitContainer2_SplitterMoved(sender, null);
@@ -137,10 +137,11 @@ namespace IfrViewer
 
         private void tabControl1_SizeChanged(object sender, EventArgs e)
         {
-            tv_tree.Width = tv_tree.Parent.Width;
-            tv_tree.Height = tv_tree.Parent.Height;
-            tv_logical.Width = tv_tree.Parent.Width;
-            tv_logical.Height = tv_tree.Parent.Height;
+            Control ActiveParent = tabControl1.SelectedTab;
+            tv_tree.Width = ActiveParent.Width;
+            tv_tree.Height = ActiveParent.Height;
+            tv_logical.Width = ActiveParent.Width;
+            tv_logical.Height = ActiveParent.Height;
         }
 
         /// <summary>
