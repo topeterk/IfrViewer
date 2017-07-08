@@ -61,6 +61,7 @@ namespace IfrViewer
 
             // Load project from command line argument (when available)
             List<string> Files = new List<string>();
+            Boolean DoTranslate = false;
             foreach (string arg in Environment.GetCommandLineArgs().SubArray(1, Environment.GetCommandLineArgs().Length-1))
             {
                 if (arg.StartsWith("-")) // is option?
@@ -77,6 +78,10 @@ namespace IfrViewer
                     {
                         ts_parse_lang.Text = arg.Substring(3);
                     }
+                    else if (arg.Equals("-T")) // Do Translation (Parsing logical tree)
+                    {
+                        DoTranslate = true;
+                    }
                     else CreateLogEntry(LogSeverity.WARNING, "Main", "Argument unkown \"" + arg + "\"");
                 }
                 else Files.Add(arg); // argument is a file
@@ -88,6 +93,9 @@ namespace IfrViewer
 
             TreeNode EmptyTree = tv_logical.Nodes.Add("No parsed packages available");
             EmptyTree.Tag = EmptyDetails;
+
+            if (DoTranslate) // Parse logical tree
+                parseLogicalViewToolStripMenuItem_Click(null, null);
         }
 
         /// <summary>
@@ -222,7 +230,6 @@ namespace IfrViewer
         {
             // TODO!
         }
-        #endregion
 
         /// <summary>
         /// Retrieves the TreeNode object of a TreeView at a given position
@@ -256,6 +263,7 @@ namespace IfrViewer
             }
             LoadFiles(filepaths, RootNode);
         }
+        #endregion
 
         /// <summary>
         /// Loads a bunch of files which are referring the same "package"
