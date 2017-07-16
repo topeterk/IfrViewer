@@ -68,6 +68,7 @@ namespace IfrViewer
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.parseLogicalViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ts_parse_lang = new System.Windows.Forms.ToolStripTextBox();
+            this.createHTMLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -256,6 +257,7 @@ namespace IfrViewer
             this.toolStripSeparator2,
             this.ts_parse_lang,
             this.parseLogicalViewToolStripMenuItem,
+            this.createHTMLToolStripMenuItem,
             this.toolStripSeparator1,
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -285,6 +287,13 @@ namespace IfrViewer
             this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(119, 23);
             this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree..";
             this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
+            // 
+            // createHTMLToolStripMenuItem
+            // 
+            this.createHTMLToolStripMenuItem.Name = "createHTMLToolStripMenuItem";
+            this.createHTMLToolStripMenuItem.Size = new System.Drawing.Size(95, 23);
+            this.createHTMLToolStripMenuItem.Text = "Create HTML..";
+            this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
             // 
             // ts_parse_lang
             // 
@@ -366,6 +375,7 @@ namespace IfrViewer
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createHTMLToolStripMenuItem;
     }
 }
 

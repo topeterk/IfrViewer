@@ -62,6 +62,7 @@ namespace IfrViewer
             // Load project from command line argument (when available)
             List<string> Files = new List<string>();
             Boolean DoTranslate = false;
+            Boolean DoHTML = false;
             foreach (string arg in Environment.GetCommandLineArgs().SubArray(1, Environment.GetCommandLineArgs().Length-1))
             {
                 if (arg.StartsWith("-")) // is option?
@@ -82,6 +83,10 @@ namespace IfrViewer
                     {
                         DoTranslate = true;
                     }
+                    else if (arg.Equals("-H")) // Do HTML output
+                    {
+                        DoHTML = true;
+                    }
                     else CreateLogEntry(LogSeverity.WARNING, "Main", "Argument unkown \"" + arg + "\"");
                 }
                 else Files.Add(arg); // argument is a file
@@ -96,6 +101,9 @@ namespace IfrViewer
 
             if (DoTranslate) // Parse logical tree
                 parseLogicalViewToolStripMenuItem_Click(null, null);
+
+            if (DoHTML) // Create HTML output
+                createHTMLToolStripMenuItem_Click(null, null);
         }
 
         /// <summary>
@@ -219,6 +227,11 @@ namespace IfrViewer
         {
             ParseAllFiles(ts_parse_lang.Text);
             tabControl1.SelectedIndex = 1;
+        }
+
+        private void createHTMLToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CreateHTMLFiles(ts_parse_lang.Text);
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -377,6 +390,38 @@ namespace IfrViewer
 
             Cursor.Current = previousCursor;
         }
+        
+        /// <summary>
+        /// Creates HTML files foreach logical parsed formset using a given default language
+        /// </summary>
+        /// <param name="Language">Primary language</param>
+        private void CreateHTMLFiles(string Language)
+        {
+            Cursor previousCursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+
+            CreateLogEntryMain(LogSeverity.INFO, "Creating HTML output...");
+
+            foreach (TreeNode node_files in tv_tree.Nodes)
+            {
+                List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+
+                // Collect all HII packages of the files that are building a logical package
+                foreach (TreeNode node_pkg in node_files.Nodes)
+                    foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
+                        Packages.Add(hpk);
+
+                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, Language);
+            }
+
+            // TODO!
+            //if (0 == tv_logical.Nodes[0].Nodes.Count)
+            //    CreateLogEntryMain(LogSeverity.ERROR, "Creating HTML output failed!\nNo parsed package available");
+            //else
+            CreateLogEntryMain(LogSeverity.SUCCESS, "Creating HTML output completed!");
+
+            Cursor.Current = previousCursor;
+        }
 
         /// <summary>
         /// Adds a subtree according to the given HPK tree
@@ -519,6 +564,7 @@ namespace IfrViewer
                 }
             }
         }
+
     }
 
     static class IfrViewer

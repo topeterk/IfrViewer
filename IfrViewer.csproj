@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="HiiPackage.cs" />
     <Compile Include="HpkFile.cs" />
+    <Compile Include="HTMLBuilder.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
