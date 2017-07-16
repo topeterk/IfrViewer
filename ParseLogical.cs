@@ -54,7 +54,7 @@ namespace IfrViewer
     }
 
     /// <summary>
-    /// Parses HPK packages and gives access to a parsed HPK tree and a string database
+    /// Parses HPK packages and gives access to a parsed HPK tree
     /// </summary>
     public class ParsedHpkContainer
     {
@@ -149,9 +149,6 @@ namespace IfrViewer
                             HpkPackages.Add(root);
                             foreach (HPKElement child in root.Origin.Childs)
                                 ParsePackageIfr(child, root);
-
-                            // clean up..
-                            StringDB = new List<StringDataBase>();
                             break;
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: break; // Already done
                         default:
@@ -230,6 +227,7 @@ namespace IfrViewer
                     {
                         string FormIdString = "FormId = ";
                         string FormSetIdString = "FormSetId = ";
+                        string QuestionId = "QuestionId = ";
                         string InfoString = "";
                         string RefName = null;
                         switch (hpkelem.Header.GetType().Name)
@@ -246,7 +244,11 @@ namespace IfrViewer
                                 {
                                     EFI_IFR_REF2 ifr_hdr = (EFI_IFR_REF2)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
-                                    InfoString = FormIdString;
+                                    if (0 == ifr_hdr.QuestionId)
+                                        QuestionId = "";
+                                    else
+                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
+                                    InfoString = FormIdString + ", " + QuestionId;
                                     RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
@@ -254,6 +256,11 @@ namespace IfrViewer
                                 {
                                     EFI_IFR_REF3 ifr_hdr = (EFI_IFR_REF3)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
+                                    if (0 == ifr_hdr.QuestionId)
+                                        QuestionId = "";
+                                    else
+                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
+                                    InfoString = FormIdString + ", " + QuestionId;
                                     FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
                                     InfoString = FormIdString + ", " + FormSetIdString;
                                     RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
@@ -263,6 +270,11 @@ namespace IfrViewer
                                 {
                                     EFI_IFR_REF4 ifr_hdr = (EFI_IFR_REF4)hpkelem.Header;
                                     FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
+                                    if (0 == ifr_hdr.QuestionId)
+                                        QuestionId = "";
+                                    else
+                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
+                                    InfoString = FormIdString + ", " + QuestionId;
                                     FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
                                     InfoString = FormIdString + ", " + FormSetIdString + ", DevicePath = \"" + GetStringOfPackages(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
                                     RefName = GetStringOfPackages(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
@@ -273,7 +285,6 @@ namespace IfrViewer
                                     EFI_IFR_REF5 ifr_hdr = (EFI_IFR_REF5)hpkelem.Header;
                                     FormIdString += "Nested";
                                     InfoString = FormIdString;
-                                    FormSetIdString = null;
                                 }
                                 break;
                             default:
