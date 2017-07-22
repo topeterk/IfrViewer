@@ -285,14 +285,14 @@ namespace IfrViewer
             // 
             this.parseLogicalViewToolStripMenuItem.Name = "parseLogicalViewToolStripMenuItem";
             this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(119, 23);
-            this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree..";
+            this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree";
             this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
             // 
             // createHTMLToolStripMenuItem
             // 
             this.createHTMLToolStripMenuItem.Name = "createHTMLToolStripMenuItem";
             this.createHTMLToolStripMenuItem.Size = new System.Drawing.Size(95, 23);
-            this.createHTMLToolStripMenuItem.Text = "Create HTML..";
+            this.createHTMLToolStripMenuItem.Text = "Create HTML";
             this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
             // 
             // ts_parse_lang
