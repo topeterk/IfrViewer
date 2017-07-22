@@ -60,6 +60,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ParseLogical.cs" />
+    <Compile Include="HpkParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IfrStructures.cs" />
     <EmbeddedResource Include="MainForm.resx">

@@ -231,7 +231,7 @@ namespace IFR
     /// <summary>
     /// Hii Ifr Opcode super base class
     /// </summary>
-    class HiiIfrOpCode : HPKElement
+    public class HiiIfrOpCode : HPKElement
     {
         /// <summary>
         /// Type of IFR opcode

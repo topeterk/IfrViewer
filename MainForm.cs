@@ -362,10 +362,11 @@ namespace IfrViewer
                     foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
                         Packages.Add(hpk);
 
-                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, Language);
+                ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
+                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, HpkStrings);
 
                 // Since HPKs interact with each other, build logical tree after loading is completely done
-                foreach (ParsedHpkContainer.ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
+                foreach (ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
                 {
                     CreateLogEntryMain(LogSeverity.INFO, "Parsing \"" + pkg.Name + "\" ...");
 
@@ -411,7 +412,8 @@ namespace IfrViewer
                     foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
                         Packages.Add(hpk);
 
-                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, Language);
+                ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
+                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings);
             }
 
             // TODO!
@@ -446,12 +448,12 @@ namespace IfrViewer
         /// </summary>
         /// <param name="node">Root node of parsed HPK tree</param>
         /// <param name="root">Root node of target tree</param>
-        private void ShowAtLogicalTree(ParsedHpkContainer.ParsedHpkNode node, TreeNode root)
+        private void ShowAtLogicalTree(ParsedHpkNode node, TreeNode root)
         {
             // add all child elements to the tree..
             if (node.Childs.Count > 0)
             {
-                foreach (ParsedHpkContainer.ParsedHpkNode child in node.Childs)
+                foreach (ParsedHpkNode child in node.Childs)
                 {
                     ShowAtLogicalTree(child, AddTreeNode(root, child.Name, child.Origin));
                 }
