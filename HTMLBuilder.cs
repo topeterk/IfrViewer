@@ -137,6 +137,11 @@ namespace IfrViewer
     public class HtmlBuilder
     {
         /// <summary>
+        /// Controls printing details
+        /// </summary>
+        private readonly bool bShowDetails;
+
+        /// <summary>
         /// Parsed HPK strings
         /// </summary>
         private readonly ParsedHpkStringContainer HpkStrings;
@@ -146,9 +151,11 @@ namespace IfrViewer
         /// </summary>
         /// <param name="Packages">List of packages that will be parsed</param>
         /// <param name="HpkStrings">Parsed HPK strings used for translations</param>
-        public HtmlBuilder(List<HiiPackageBase> Packages, ParsedHpkStringContainer HpkStrings)
+        /// <param name="bShowDetails">Printing details into HTML</param>
+        public HtmlBuilder(List<HiiPackageBase> Packages, ParsedHpkStringContainer HpkStrings, bool bShowDetails)
         {
             this.HpkStrings = HpkStrings;
+            this.bShowDetails = bShowDetails;
 
             foreach (HiiPackageBase pkg in Packages)
             {
@@ -196,7 +203,7 @@ namespace IfrViewer
 
             switch (elem.OpCode)
             {
-#region Forms
+                #region Forms
                 case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP:
                     {
                         EFI_IFR_FORM_SET hdr = (EFI_IFR_FORM_SET)elem.Header;
@@ -271,7 +278,7 @@ namespace IfrViewer
                                 default: break;
                             }
                         }
-                        body.AddDetailsNode(doc, prefix).AddTextNode(doc, DetailsString);
+                        if (bShowDetails) body.AddDetailsNode(doc, prefix).AddTextNode(doc, DetailsString);
 
                         // Process forms..
                         foreach (HiiIfrOpCode child in elem.Childs)
@@ -377,8 +384,9 @@ namespace IfrViewer
                         }
                     }
                     break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: root.AddDetailsNode(doc, "GuidOp").AddTextNode(doc, ((EFI_IFR_GUID)hpkelem.Header).Guid.Guid.ToString()); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: if (bShowDetails) root.AddDetailsNode(doc, "GuidOp").AddTextNode(doc, ((EFI_IFR_GUID)hpkelem.Header).Guid.Guid.ToString()); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
+                    if (bShowDetails)
                     {
                         EFI_IFR_FORM_MAP hdr = (EFI_IFR_FORM_MAP)elem.Header;
                         string prefix = "FormMap";
@@ -391,11 +399,11 @@ namespace IfrViewer
                         root.AddDetailsNode(doc, prefix).AddTextNode(doc, DetailsString);
                     }
                     break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_MODAL_TAG_OP: root.AddDetailsNode(doc, "Modal"); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: root.AddDetailsNode(doc, "RefreshId").AddTextNode(doc, ((EFI_IFR_REFRESH_ID)hpkelem.Header).RefreshEventGroupId.Guid.ToString()); break;
-#endregion
+                case EFI_IFR_OPCODE_e.EFI_IFR_MODAL_TAG_OP: if (bShowDetails) root.AddDetailsNode(doc, "Modal"); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_ID_OP: if (bShowDetails) root.AddDetailsNode(doc, "RefreshId").AddTextNode(doc, ((EFI_IFR_REFRESH_ID)hpkelem.Header).RefreshEventGroupId.Guid.ToString()); break;
+                #endregion
 
-#region Varstores
+                #region Varstores
                 case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULTSTORE_OP:
                     {
                         EFI_IFR_DEFAULTSTORE ifr_hdr = (EFI_IFR_DEFAULTSTORE)hpkelem.Header;
@@ -431,9 +439,9 @@ namespace IfrViewer
                         root.AddTextNode(doc, "VarStore \"" + HpkStrings.GetString(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"");
                     }
                     break;
-#endregion
+                #endregion
 
-#region Logic
+                #region Logic
                 case EFI_IFR_OPCODE_e.EFI_IFR_SUPPRESS_IF_OP:
                 case EFI_IFR_OPCODE_e.EFI_IFR_GRAY_OUT_IF_OP:
                 case EFI_IFR_OPCODE_e.EFI_IFR_DISABLE_IF_OP:
@@ -441,34 +449,36 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP:
                 case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP:
                     {
-                        string LogicName = "If";
-                        switch (elem.OpCode)
+                        if (bShowDetails)
                         {
-                            case EFI_IFR_OPCODE_e.EFI_IFR_SUPPRESS_IF_OP: LogicName = "SupressIf"; break;
-                            case EFI_IFR_OPCODE_e.EFI_IFR_GRAY_OUT_IF_OP: LogicName = "GrayOutIf"; break;
-                            case EFI_IFR_OPCODE_e.EFI_IFR_DISABLE_IF_OP: LogicName = "DisableIf"; break;
-                            case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: LogicName = "WarningIf"; break;
-                            case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP: LogicName = "NoSubmitIf"; break;
-                            case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: LogicName = "InconsistendIf"; break;
-                            default: break;
-                        }
+                            string LogicName = "If";
+                            switch (elem.OpCode)
+                            {
+                                case EFI_IFR_OPCODE_e.EFI_IFR_SUPPRESS_IF_OP: LogicName = "SupressIf"; break;
+                                case EFI_IFR_OPCODE_e.EFI_IFR_GRAY_OUT_IF_OP: LogicName = "GrayOutIf"; break;
+                                case EFI_IFR_OPCODE_e.EFI_IFR_DISABLE_IF_OP: LogicName = "DisableIf"; break;
+                                case EFI_IFR_OPCODE_e.EFI_IFR_WARNING_IF_OP: LogicName = "WarningIf"; break;
+                                case EFI_IFR_OPCODE_e.EFI_IFR_NO_SUBMIT_IF_OP: LogicName = "NoSubmitIf"; break;
+                                case EFI_IFR_OPCODE_e.EFI_IFR_INCONSISTENT_IF_OP: LogicName = "InconsistendIf"; break;
+                                default: break;
+                            }
 
-                        if (elem.Childs.Count < 1)
-                            CreateLogEntryBuilder(LogSeverity.WARNING, "Too few logic elements [" + hpkelem.UniqueID + "]!");
-                        else
-                        {
-                            XmlNode td = root.AddElementNode(doc, "table").SetAttribute(doc, "class", "full " + LogicName).AddElementNode(doc, "tr").AddElementNode(doc, "td");
-                            XmlNode cond = td.AddConditionalNode(doc, LogicName, HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
-                            for (int i = 1; i < elem.Childs.Count; i++) // skip first element, because it contains the (nested) logic
-                                ParsePackageIfr(elem.Childs[i], doc, cond, CurrFormId, CurrentQuestion);
+                            if (elem.Childs.Count < 1)
+                                CreateLogEntryBuilder(LogSeverity.WARNING, "Too few logic elements [" + hpkelem.UniqueID + "]!");
+                            else
+                            {
+                                XmlNode td = root.AddElementNode(doc, "table").SetAttribute(doc, "class", "full " + LogicName).AddElementNode(doc, "tr").AddElementNode(doc, "td");
+                                XmlNode cond = td.AddConditionalNode(doc, LogicName, HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
+                                for (int i = 1; i < elem.Childs.Count; i++) // skip first element, because it contains the (nested) logic
+                                    ParsePackageIfr(elem.Childs[i], doc, cond, CurrFormId, CurrentQuestion);
+                            }
                         }
-
                         bProcessChilds = false;
                     }
                     break;
-#endregion
+                #endregion
 
-#region Visuals
+                #region Visuals
                 case EFI_IFR_OPCODE_e.EFI_IFR_SUBTITLE_OP:
                     {
                         EFI_IFR_SUBTITLE ifr_hdr = (EFI_IFR_SUBTITLE)hpkelem.Header;
@@ -485,51 +495,54 @@ namespace IfrViewer
                         tr.AddElementNode(doc, "td").SetAttribute(doc, "class", "third").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Help, hpkelem.UniqueID));
                     }
                     break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: root.AddDetailsNode(doc, "ImageOp").AddTextNode(doc, ((EFI_IFR_IMAGE)hpkelem.Header).Id.ToString()); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: if (bShowDetails) root.AddDetailsNode(doc, "ImageOp").AddTextNode(doc, ((EFI_IFR_IMAGE)hpkelem.Header).Id.ToString()); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OP:
                     {
                         EFI_IFR_ONE_OF ifr_hdr = (EFI_IFR_ONE_OF)hpkelem.Header;
                         XmlNode select = ProduceSelectField(root, doc, CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        string InfoStr = "Flags = 0x" + ifr_hdr.Flags.ToString("X2") + Environment.NewLine;
-                        switch (ifr_hdr.Flags_DataSize)
+                        if (bShowDetails)
                         {
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            default:
-                                CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
-                                break;
+                            string InfoStr = "Flags = 0x" + ifr_hdr.Flags.ToString("X2") + Environment.NewLine;
+                            switch (ifr_hdr.Flags_DataSize)
+                            {
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                default:
+                                    CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
+                                    break;
+                            }
+                            select.AddDetailsNode(doc, "OneOf-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
                         }
-                        select.AddDetailsNode(doc, "OneOf-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
                         CurrentQuestion = select; // We just built a new question, so remember it
                     }
                     break;
@@ -539,7 +552,7 @@ namespace IfrViewer
                         XmlNode input = ProduceInputField(root, doc, "checkbox", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
                         input.SetAttribute(doc, "value", "1"); // dummy
                         if (ifr_hdr.Flags.HasFlag(EFI_IFR_CHECKBOX_e.EFI_IFR_CHECKBOX_DEFAULT)) input.SetAttribute(doc, "checked", "true");
-                        input.AddDetailsNode(doc, "Checkbox-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
+                        if (bShowDetails) input.AddDetailsNode(doc, "Checkbox-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + "Flags = " + ifr_hdr.Flags.ToString() + Environment.NewLine);
                     }
                     break;
@@ -547,53 +560,56 @@ namespace IfrViewer
                     {
                         EFI_IFR_NUMERIC ifr_hdr = (EFI_IFR_NUMERIC)hpkelem.Header;
                         XmlNode input = ProduceInputField(root, doc, "number", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        string InfoStr = "Flags = 0x" + ifr_hdr.Flags.ToString("X2") + Environment.NewLine;
-                        switch (ifr_hdr.Flags_DataSize)
+                        if (bShowDetails)
                         {
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
-                                {
-                                    EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
-                                    InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
-                                        + "Max = " + data.MaxValue.ToString() + Environment.NewLine
-                                        + "Step = " + data.Step.ToString() + Environment.NewLine;
-                                }
-                                break;
-                            default:
-                                CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
-                                break;
+                            string InfoStr = "Flags = 0x" + ifr_hdr.Flags.ToString("X2") + Environment.NewLine;
+                            switch (ifr_hdr.Flags_DataSize)
+                            {
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
+                                    {
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
+                                        InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
+                                            + "Max = " + data.MaxValue.ToString() + Environment.NewLine
+                                            + "Step = " + data.Step.ToString() + Environment.NewLine;
+                                    }
+                                    break;
+                                default:
+                                    CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown numeric type [" + hpkelem.UniqueID + "]!");
+                                    break;
+                            }
+                            input.AddDetailsNode(doc, "Numeric-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
                         }
-                        input.AddDetailsNode(doc, "Numeric-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_PASSWORD_OP:
                     {
                         EFI_IFR_PASSWORD ifr_hdr = (EFI_IFR_PASSWORD)hpkelem.Header;
                         XmlNode input = ProduceInputField(root, doc, "password", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        input.AddDetailsNode(doc, "Password-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
+                        if (bShowDetails) input.AddDetailsNode(doc, "Password-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + "Min = " + ifr_hdr.MinSize.ToString() + Environment.NewLine
                             + "Max = " + ifr_hdr.MaxSize.ToString() + Environment.NewLine);
                     }
@@ -629,11 +645,11 @@ namespace IfrViewer
                                 }
                             }
 
-                            CurrentQuestion.ParentNode.AddDetailsNode(doc, "OneOfOption").AddTextNode(doc, DetailsString);
+                            if (bShowDetails) CurrentQuestion.ParentNode.AddDetailsNode(doc, "OneOfOption").AddTextNode(doc, DetailsString);
                         }
                     }
                     break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_LOCKED_OP: root.AddDetailsNode(doc, "Locked"); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_LOCKED_OP: if (bShowDetails) root.AddDetailsNode(doc, "Locked"); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ACTION_OP:
                     {
                         switch (hpkelem.Header.GetType().Name)
@@ -646,7 +662,7 @@ namespace IfrViewer
                                         InfoStr += "Config = \"" + HpkStrings.GetString(ifr_hdr.QuestionConfig, hpkelem.UniqueID) + "\"" + Environment.NewLine;
                                     XmlNode input = ProduceInputField(root, doc, "button", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
                                     input.SetAttribute(doc, "value", "Action");
-                                    input.AddDetailsNode(doc, "ActionButton-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
+                                    if (bShowDetails) input.AddDetailsNode(doc, "ActionButton-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID) + InfoStr);
                                 }
                                 break;
                             case "EFI_IFR_ACTION_1":
@@ -654,7 +670,7 @@ namespace IfrViewer
                                     EFI_IFR_ACTION_1 ifr_hdr = (EFI_IFR_ACTION_1)hpkelem.Header;
                                     XmlNode input = ProduceInputField(root, doc, "button", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
                                     input.SetAttribute(doc, "value", "Action");
-                                    input.AddDetailsNode(doc, "ActionButton-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
+                                    if (bShowDetails) input.AddDetailsNode(doc, "ActionButton-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
                                 }
                                 break;
                             default:
@@ -674,46 +690,46 @@ namespace IfrViewer
                     {
                         EFI_IFR_DATE ifr_hdr = (EFI_IFR_DATE)hpkelem.Header;
                         XmlNode input = ProduceInputField(root, doc, "date", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        input.AddDetailsNode(doc, "Date-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
+                        if (bShowDetails) input.AddDetailsNode(doc, "Date-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_TIME_OP:
                     {
                         EFI_IFR_TIME ifr_hdr = (EFI_IFR_TIME)hpkelem.Header;
                         XmlNode input = ProduceInputField(root, doc, "time", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        input.AddDetailsNode(doc, "Time-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
+                        if (bShowDetails) input.AddDetailsNode(doc, "Time-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_STRING_OP:
                     {
                         EFI_IFR_STRING ifr_hdr = (EFI_IFR_STRING)hpkelem.Header;
                         XmlNode input = ProduceInputField(root, doc, "text", CurrFormId, ifr_hdr.Question, hpkelem.UniqueID);
-                        input.AddDetailsNode(doc, "String-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
+                        if (bShowDetails) input.AddDetailsNode(doc, "String-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + "Min = " + ifr_hdr.MinSize.ToString() + Environment.NewLine
                             + "Max = " + ifr_hdr.MaxSize.ToString() + Environment.NewLine
                             + "Flags = " + ifr_hdr.Flags.ToString() + Environment.NewLine);
                     }
                     break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: root.AddDetailsNode(doc, "RefreshOp").AddTextNode(doc, "Interval = " + ((EFI_IFR_REFRESH)hpkelem.Header).RefreshInterval.ToString()); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP: root.AddDetailsNode(doc, "AnimationOp").AddTextNode(doc, "Id = " + ((EFI_IFR_ANIMATION)hpkelem.Header).Id.ToString()); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_REFRESH_OP: if (bShowDetails) root.AddDetailsNode(doc, "RefreshOp").AddTextNode(doc, "Interval = " + ((EFI_IFR_REFRESH)hpkelem.Header).RefreshInterval.ToString()); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_ANIMATION_OP: if (bShowDetails) root.AddDetailsNode(doc, "AnimationOp").AddTextNode(doc, "Id = " + ((EFI_IFR_ANIMATION)hpkelem.Header).Id.ToString()); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_ORDERED_LIST_OP:
                     {
                         EFI_IFR_ORDERED_LIST ifr_hdr = (EFI_IFR_ORDERED_LIST)hpkelem.Header;
-                        root.AddDetailsNode(doc, "OrderedList-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
+                        if (bShowDetails) root.AddDetailsNode(doc, "OrderedList-Question").AddTextNode(doc, GetIfrQuestionInfoString(ifr_hdr.Question, hpkelem.UniqueID)
                             + "MaxContainers = " + ifr_hdr.MaxContainers.ToString() + Environment.NewLine
                             + "Flags = " + ifr_hdr.Flags.ToString() + Environment.NewLine);
                     }
                     break;
                 //EFI_IFR_READ_OP // Unclear what it does, therefore no implementation by now. If you know it, let me know ;)
                 //EFI_IFR_WRITE_OP, // Unclear what it does, therefore no implementation by now. If you know it, let me know ;)
-#endregion
+                #endregion
 
-#region Values
-                case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: root.AddDetailsNode(doc, "UINT8").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X2")); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: root.AddDetailsNode(doc, "UINT16").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X4")); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: root.AddDetailsNode(doc, "UINT32").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X8")); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: root.AddDetailsNode(doc, "UINT64").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X16")); break;
-                case EFI_IFR_OPCODE_e.EFI_IFR_VALUE_OP: root.AddDetailsNode(doc, "ValueOp"); break;
+                #region Values
+                case EFI_IFR_OPCODE_e.EFI_IFR_UINT8_OP: if (bShowDetails) root.AddDetailsNode(doc, "UINT8").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X2")); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_UINT16_OP: if (bShowDetails) root.AddDetailsNode(doc, "UINT16").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X4")); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_UINT32_OP: if (bShowDetails) root.AddDetailsNode(doc, "UINT32").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X8")); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_UINT64_OP: if (bShowDetails) root.AddDetailsNode(doc, "UINT64").AddTextNode(doc, "0x" + ((EFI_IFR_UINT64)hpkelem.Header).Value.ToString("X16")); break;
+                case EFI_IFR_OPCODE_e.EFI_IFR_VALUE_OP: if (bShowDetails) root.AddDetailsNode(doc, "ValueOp"); break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP:
                     {
                         EFI_IFR_DEFAULT ifr_hdr = (EFI_IFR_DEFAULT)hpkelem.Header;
@@ -736,10 +752,10 @@ namespace IfrViewer
                             }
                         }
 
-                        root.AddDetailsNode(doc, "DefaultOp").AddTextNode(doc, DetailsString);
+                        if (bShowDetails) root.AddDetailsNode(doc, "DefaultOp").AddTextNode(doc, DetailsString);
                     }
                     break;
-#endregion
+                #endregion
 
                 case EFI_IFR_OPCODE_e.EFI_IFR_END_OP: return; // Skip
                 default: break; // simply add all others 1:1 when no specific handler exists

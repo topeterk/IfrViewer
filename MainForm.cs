@@ -231,7 +231,7 @@ namespace IfrViewer
 
         private void createHTMLToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CreateHTMLFiles(ts_parse_lang.Text);
+            CreateHTMLFiles(ts_parse_lang.Text, printDetailsIntoHtmlToolStripMenuItem.Checked);
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -391,12 +391,13 @@ namespace IfrViewer
 
             Cursor.Current = previousCursor;
         }
-        
+
         /// <summary>
-        /// Creates HTML files foreach logical parsed formset using a given default language
+        /// Creates HTML files foreach formset including all their forms
         /// </summary>
         /// <param name="Language">Primary language</param>
-        private void CreateHTMLFiles(string Language)
+        /// <param name="bShowDetails">Printing details into HTML</param>
+        private void CreateHTMLFiles(string Language, bool bShowDetails)
         {
             Cursor previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
@@ -413,7 +414,7 @@ namespace IfrViewer
                         Packages.Add(hpk);
 
                 ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
-                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings);
+                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings, bShowDetails);
             }
 
             // TODO!
@@ -493,7 +494,7 @@ namespace IfrViewer
                 {
                     TreeNode branch = tv_details.Nodes.Add("Header");
                     // handle raw..
-                    if (HeaderRaw != null)
+                    if ((HeaderRaw != null) && (showRawInDetailsWindowToolStripMenuItem.Checked))
                     {
                         TreeNode leaf = branch.Nodes.Add("__RAW");
                         foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
@@ -515,7 +516,7 @@ namespace IfrViewer
                 {
                     TreeNode branch = tv_details.Nodes.Add("Payload");
                     // handle raw..
-                    if (PayloadRaw != null)
+                    if ((PayloadRaw != null) && (showRawInDetailsWindowToolStripMenuItem.Checked))
                     {
                         TreeNode leaf = branch.Nodes.Add("__RAW");
                         foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))

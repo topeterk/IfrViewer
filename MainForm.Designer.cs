@@ -50,7 +50,7 @@ namespace IfrViewer
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tv_tree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -66,12 +66,15 @@ namespace IfrViewer
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.parseLogicalViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showRawInDetailsWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.printDetailsIntoHtmlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ts_parse_lang = new System.Windows.Forms.ToolStripTextBox();
+            this.parseLogicalViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createHTMLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -209,14 +212,14 @@ namespace IfrViewer
             this.Type,
             this.Origin,
             this.Message});
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.log.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.log.DefaultCellStyle = dataGridViewCellStyle3;
             this.log.EnableHeadersVisualStyles = false;
             this.log.Location = new System.Drawing.Point(3, 3);
             this.log.Name = "log";
@@ -254,12 +257,11 @@ namespace IfrViewer
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.toolStripSeparator2,
-            this.ts_parse_lang,
-            this.parseLogicalViewToolStripMenuItem,
-            this.createHTMLToolStripMenuItem,
+            this.optionsToolStripMenuItem,
+            this.helpToolStripMenuItem,
             this.toolStripSeparator1,
-            this.helpToolStripMenuItem});
+            this.parseLogicalViewToolStripMenuItem,
+            this.createHTMLToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(784, 27);
@@ -277,39 +279,64 @@ namespace IfrViewer
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
-            // parseLogicalViewToolStripMenuItem
+            // optionsToolStripMenuItem
             // 
-            this.parseLogicalViewToolStripMenuItem.Name = "parseLogicalViewToolStripMenuItem";
-            this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(119, 23);
-            this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree";
-            this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
+            this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.showRawInDetailsWindowToolStripMenuItem,
+            this.printDetailsIntoHtmlToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.ts_parse_lang});
+            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 23);
+            this.optionsToolStripMenuItem.Text = "Options";
             // 
-            // createHTMLToolStripMenuItem
+            // showRawInDetailsWindowToolStripMenuItem
             // 
-            this.createHTMLToolStripMenuItem.Name = "createHTMLToolStripMenuItem";
-            this.createHTMLToolStripMenuItem.Size = new System.Drawing.Size(95, 23);
-            this.createHTMLToolStripMenuItem.Text = "Create HTML";
-            this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
+            this.showRawInDetailsWindowToolStripMenuItem.Checked = true;
+            this.showRawInDetailsWindowToolStripMenuItem.CheckOnClick = true;
+            this.showRawInDetailsWindowToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showRawInDetailsWindowToolStripMenuItem.Name = "showRawInDetailsWindowToolStripMenuItem";
+            this.showRawInDetailsWindowToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.showRawInDetailsWindowToolStripMenuItem.Text = "Raw data in details window";
+            this.showRawInDetailsWindowToolStripMenuItem.ToolTipText = "When enabled shows raw binary data in details window.";
+            // 
+            // printDetailsIntoHtmlToolStripMenuItem
+            // 
+            this.printDetailsIntoHtmlToolStripMenuItem.CheckOnClick = true;
+            this.printDetailsIntoHtmlToolStripMenuItem.Name = "printDetailsIntoHtmlToolStripMenuItem";
+            this.printDetailsIntoHtmlToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.printDetailsIntoHtmlToolStripMenuItem.Text = "Print details into HTML";
+            this.printDetailsIntoHtmlToolStripMenuItem.ToolTipText = "Shows IFR details within the generated HTML document.";
             // 
             // ts_parse_lang
             // 
             this.ts_parse_lang.Name = "ts_parse_lang";
             this.ts_parse_lang.Size = new System.Drawing.Size(100, 23);
             this.ts_parse_lang.Text = "en-US";
+            this.ts_parse_lang.ToolTipText = "Preferred language code.";
+            // 
+            // parseLogicalViewToolStripMenuItem
+            // 
+            this.parseLogicalViewToolStripMenuItem.Name = "parseLogicalViewToolStripMenuItem";
+            this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(113, 23);
+            this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree";
+            this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
+            // 
+            // createHTMLToolStripMenuItem
+            // 
+            this.createHTMLToolStripMenuItem.Name = "createHTMLToolStripMenuItem";
+            this.createHTMLToolStripMenuItem.Size = new System.Drawing.Size(89, 23);
+            this.createHTMLToolStripMenuItem.Text = "Create HTML";
+            this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 23);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 23);
             // 
             // helpToolStripMenuItem
             // 
@@ -317,6 +344,11 @@ namespace IfrViewer
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(52, 23);
             this.helpToolStripMenuItem.Text = "About";
             this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(214, 6);
             // 
             // MainForm
             // 
@@ -371,11 +403,14 @@ namespace IfrViewer
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem parseLogicalViewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripTextBox ts_parse_lang;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createHTMLToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showRawInDetailsWindowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem printDetailsIntoHtmlToolStripMenuItem;
+        private System.Windows.Forms.ToolStripTextBox ts_parse_lang;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
     }
 }
 
