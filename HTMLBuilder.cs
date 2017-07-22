@@ -98,6 +98,26 @@ namespace IfrViewer
         }
 
         /// <summary>
+        /// Appends a table node to an XML node
+        /// </summary>
+        /// <param name="Parent">Node is created as child of this element</param>
+        /// <param name="Document">XmlDocument used for item generation</param>
+        /// <param name="TableClass">Class of table style</param>
+        /// <param name="ColClasses">List of span-class pairs</param>
+        /// <returns>Generated node</returns>
+        public static XmlNode AddTableNode(this XmlNode Parent, XmlDocument Document, string TableClass, string[,] ColClasses)
+        {
+            XmlNode table = Parent.AddElementNode(Document, "table").SetAttribute(Document, "class", TableClass);
+            XmlNode colgroup = table.AddElementNode(Document, "colgroup");
+            for (int i = 0; i < ColClasses.Length / 2; i++)
+            {
+                XmlNode col = colgroup.AddElementNode(Document, "col").SetAttribute(Document, "class", ColClasses[i, 1]);
+                if (null != ColClasses[i, 0]) col.SetAttribute(Document, "span", ColClasses[i, 0]);
+            }
+            return table.AddElementNode(Document, "tr"); // first row
+        }
+
+        /// <summary>
         /// Appends an details node to an XML node
         /// </summary>
         /// <param name="Parent">Node is created as child of this element</param>
@@ -213,6 +233,8 @@ namespace IfrViewer
                             // elements
                             + "body {" + Environment.NewLine
                             + "  font-family: Courier New;" + Environment.NewLine
+                            + "  background-color: lightgray;" + Environment.NewLine
+                            + "  color: blue;" + Environment.NewLine
                             + "}" + Environment.NewLine
                             + "table.If, table.SupressIf, table.DisableIf {" + Environment.NewLine
                             + "  border: 1px solid black;" + Environment.NewLine
@@ -232,18 +254,29 @@ namespace IfrViewer
                             + "summary {" + Environment.NewLine
                             + "  font-size: 0.8em;" + Environment.NewLine
                             + "  font-style: italic;" + Environment.NewLine
+                            + "  color: black;" + Environment.NewLine
+                            + "}" + Environment.NewLine
+                            + "pre {" + Environment.NewLine
+                            + "  font-style: italic;" + Environment.NewLine
+                            + "  color: black;" + Environment.NewLine
                             + "}" + Environment.NewLine
                             // classes
                             + ".full {" + Environment.NewLine
                             + "  width: 100%;" + Environment.NewLine
                             + "}" + Environment.NewLine
-                            + ".third {" + Environment.NewLine
-                            + "  width: 33%;" + Environment.NewLine
+                            + ".left {" + Environment.NewLine
+                            + "  width: 30%;" + Environment.NewLine
+                            + "}" + Environment.NewLine
+                            + ".mid {" + Environment.NewLine
+                            + "  width: 20%;" + Environment.NewLine
+                            + "}" + Environment.NewLine
+                            + ".right {" + Environment.NewLine
+                            + "  width: 50%;" + Environment.NewLine
                             + "}" + Environment.NewLine
                             + ".note {" + Environment.NewLine
-                            + "  color: green;" + Environment.NewLine
                             + "  font-size: 0.8em;" + Environment.NewLine
                             + "  font-style: italic;" + Environment.NewLine
+                            + "  color: green;" + Environment.NewLine
                             + "}" + Environment.NewLine;
 
                         // Prepare new document..
@@ -489,10 +522,10 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP:
                     {
                         EFI_IFR_TEXT ifr_hdr = (EFI_IFR_TEXT)hpkelem.Header;
-                        XmlNode tr = root.AddElementNode(doc, "table").SetAttribute(doc, "class", "full").AddElementNode(doc, "tr");
-                        tr.AddElementNode(doc, "td").SetAttribute(doc, "class", "third").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Prompt, hpkelem.UniqueID));
-                        tr.AddElementNode(doc, "td").SetAttribute(doc, "class", "third").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.TextTwo, hpkelem.UniqueID));
-                        tr.AddElementNode(doc, "td").SetAttribute(doc, "class", "third").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Help, hpkelem.UniqueID));
+                        XmlNode tr = root.AddTableNode(doc, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+                        tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Prompt, hpkelem.UniqueID));
+                        tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.TextTwo, hpkelem.UniqueID));
+                        tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Help, hpkelem.UniqueID));
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_IMAGE_OP: if (bShowDetails) root.AddDetailsNode(doc, "ImageOp").AddTextNode(doc, ((EFI_IFR_IMAGE)hpkelem.Header).Id.ToString()); break;
@@ -778,10 +811,10 @@ namespace IfrViewer
         /// <returns>Generated input node</returns>
         private XmlNode ProduceInputField(XmlNode Parent, XmlDocument Document, string InputTypeName, UInt16 FormId, EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
-            XmlNode tr = Parent.AddElementNode(Document, "table").SetAttribute(Document, "class", "full").AddElementNode(Document, "tr");
-            tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
-            XmlNode input = tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddElementNode(Document, "input");
-            tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
+            XmlNode tr = Parent.AddTableNode(Document, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+            tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
+            XmlNode input = tr.AddElementNode(Document, "td").AddElementNode(Document, "input");
+            tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
 
             input.SetAttribute(Document, "id", "form_" + FormId.ToString() + "_question_" + Question.QuestionId.ToString());
             input.SetAttribute(Document, "type", InputTypeName);
@@ -800,10 +833,10 @@ namespace IfrViewer
         /// <returns>Generated input node</returns>
         private XmlNode ProduceSelectField(XmlNode Parent, XmlDocument Document, UInt16 FormId, EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
-            XmlNode tr = Parent.AddElementNode(Document, "table").SetAttribute(Document, "class", "full").AddElementNode(Document, "tr");
-            tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
-            XmlNode input = tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddElementNode(Document, "select");
-            tr.AddElementNode(Document, "td").SetAttribute(Document, "class", "third").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
+            XmlNode tr = Parent.AddTableNode(Document, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+            tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
+            XmlNode input = tr.AddElementNode(Document, "td").AddElementNode(Document, "select");
+            tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
 
             input.SetAttribute(Document, "id", "form_" + FormId.ToString() + "_question_" + Question.QuestionId.ToString());
 
