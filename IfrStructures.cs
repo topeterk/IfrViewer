@@ -540,20 +540,22 @@ namespace IFR
         /// <param name="severity">Severity of message</param>
         /// <param name="origin">Short origin name of message (to group messges)</param>
         /// <param name="msg">Message string</param>
-        public static void CreateLogEntry(LogSeverity severity, string origin, string msg)
+        /// <param name="bShowMsgBox">Shows message box when true</param>
+        public static void CreateLogEntry(LogSeverity severity, string origin, string msg, bool bShowMsgBox = false)
         {
             string typename = severity.ToString();
 
             Color color;
+            MessageBoxIcon Icon;
             switch (severity)
             {
-                case LogSeverity.SUCCESS: color = Color.LimeGreen; break;
-                case LogSeverity.STATUS: color = Color.LightGreen; break;
-                case LogSeverity.WARNING: color = Color.LightCoral; break;
-                case LogSeverity.ERROR: color = Color.OrangeRed; break;
-                case LogSeverity.UNIMPLEMENTED: color = Color.HotPink; break;
+                case LogSeverity.SUCCESS: color = Color.LimeGreen; Icon = MessageBoxIcon.None; break;
+                case LogSeverity.STATUS: color = Color.LightGreen; Icon = MessageBoxIcon.Information; break;
+                case LogSeverity.WARNING: color = Color.LightCoral; Icon = MessageBoxIcon.Warning; break;
+                case LogSeverity.ERROR: color = Color.OrangeRed; Icon = MessageBoxIcon.Error; break;
+                case LogSeverity.UNIMPLEMENTED: color = Color.HotPink; Icon = MessageBoxIcon.Exclamation; break;
                 //case LogSeverity.INFO:
-                default: color = Color.White; break;
+                default: color = Color.White; Icon = MessageBoxIcon.None; break;
             }
 
             //Is debug window connected?
@@ -563,6 +565,13 @@ namespace IFR
                 log.Rows[log.Rows.Add(new object[]{ typename, origin, msg.Replace(Environment.NewLine, Environment.NewLine + " > ") })].SetRowBackgroundColor(color);
                 log.AutoResizeColumns();
                 log.AutoResizeRow(log.Rows.Count - 1);
+            }
+
+            // Show error in message box?
+            if (bShowMsgBox)
+            {
+                if (LogSeverity.ERROR == severity)
+                    MessageBox.Show(msg, origin, MessageBoxButtons.OK, Icon);
             }
         }
 
@@ -1347,7 +1356,7 @@ namespace IFR
     /// <summary>
     /// Value of IFR opcodes
     /// </summary>
-    enum EFI_IFR_OPCODE_e
+    public enum EFI_IFR_OPCODE_e
     {
         #region IFR Opcodes
         EFI_IFR_FORM_OP = 0x01,
