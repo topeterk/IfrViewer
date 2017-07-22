@@ -568,11 +568,7 @@ namespace IFR
             }
 
             // Show error in message box?
-            if (bShowMsgBox)
-            {
-                if (LogSeverity.ERROR == severity)
-                    MessageBox.Show(msg, origin, MessageBoxButtons.OK, Icon);
-            }
+            if (bShowMsgBox) MessageBox.Show(msg, origin, MessageBoxButtons.OK, Icon);
         }
 
         public static void SetRowBackgroundColor(this DataGridViewRow row, Color color)
