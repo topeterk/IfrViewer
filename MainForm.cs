@@ -414,7 +414,7 @@ namespace IfrViewer
                         Packages.Add(hpk);
 
                 ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
-                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings, bShowDetails);
+                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings, bShowDetails, true);
             }
 
             // TODO!

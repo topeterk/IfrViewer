@@ -162,6 +162,13 @@ namespace IfrViewer
         private readonly bool bShowDetails;
 
         /// <summary>
+        /// Controls HTML generation:
+        /// true: Create files for each formset only
+        /// false: Create files for each form and formset
+        /// </summary>
+        private readonly bool bCompactHtmlOutput;
+
+        /// <summary>
         /// Parsed HPK strings
         /// </summary>
         private readonly ParsedHpkStringContainer HpkStrings;
@@ -172,10 +179,12 @@ namespace IfrViewer
         /// <param name="Packages">List of packages that will be parsed</param>
         /// <param name="HpkStrings">Parsed HPK strings used for translations</param>
         /// <param name="bShowDetails">Printing details into HTML</param>
-        public HtmlBuilder(List<HiiPackageBase> Packages, ParsedHpkStringContainer HpkStrings, bool bShowDetails)
+        /// <param name="bCompactHtmlOutput">Controls HTML generation:<para />true = Create files for each formset only<para />false = Create files for each form and formset</param>
+        public HtmlBuilder(List<HiiPackageBase> Packages, ParsedHpkStringContainer HpkStrings, bool bShowDetails, bool bCompactHtmlOutput)
         {
             this.HpkStrings = HpkStrings;
             this.bShowDetails = bShowDetails;
+            this.bCompactHtmlOutput = bCompactHtmlOutput;
 
             foreach (HiiPackageBase pkg in Packages)
             {
@@ -186,7 +195,7 @@ namespace IfrViewer
                     {
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
                             foreach (HPKElement child in root.Origin.Childs)
-                                ParsePackageIfr(child, null, null); // doc and node will be created by each formset within this package
+                                ParsePackageIfr(child, null, null, Guid.Empty); // doc and node will be created by each formset within this package
                             break;
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: break; // Already done
                         default:
@@ -208,9 +217,10 @@ namespace IfrViewer
         /// <param name="hpkelem">HPK element holding the input data</param>
         /// <param name="Document">XmlDocument used for item generation</param>
         /// <param name="root">XML node which new nodes will be added to</param>
+        /// <param name="CurrFormSetGuid">Current FormSetGuid (Guid.Empty if unknown)</param>
         /// <param name="CurrFormId">Current FormId (0 if not set)</param>
         /// <param name="CurrentQuestion">Current Question (null if not set)</param>
-        private void ParsePackageIfr(HPKElement hpkelem, XmlDocument doc, XmlNode root, UInt16 CurrFormId = 0, XmlNode CurrentQuestion = null)
+        private void ParsePackageIfr(HPKElement hpkelem, XmlDocument doc, XmlNode root, Guid CurrFormSetGuid, UInt16 CurrFormId = 0, XmlNode CurrentQuestion = null)
         {
             HiiIfrOpCode elem = (HiiIfrOpCode)hpkelem;
             bool bProcessChilds = true;
@@ -249,7 +259,7 @@ namespace IfrViewer
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP:
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
                                     XmlNode varstores = doc.CreateElement("varstores");
-                                    ParsePackageIfr(child, doc, varstores);
+                                    ParsePackageIfr(child, doc, varstores, hdr.Guid.Guid);
                                     if (0 < varstores.ChildNodes.Count)
                                         DetailsString += prefix + "-ClassGuid = " + varstores.ChildNodes[0].InnerText + Environment.NewLine;
                                     break;
@@ -270,7 +280,7 @@ namespace IfrViewer
                                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_DEVICE_OP:
                                     break;
                                 default:
-                                    ParsePackageIfr(child, doc, body); break;
+                                    ParsePackageIfr(child, doc, body, hdr.Guid.Guid); break;
                             }
                         }
 
@@ -282,76 +292,84 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_FORM_OP:
                     {
                         EFI_IFR_FORM ifr_hdr = (EFI_IFR_FORM)hpkelem.Header;
-                        root.AddElementNode(doc, "hr");
-                        XmlNode node = root.AddElementNode(doc, "h1");
-                        node.SetAttribute(doc, "id", "form_" + ifr_hdr.FormId.ToString());
-                        node.AddTextNode(doc, HpkStrings.GetString(ifr_hdr.FormTitle, hpkelem.UniqueID));
+                        string FormTitle = HpkStrings.GetString(ifr_hdr.FormTitle, hpkelem.UniqueID);
                         CurrFormId = ifr_hdr.FormId; // We just entered a new form, so remember its ID
+
+                        if (bCompactHtmlOutput)
+                        {
+                            root.AddElementNode(doc, "hr");
+                            XmlNode node = root.AddElementNode(doc, "h1");
+                            node.SetAttribute(doc, "id", "form_" + CurrFormId.ToString());
+                            node.AddTextNode(doc, FormTitle);
+                        }
+                        else
+                        {
+                            ProduceLink(root, doc, "<FORM: " + FormTitle + ">", CurrFormSetGuid, CurrFormId); // add link so, formset HTML can be used as crossreference
+
+                            // Create new document..
+                            XmlDocument form_doc = new XmlDocument();
+                            XmlNode body = ProduceHtmlBody(form_doc, FormTitle);
+
+                            // Process childs
+                            foreach (HiiIfrOpCode child in elem.Childs)
+                                ParsePackageIfr(child, form_doc, body, CurrFormSetGuid, CurrFormId, CurrentQuestion);
+
+                            WriteHtmlFile(form_doc, CurrFormSetGuid.ToString() + "_form_" + CurrFormId.ToString());
+
+                            bProcessChilds = false;
+                        }
+
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP:
                     {
-                        string Uri = "#form_" + CurrFormId.ToString(); // Local by default
+                        string QueryString = null;
+                        Guid FormSetGuid = CurrFormSetGuid;
+                        UInt16 FormId = CurrFormId;
                         UInt16 NameStrId = 0;
+                        UInt16 QuestionId = 0;
                         switch (hpkelem.Header.GetType().Name)
                         {
                             case "EFI_IFR_REF":
                                 {
                                     EFI_IFR_REF ifr_hdr = (EFI_IFR_REF)hpkelem.Header;
                                     NameStrId = ifr_hdr.Question.Header.Prompt;
-                                    if (0 != ifr_hdr.FormId) // Not local?
-                                        Uri = "#form_" + ifr_hdr.FormId.ToString();
+                                    if (0 != ifr_hdr.FormId) FormId = ifr_hdr.FormId;
                                 }
                                 break;
                             case "EFI_IFR_REF2":
                                 {
                                     EFI_IFR_REF2 ifr_hdr = (EFI_IFR_REF2)hpkelem.Header;
                                     NameStrId = ifr_hdr.Question.Header.Prompt;
-                                    if (0 != ifr_hdr.FormId) // Not local?
-                                        Uri = "#form_" + ifr_hdr.FormId.ToString();
-                                    if (0 != ifr_hdr.QuestionId) Uri += "_question_" + ifr_hdr.QuestionId.ToString();
+                                    if (0 != ifr_hdr.FormId) FormId = ifr_hdr.FormId;
+                                    if (0 != ifr_hdr.QuestionId) QuestionId = ifr_hdr.QuestionId;
                                 }
                                 break;
                             case "EFI_IFR_REF3":
                                 {
                                     EFI_IFR_REF3 ifr_hdr = (EFI_IFR_REF3)hpkelem.Header;
                                     NameStrId = ifr_hdr.Question.Header.Prompt;
-                                    if (0 != ifr_hdr.FormId) // Not local?
-                                        Uri = "#form_" + ifr_hdr.FormId.ToString();
-                                    if (0 != ifr_hdr.QuestionId) Uri += "_question_" + ifr_hdr.QuestionId.ToString();
-                                    if (Guid.Empty != ifr_hdr.FormSetId.Guid) Uri = ifr_hdr.FormSetId.Guid.ToString() + ".html" + Uri; // External formset
+                                    if (0 != ifr_hdr.FormId) FormId = ifr_hdr.FormId;
+                                    if (0 != ifr_hdr.QuestionId) QuestionId = ifr_hdr.QuestionId;
+                                    if (Guid.Empty != ifr_hdr.FormSetId.Guid) FormSetGuid = ifr_hdr.FormSetId.Guid;
                                 }
                                 break;
                             case "EFI_IFR_REF4":
                                 {
                                     EFI_IFR_REF4 ifr_hdr = (EFI_IFR_REF4)hpkelem.Header;
                                     NameStrId = ifr_hdr.Question.Header.Prompt;
-                                    if (0 != ifr_hdr.FormId) // Not local?
-                                        Uri = "#form_" + ifr_hdr.FormId.ToString();
-                                    if (0 != ifr_hdr.QuestionId) Uri += "_question_" + ifr_hdr.QuestionId.ToString();
-                                    if (Guid.Empty != ifr_hdr.FormSetId.Guid) Uri = ifr_hdr.FormSetId.Guid.ToString() + ".html" + Uri; // External formset
-                                    if (0 != ifr_hdr.DevicePath) Uri += "?DevicePath=" + HpkStrings.GetString(ifr_hdr.DevicePath, hpkelem.UniqueID);
+                                    if (0 != ifr_hdr.FormId) FormId = ifr_hdr.FormId;
+                                    if (0 != ifr_hdr.QuestionId) QuestionId = ifr_hdr.QuestionId;
+                                    if (Guid.Empty != ifr_hdr.FormSetId.Guid) FormSetGuid = ifr_hdr.FormSetId.Guid;
+                                    if (0 != ifr_hdr.DevicePath) QueryString = "DevicePath=" + HpkStrings.GetString(ifr_hdr.DevicePath, hpkelem.UniqueID);
                                 }
                                 break;
-                            case "EFI_IFR_REF5":
-                                {
-                                    CreateLogEntryBuilder(LogSeverity.WARNING, "Nested reference cannot be resolved [" + hpkelem.UniqueID + "]!");
-                                    Uri = null;
-                                }
-                                break;
-                            default:
-                                CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown reference type [" + hpkelem.UniqueID + "]!");
-                                Uri = null;
-                                break;
+                            case "EFI_IFR_REF5": CreateLogEntryBuilder(LogSeverity.WARNING, "Nested reference cannot be resolved [" + hpkelem.UniqueID + "]!"); break;
+                            default: CreateLogEntryBuilder(LogSeverity.WARNING, "Unknown reference type [" + hpkelem.UniqueID + "]!"); break;
                         }
 
-                        if (null != Uri)
-                        {
-                            XmlNode node = root.AddElementNode(doc, "a");
-                            node.SetAttribute(doc, "href", Uri);
-                            node.AddTextNode(doc, HpkStrings.GetString(NameStrId, hpkelem.UniqueID));
-                            root.AddElementNode(doc, "br");
-                        }
+                        if (0 != NameStrId)
+                            ProduceLink(root, doc, HpkStrings.GetString(NameStrId, hpkelem.UniqueID), FormSetGuid, FormId, QuestionId, QueryString);
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_GUID_OP: if (bShowDetails) root.AddDetailsNode(doc, "GuidOp").AddTextNode(doc, ((EFI_IFR_GUID)hpkelem.Header).Guid.Guid.ToString()); break;
@@ -440,7 +458,7 @@ namespace IfrViewer
                                 XmlNode td = root.AddElementNode(doc, "table").SetAttribute(doc, "class", "full " + LogicName).AddElementNode(doc, "tr").AddElementNode(doc, "td");
                                 XmlNode cond = td.AddConditionalNode(doc, LogicName, HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
                                 for (int i = 1; i < elem.Childs.Count; i++) // skip first element, because it contains the (nested) logic
-                                    ParsePackageIfr(elem.Childs[i], doc, cond, CurrFormId, CurrentQuestion);
+                                    ParsePackageIfr(elem.Childs[i], doc, cond, CurrFormSetGuid, CurrFormId, CurrentQuestion);
                             }
                         }
                         bProcessChilds = false;
@@ -733,7 +751,7 @@ namespace IfrViewer
 
             if (bProcessChilds)
                 foreach (HiiIfrOpCode child in elem.Childs)
-                    ParsePackageIfr(child, doc, root, CurrFormId, CurrentQuestion);
+                    ParsePackageIfr(child, doc, root, CurrFormSetGuid, CurrFormId, CurrentQuestion);
         }
 
         /// <summary>
@@ -779,6 +797,46 @@ namespace IfrViewer
 
             return input;
         }
+
+        /// <summary>
+        /// Generates HTML linkage as XML nodes to a parent XML node
+        /// </summary>
+        /// <param name="Parent">Node is created as child of this element</param>
+        /// <param name="Document">XmlDocument used for item generation</param>
+        /// <param name="FriendlyUrlName">Displayed link text</param>
+        /// <param name="FormSetGuid">Current FormSetGuid (Guid.Empty if not set)</param>
+        /// <param name="FormId">Current FormId (0 if not set)</param>
+        /// <param name="QuestionId">Current QuestionId (0 if not set)</param>
+        /// <param name="GetQueryString">Optional GET parameters (without leading '?')</param>
+        private void ProduceLink(XmlNode Parent, XmlDocument Document, string FriendlyUrlName, Guid FormSetGuid, UInt16 FormId = 0, UInt16 QuestionId = 0, string GetQueryString = null)
+        {
+            string Uri = FormSetGuid.ToString();
+
+            if (bCompactHtmlOutput)
+            {
+                Uri += ".html";
+                if (GetQueryString != null) Uri += "?" + GetQueryString;
+            }
+            else
+            {
+                if (0 != FormId) Uri += "_form_" + FormId.ToString();
+                Uri += ".html";
+            }
+
+            // add GET parameters..
+            if (GetQueryString != null) Uri += "?" + GetQueryString;
+
+            // add bockmarks..
+            if (0 != FormId)
+            {
+                Uri += "#form_" + FormId.ToString();
+                if (0 != QuestionId) Uri += "_question_" + QuestionId.ToString();
+            }
+
+            Parent.AddElementNode(Document, "a").SetAttribute(Document, "href", Uri).AddTextNode(Document, FriendlyUrlName);
+            Parent.AddElementNode(Document, "br");
+        }
+
         /// <summary>
         /// Generates an empty HTML page with CSS styles and header
         /// </summary>
