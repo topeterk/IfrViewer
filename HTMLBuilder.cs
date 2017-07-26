@@ -228,64 +228,9 @@ namespace IfrViewer
                     {
                         EFI_IFR_FORM_SET hdr = (EFI_IFR_FORM_SET)elem.Header;
 
-                        // Prepare style..
-                        string StyleString = Environment.NewLine
-                            // elements
-                            + "body {" + Environment.NewLine
-                            + "  font-family: Courier New;" + Environment.NewLine
-                            + "  background-color: lightgray;" + Environment.NewLine
-                            + "  color: blue;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "table.If, table.SupressIf, table.DisableIf {" + Environment.NewLine
-                            + "  border: 1px solid black;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "table.GrayOutIf {" + Environment.NewLine
-                            + "  border: 1px solid gray;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "table.WarningIf, table.InconsistendIf {" + Environment.NewLine
-                            + "  border: 1px solid yellow;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "table.NoSubmitIf {" + Environment.NewLine
-                            + "  border: 1px solid red;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "td {" + Environment.NewLine
-                            + "  vertical-align:top;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "summary {" + Environment.NewLine
-                            + "  font-size: 0.8em;" + Environment.NewLine
-                            + "  font-style: italic;" + Environment.NewLine
-                            + "  color: black;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + "pre {" + Environment.NewLine
-                            + "  font-style: italic;" + Environment.NewLine
-                            + "  color: black;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            // classes
-                            + ".full {" + Environment.NewLine
-                            + "  width: 100%;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + ".left {" + Environment.NewLine
-                            + "  width: 30%;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + ".mid {" + Environment.NewLine
-                            + "  width: 20%;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + ".right {" + Environment.NewLine
-                            + "  width: 50%;" + Environment.NewLine
-                            + "}" + Environment.NewLine
-                            + ".note {" + Environment.NewLine
-                            + "  font-size: 0.8em;" + Environment.NewLine
-                            + "  font-style: italic;" + Environment.NewLine
-                            + "  color: green;" + Environment.NewLine
-                            + "}" + Environment.NewLine;
-
-                        // Prepare new document..
+                        // Create new document..
                         doc = new XmlDocument();
-                        doc.AppendChild(doc.CreateDocumentType("html", null, null, null)); // produce DOCTYPE for HTML5
-                        XmlNode root_html = doc.AddElementNode(doc, "html");
-                        root_html.AddElementNode(doc, "head").AddElementNode(doc, "style").AddTextNode(doc, StyleString);
-                        root_html.AddElementNode(doc, "title").AddTextNode(doc, HpkStrings.GetString(hdr.FormSetTitle, hpkelem.UniqueID));
-                        XmlNode body = root_html.AddElementNode(doc, "body");
+                        XmlNode body = ProduceHtmlBody(doc, HpkStrings.GetString(hdr.FormSetTitle, hpkelem.UniqueID));
 
                         // Process formset data..
                         string prefix = "FormSet";
@@ -329,15 +274,7 @@ namespace IfrViewer
                             }
                         }
 
-                        // Write file with correct encoding and BOM (HTML5 UTF-16)
-                        XmlWriterSettings settings = new XmlWriterSettings
-                        {
-                            Encoding = System.Text.Encoding.Unicode,
-                            Indent = true,
-                            IndentChars = "  ",
-                            OmitXmlDeclaration = true // not used by HTML5
-                        };
-                        using (XmlWriter writer = XmlWriter.Create(hdr.Guid.Guid.ToString() + ".html", settings)) doc.Save(writer); // Save file!
+                        WriteHtmlFile(doc, hdr.Guid.Guid.ToString());
 
                         bProcessChilds = false;
                     }
@@ -841,6 +778,92 @@ namespace IfrViewer
             input.SetAttribute(Document, "id", "form_" + FormId.ToString() + "_question_" + Question.QuestionId.ToString());
 
             return input;
+        }
+        /// <summary>
+        /// Generates an empty HTML page with CSS styles and header
+        /// </summary>
+        /// <param name="Document">XmlDocument used for item generation</param>
+        /// <param name="PageTitle">HTML page title</param>
+        /// <returns>HTML body XML node</returns>
+        private XmlNode ProduceHtmlBody(XmlDocument Document, string PageTitle)
+        {
+            // Embedded CSS style..
+            string StyleString = Environment.NewLine
+                // elements
+                + "body {" + Environment.NewLine
+                + "  font-family: Courier New;" + Environment.NewLine
+                + "  background-color: lightgray;" + Environment.NewLine
+                + "  color: blue;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "table.If, table.SupressIf, table.DisableIf {" + Environment.NewLine
+                + "  border: 1px solid black;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "table.GrayOutIf {" + Environment.NewLine
+                + "  border: 1px solid gray;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "table.WarningIf, table.InconsistendIf {" + Environment.NewLine
+                + "  border: 1px solid yellow;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "table.NoSubmitIf {" + Environment.NewLine
+                + "  border: 1px solid red;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "td {" + Environment.NewLine
+                + "  vertical-align:top;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "summary {" + Environment.NewLine
+                + "  font-size: 0.8em;" + Environment.NewLine
+                + "  font-style: italic;" + Environment.NewLine
+                + "  color: black;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + "pre {" + Environment.NewLine
+                + "  font-style: italic;" + Environment.NewLine
+                + "  color: black;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                // classes
+                + ".full {" + Environment.NewLine
+                + "  width: 100%;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + ".left {" + Environment.NewLine
+                + "  width: 30%;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + ".mid {" + Environment.NewLine
+                + "  width: 20%;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + ".right {" + Environment.NewLine
+                + "  width: 50%;" + Environment.NewLine
+                + "}" + Environment.NewLine
+                + ".note {" + Environment.NewLine
+                + "  font-size: 0.8em;" + Environment.NewLine
+                + "  font-style: italic;" + Environment.NewLine
+                + "  color: green;" + Environment.NewLine
+                + "}" + Environment.NewLine;
+
+            // Prepare new document..
+            Document.AppendChild(Document.CreateDocumentType("html", null, null, null)); // produce DOCTYPE for HTML5
+            XmlNode root_html = Document.AddElementNode(Document, "html");
+            root_html.AddElementNode(Document, "head").AddElementNode(Document, "style").AddTextNode(Document, StyleString);
+            root_html.AddElementNode(Document, "title").AddTextNode(Document, PageTitle);
+            return root_html.AddElementNode(Document, "body");
+        }
+
+        /// <summary>
+        /// Writes HTML data to file
+        /// </summary>
+        /// <param name="Document">XmlDocument that is written to file</param>
+        /// <param name="Basename">Filename without file extension</param>
+        private void WriteHtmlFile(XmlDocument Document, string Basename)
+        {
+            // Write file with correct encoding and BOM (HTML5 UTF-16)
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                Encoding = System.Text.Encoding.Unicode,
+                Indent = true,
+                IndentChars = "  ",
+                OmitXmlDeclaration = true // not used by HTML5
+            };
+            XmlWriter writer = XmlWriter.Create(Basename + ".html", settings);
+
+            Document.Save(writer); // Save file!
         }
 
         /// <summary>
