@@ -50,7 +50,7 @@ namespace IfrViewer
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.tv_tree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -69,12 +69,14 @@ namespace IfrViewer
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showRawInDetailsWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.printDetailsIntoHtmlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.ts_parse_lang = new System.Windows.Forms.ToolStripTextBox();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.parseLogicalViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createHTMLToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.printCompactHtmlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -212,14 +214,14 @@ namespace IfrViewer
             this.Type,
             this.Origin,
             this.Message});
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle3.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.log.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.log.DefaultCellStyle = dataGridViewCellStyle2;
             this.log.EnableHeadersVisualStyles = false;
             this.log.Location = new System.Drawing.Point(3, 3);
             this.log.Name = "log";
@@ -287,6 +289,8 @@ namespace IfrViewer
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.showRawInDetailsWindowToolStripMenuItem,
+            this.toolStripSeparator3,
+            this.printCompactHtmlToolStripMenuItem,
             this.printDetailsIntoHtmlToolStripMenuItem,
             this.toolStripSeparator2,
             this.ts_parse_lang});
@@ -300,7 +304,7 @@ namespace IfrViewer
             this.showRawInDetailsWindowToolStripMenuItem.CheckOnClick = true;
             this.showRawInDetailsWindowToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.showRawInDetailsWindowToolStripMenuItem.Name = "showRawInDetailsWindowToolStripMenuItem";
-            this.showRawInDetailsWindowToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.showRawInDetailsWindowToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
             this.showRawInDetailsWindowToolStripMenuItem.Text = "Raw data in details window";
             this.showRawInDetailsWindowToolStripMenuItem.ToolTipText = "When enabled shows raw binary data in details window.";
             // 
@@ -308,9 +312,14 @@ namespace IfrViewer
             // 
             this.printDetailsIntoHtmlToolStripMenuItem.CheckOnClick = true;
             this.printDetailsIntoHtmlToolStripMenuItem.Name = "printDetailsIntoHtmlToolStripMenuItem";
-            this.printDetailsIntoHtmlToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.printDetailsIntoHtmlToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
             this.printDetailsIntoHtmlToolStripMenuItem.Text = "Print details into HTML";
             this.printDetailsIntoHtmlToolStripMenuItem.ToolTipText = "Shows IFR details within the generated HTML document.";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(224, 6);
             // 
             // ts_parse_lang
             // 
@@ -318,6 +327,18 @@ namespace IfrViewer
             this.ts_parse_lang.Size = new System.Drawing.Size(100, 23);
             this.ts_parse_lang.Text = "en-US";
             this.ts_parse_lang.ToolTipText = "Preferred language code.";
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(52, 23);
+            this.helpToolStripMenuItem.Text = "About";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 23);
             // 
             // parseLogicalViewToolStripMenuItem
             // 
@@ -333,22 +354,20 @@ namespace IfrViewer
             this.createHTMLToolStripMenuItem.Text = "Create HTML";
             this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
             // 
-            // toolStripSeparator1
+            // printCompactHtmlToolStripMenuItem
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 23);
+            this.printCompactHtmlToolStripMenuItem.Checked = true;
+            this.printCompactHtmlToolStripMenuItem.CheckOnClick = true;
+            this.printCompactHtmlToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.printCompactHtmlToolStripMenuItem.Name = "printCompactHtmlToolStripMenuItem";
+            this.printCompactHtmlToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.printCompactHtmlToolStripMenuItem.Text = "Print HTML in compact form";
+            this.printCompactHtmlToolStripMenuItem.ToolTipText = "Checked: One file per formet; Unchecked: One file per formset and form";
             // 
-            // helpToolStripMenuItem
+            // toolStripSeparator3
             // 
-            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(52, 23);
-            this.helpToolStripMenuItem.Text = "About";
-            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(214, 6);
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(224, 6);
             // 
             // MainForm
             // 
@@ -411,6 +430,8 @@ namespace IfrViewer
         private System.Windows.Forms.ToolStripMenuItem printDetailsIntoHtmlToolStripMenuItem;
         private System.Windows.Forms.ToolStripTextBox ts_parse_lang;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem printCompactHtmlToolStripMenuItem;
     }
 }
 
