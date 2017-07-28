@@ -922,6 +922,7 @@ namespace IfrViewer
             XmlWriter writer = XmlWriter.Create(Basename + ".html", settings);
 
             Document.Save(writer); // Save file!
+            writer.Close();
         }
 
         /// <summary>
