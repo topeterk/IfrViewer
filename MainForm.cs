@@ -28,7 +28,6 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
-using static IfrViewer.HpkParser;
 
 namespace IfrViewer
 {
@@ -241,7 +240,7 @@ namespace IfrViewer
 
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // TODO!
+            (new About()).ShowDialog(this);
         }
 
         /// <summary>
