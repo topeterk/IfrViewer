@@ -34,7 +34,7 @@ if not exist %PR_FINAL% mkdir %PR_FINAL%
 echo Packing Portable Release:
 set PR_BASE=bin\Release
 set PR_TARGET=%PR_FINAL%\ReleasePortable
-set PR_OUTPUT=%PR_FINAL%\HitCounterManager_Portable_v1.x.y.z.zip
+set PR_OUTPUT=%PR_FINAL%\IfrViewer_Portable_v1.x.y.z.zip
 rmdir /S /Q %PR_TARGET% 2>nul
 mkdir %PR_TARGET%
 
