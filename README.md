@@ -9,6 +9,10 @@ Tool that is able to read a binary HPK package and most (hopefully all in future
 > It can consist of many various things but in most cases it consists of strings for different languages
 > and IFR structures (__Internal Forms Representation__) to be able to build the SETUP menu for UEFI capable systems.
 
+[![Releases](https://img.shields.io/github/release/topeterk/IfrViewer.svg?label=Latest%20release:&longCache=true&style=for-the-badge&colorB=0088FF)](../../releases/latest)
+[![GitHub Releases](https://img.shields.io/github/downloads/topeterk/IfrViewer/total.svg?label=Downloads:&longCache=true&style=for-the-badge&colorB=0088FF)](../../releases)
+[![GitHub](https://img.shields.io/github/license/topeterk/IfrViewer.svg?label=License:&longCache=true&style=for-the-badge&colorB=0088FF)](LICENSE)
+
 ## Goals
 1. List all IFR structures in order to view a HPK's content
 2. Improve GUI to handle this data more efficient

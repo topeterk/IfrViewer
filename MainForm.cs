@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016-2017 Peter Kirmeier
+//Copyright(c) 2016-2019 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ namespace IfrViewer
         private void MainForm_Load(object sender, EventArgs e)
         {
             // Update Version
-            Text += " - v" + Application.ProductVersion + " Alpha (UEFI 2.6)";
+            Text += " - v" + Application.ProductVersion + " (UEFI 2.6)";
 
             // Set size of window to 80 percent by default
             MainForm_SizeChanged(sender, e);
