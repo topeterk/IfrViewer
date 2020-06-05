@@ -5,13 +5,7 @@
 
 Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
 (C) Copyright 2016 Hewlett Packard Enterprise Development LP<BR>
-This program and the accompanying materials are licensed and made available under
-the terms and conditions of the BSD License that accompanies this distribution.
-The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php.
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+SPDX-License-Identifier: BSD-2-Clause-Patent
 
   @par Revision Reference:
   These definitions are from UEFI 2.1 and 2.2.
@@ -831,6 +825,7 @@ typedef struct _EFI_IFR_QUESTION_HEADER {
 #define EFI_IFR_FLAG_READ_ONLY          0x01
 #define EFI_IFR_FLAG_CALLBACK           0x04
 #define EFI_IFR_FLAG_RESET_REQUIRED     0x10
+#define EFI_IFR_FLAG_REST_STYLE         0x20
 #define EFI_IFR_FLAG_RECONNECT_REQUIRED 0x40
 #define EFI_IFR_FLAG_OPTIONS_ONLY       0x80
 

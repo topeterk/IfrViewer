@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016-2017 Peter Kirmeier
+//Copyright(c) 2016-2020 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -1509,6 +1509,7 @@ namespace IFR
         EFI_IFR_FLAG_READ_ONLY = 0x01,
         EFI_IFR_FLAG_CALLBACK = 0x04,
         EFI_IFR_FLAG_RESET_REQUIRED = 0x10,
+        EFI_IFR_FLAG_REST_STYLE = 0x20,
         EFI_IFR_FLAG_RECONNECT_REQUIRED = 0x40,
         EFI_IFR_FLAG_OPTIONS_ONLY = 0x80,
     };
