@@ -102,11 +102,11 @@ namespace IfrViewer
             this.tv_tree.Name = "tv_tree";
             this.tv_tree.Size = new System.Drawing.Size(743, 240);
             this.tv_tree.TabIndex = 0;
-            this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
+            this.tv_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.Tv_tree_AfterSelect);
             this.tv_tree.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
             this.tv_tree.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
-            this.tv_tree.DragOver += new System.Windows.Forms.DragEventHandler(this.tv_tree_DragOver);
-            this.tv_tree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
+            this.tv_tree.DragOver += new System.Windows.Forms.DragEventHandler(this.Tv_tree_DragOver);
+            this.tv_tree.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Tv_KeyDown);
             // 
             // splitContainer1
             // 
@@ -126,7 +126,7 @@ namespace IfrViewer
             this.splitContainer1.SplitterIncrement = 14;
             this.splitContainer1.SplitterWidth = 8;
             this.splitContainer1.TabIndex = 2;
-            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.SplitContainer1_SplitterMoved);
             // 
             // tabControl1
             // 
@@ -137,7 +137,7 @@ namespace IfrViewer
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(751, 266);
             this.tabControl1.TabIndex = 1;
-            this.tabControl1.SizeChanged += new System.EventHandler(this.tabControl1_SizeChanged);
+            this.tabControl1.SizeChanged += new System.EventHandler(this.TabControl1_SizeChanged);
             // 
             // tabrawtree
             // 
@@ -169,8 +169,8 @@ namespace IfrViewer
             this.tv_logical.Name = "tv_logical";
             this.tv_logical.Size = new System.Drawing.Size(743, 240);
             this.tv_logical.TabIndex = 1;
-            this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tv_tree_AfterSelect);
-            this.tv_logical.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
+            this.tv_logical.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.Tv_tree_AfterSelect);
+            this.tv_logical.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Tv_KeyDown);
             // 
             // splitContainer2
             // 
@@ -188,7 +188,7 @@ namespace IfrViewer
             this.splitContainer2.SplitterDistance = 323;
             this.splitContainer2.SplitterWidth = 8;
             this.splitContainer2.TabIndex = 1;
-            this.splitContainer2.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer2_SplitterMoved);
+            this.splitContainer2.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.SplitContainer2_SplitterMoved);
             // 
             // tv_details
             // 
@@ -200,7 +200,7 @@ namespace IfrViewer
             this.tv_details.ShowRootLines = false;
             this.tv_details.Size = new System.Drawing.Size(317, 162);
             this.tv_details.TabIndex = 1;
-            this.tv_details.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tv_KeyDown);
+            this.tv_details.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Tv_KeyDown);
             // 
             // log
             // 
@@ -284,7 +284,7 @@ namespace IfrViewer
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItem_Click);
             // 
             // optionsToolStripMenuItem
             // 
@@ -349,7 +349,7 @@ namespace IfrViewer
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(52, 23);
             this.helpToolStripMenuItem.Text = "About";
-            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.HelpToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -361,14 +361,14 @@ namespace IfrViewer
             this.parseLogicalViewToolStripMenuItem.Name = "parseLogicalViewToolStripMenuItem";
             this.parseLogicalViewToolStripMenuItem.Size = new System.Drawing.Size(113, 23);
             this.parseLogicalViewToolStripMenuItem.Text = "Parse Logical Tree";
-            this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.parseLogicalViewToolStripMenuItem_Click);
+            this.parseLogicalViewToolStripMenuItem.Click += new System.EventHandler(this.ParseLogicalViewToolStripMenuItem_Click);
             // 
             // createHTMLToolStripMenuItem
             // 
             this.createHTMLToolStripMenuItem.Name = "createHTMLToolStripMenuItem";
             this.createHTMLToolStripMenuItem.Size = new System.Drawing.Size(89, 23);
             this.createHTMLToolStripMenuItem.Text = "Create HTML";
-            this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.createHTMLToolStripMenuItem_Click);
+            this.createHTMLToolStripMenuItem.Click += new System.EventHandler(this.CreateHTMLToolStripMenuItem_Click);
             // 
             // MainForm
             // 

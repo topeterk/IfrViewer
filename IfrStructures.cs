@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016-2020 Peter Kirmeier
+//Copyright(c) 2016-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -22,10 +22,7 @@
 
 // This file contains the EDKII structures of "UefiInternalFormRepresentation.h"
 
-using System;
 using System.Runtime.InteropServices;
-using System.Drawing;
-using System.Windows.Forms;
 using static IFR.IFRHelper;
 
 /// <summary>
@@ -258,18 +255,18 @@ namespace IFR
         public T ToIfrType<T>(uint startindex = 0)
         {
             // Sanity check of broken structs..
-            if (0 == typeof(T).StructLayoutAttribute.Size)
+            if (0 == typeof(T).StructLayoutAttribute?.Size)
                 throw new Exception("Hey dev, assign structure size for \"" + typeof(T).ToString() + "\" in order to allow size checking!");
 
             // Pin the buffer and copy structure into managed type..
             int PtrOffset = (int)(Offset + startindex);
             GCHandle handle = GCHandle.Alloc(Bytes, GCHandleType.Pinned);
-            T result = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject() + PtrOffset, typeof(T));
+            T? result = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject() + PtrOffset) ?? throw new Exception("Could not allocate memory for \"" + typeof(T).ToString() + "\" marshalling!");
             handle.Free();
 
             // Check if casted structure is within our memory
-            if (Length < typeof(T).StructLayoutAttribute.Size)
-                throw new Exception("Data has " + Length + " bytes left. Casting to " + typeof(T).StructLayoutAttribute.Size  + " bytes long \"" + typeof(T).ToString() + "\" failed!");
+            if (Length < typeof(T).StructLayoutAttribute?.Size)
+                throw new Exception("Data has " + Length + " bytes left. Casting to " + typeof(T).StructLayoutAttribute?.Size  + " bytes long \"" + typeof(T).ToString() + "\" failed!");
 
             return result;
         }
@@ -308,7 +305,9 @@ namespace IFR
 
         public static uint GetPhysSize<T>(this T s) where T : struct
         {
-            uint result = (uint)s.GetType().StructLayoutAttribute.Size;
+            if (s.GetType().StructLayoutAttribute is null)
+                throw new Exception("Error getting size of tyoe \"" + typeof(T).ToString() + "\"!");
+            uint result = (uint)s.GetType().StructLayoutAttribute!.Size;
 
             // Sanity check of broken structs..
             if (0 == result)
@@ -532,7 +531,7 @@ namespace IFR
         /// <summary>
         /// Debug window which is used to print debug messages
         /// </summary>
-        public static DataGridView log = null;
+        public static DataGridView? log = null;
 
         /// <summary>
         /// Generates a logged message and adds it to the logging window

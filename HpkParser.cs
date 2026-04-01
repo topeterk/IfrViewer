@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2017-2017 Peter Kirmeier
+//Copyright(c) 2017-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -21,8 +21,6 @@
 //SOFTWARE.
 
 using IFR;
-using System;
-using System.Collections.Generic;
 using static IFR.IFRHelper;
 using static IfrViewer.HpkParser;
 
@@ -208,7 +206,7 @@ namespace IfrViewer
         /// <param name="Value">Input value</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
         /// <returns>Humand readable string</returns>
-        public string GetValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID, ref object RawValue)
+        public string GetValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID, ref object? RawValue)
         {
             string TypeStr;
             string ValueStr;

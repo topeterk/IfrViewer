@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2017-2017 Peter Kirmeier
+//Copyright(c) 2017-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -20,10 +20,6 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using System;
-using System.Reflection;
-using System.Windows.Forms;
-
 namespace IfrViewer
 {
     partial class About : Form
@@ -41,7 +37,7 @@ namespace IfrViewer
 
         #region Assemblyattributaccessoren
 
-        public string AssemblyTitle
+        public static string AssemblyTitle
         {
             get
             {
@@ -54,19 +50,19 @@ namespace IfrViewer
                         return titleAttribute.Title;
                     }
                 }
-                return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+                return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location) ?? "";
             }
         }
 
-        public string AssemblyVersion
+        public static string AssemblyVersion
         {
             get
             {
-                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?.?.?.?";
             }
         }
 
-        public string AssemblyDescription
+        public static string AssemblyDescription
         {
             get
             {
@@ -79,7 +75,7 @@ namespace IfrViewer
             }
         }
 
-        public string AssemblyProduct
+        public static string AssemblyProduct
         {
             get
             {
@@ -92,7 +88,7 @@ namespace IfrViewer
             }
         }
 
-        public string AssemblyCopyright
+        public static string AssemblyCopyright
         {
             get
             {
@@ -105,7 +101,7 @@ namespace IfrViewer
             }
         }
 
-        public string AssemblyCompany
+        public static string AssemblyCompany
         {
             get
             {

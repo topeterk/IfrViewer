@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2017-2017 Peter Kirmeier
+//Copyright(c) 2017-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -21,8 +21,6 @@
 //SOFTWARE.
 
 using IFR;
-using System;
-using System.Collections.Generic;
 using System.Xml;
 using static IFR.IFRHelper;
 using static IfrViewer.HtmlBuilderHelper;

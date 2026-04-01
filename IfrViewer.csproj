@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="System.Collections" />
+    <Using Include="System.Reflection" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Images\OutlineIcon.ico" />
   </ItemGroup>
 

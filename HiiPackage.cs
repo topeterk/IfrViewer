@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016-2017 Peter Kirmeier
+//Copyright(c) 2016-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -19,9 +19,6 @@
 //LIABILITY, WHETHER In AN ACTION Of CONTRACT, TORT Or OTHERWISE, ARISING FROM,
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
-
-using System;
-using System.Collections.Generic;
 
 namespace IFR
 {

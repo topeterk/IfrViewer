@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2017-2017 Peter Kirmeier
+//Copyright(c) 2017-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -21,8 +21,6 @@
 //SOFTWARE.
 
 using IFR;
-using System;
-using System.Collections.Generic;
 using static IfrViewer.HpkParser;
 
 namespace IfrViewer
@@ -147,7 +145,7 @@ namespace IfrViewer
                         string FormSetIdString = "FormSetId = ";
                         string QuestionId = "QuestionId = ";
                         string InfoString = "";
-                        string RefName = null;
+                        string? RefName = null;
                         switch (hpkelem.Header.GetType().Name)
                         {
                             case "EFI_IFR_REF":
@@ -412,7 +410,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_ONE_OF_OPTION_OP:
                     {
                         EFI_IFR_ONE_OF_OPTION ifr_hdr = (EFI_IFR_ONE_OF_OPTION)hpkelem.Header;
-                        object dummy = null;
+                        object? dummy = null;
                         branch.Name = "OneOf Option = " + ifr_hdr.Option.ToDecimalString(5) + " [\"" + HpkStrings.GetString(ifr_hdr.Option, hpkelem.UniqueID) + "\"]"
                             + ", Flags = " + ifr_hdr.Flags.ToString()
                             + ", " + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, ref dummy);
@@ -518,7 +516,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP:
                     {
                         EFI_IFR_DEFAULT ifr_hdr = (EFI_IFR_DEFAULT)hpkelem.Header;
-                        object dummy = null;
+                        object? dummy = null;
                         branch.Name = "Default Id = " + ifr_hdr.DefaultId.ToDecimalString(5)
                             + ", " + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, ref dummy);
 

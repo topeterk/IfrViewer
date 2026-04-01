@@ -1,6 +1,6 @@
 ﻿//MIT License
 //
-//Copyright(c) 2016-2019 Peter Kirmeier
+//Copyright(c) 2016-2026 Peter Kirmeier
 //
 //Permission Is hereby granted, free Of charge, to any person obtaining a copy
 //of this software And associated documentation files (the "Software"), to deal
@@ -21,13 +21,7 @@
 //SOFTWARE.
 
 using IFR;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Reflection;
-using System.Windows.Forms;
 using static IFR.IFRHelper;
 
 namespace IfrViewer
@@ -61,24 +55,24 @@ namespace IfrViewer
             Show();
 
             // Load project from command line argument (when available)
-            List<string> Files = new List<string>();
+            List<string> Files = [];
             Boolean DoTranslate = false;
             Boolean DoHTML = false;
             foreach (string arg in Environment.GetCommandLineArgs().SubArray(1, Environment.GetCommandLineArgs().Length-1))
             {
-                if (arg.StartsWith("-")) // is option?
+                if (arg.StartsWith('-')) // is option?
                 {
                     if (arg.Equals("-P")) // Start package
                     {
                         if (0 < Files.Count) // Parse previous package before loading next one..
                         {
-                            LoadFiles(Files.ToArray()); // Load files of current package
+                            LoadFiles([.. Files]); // Load files of current package
                             Files.Clear();
                         }
                     }
                     else if (arg.StartsWith("-L=")) // Set display language
                     {
-                        ts_parse_lang.Text = arg.Substring(3);
+                        ts_parse_lang.Text = arg[3..];
                     }
                     else if (arg.Equals("-T")) // Do Translation (Parsing logical tree)
                     {
@@ -92,7 +86,7 @@ namespace IfrViewer
                 }
                 else Files.Add(arg); // argument is a file
             }
-            LoadFiles(Files.ToArray()); // Load last package
+            LoadFiles([.. Files]); // Load last package
 
             if (0 == tv_tree.Nodes.Count)
                 tv_details.Nodes.Add(EmptyDetails);
@@ -101,10 +95,10 @@ namespace IfrViewer
             EmptyTree.Tag = EmptyDetails;
 
             if (DoTranslate) // Parse logical tree
-                parseLogicalViewToolStripMenuItem_Click(null, null);
+                ParseLogicalViewToolStripMenuItem_Click(null, null);
 
             if (DoHTML) // Create HTML output
-                createHTMLToolStripMenuItem_Click(null, null);
+                CreateHTMLToolStripMenuItem_Click(null, null);
         }
 
         /// <summary>
@@ -132,20 +126,20 @@ namespace IfrViewer
 
             splitContainer1.Width = ClientSize.Width - 24;
             splitContainer1.Height = ClientSize.Height - 24;
-            splitContainer1_SplitterMoved(sender, null);
+            SplitContainer1_SplitterMoved(sender, null);
         }
 
-        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        private void SplitContainer1_SplitterMoved(object? sender, SplitterEventArgs? e)
         {
             tabControl1.Width = splitContainer1.Panel1.Width - 9;
             tabControl1.Height = splitContainer1.Panel1.Height - 6;
-            tabControl1_SizeChanged(sender, null);
+            TabControl1_SizeChanged(sender, null);
             splitContainer2.Width = splitContainer1.Panel2.Width - 6;
             splitContainer2.Height = splitContainer1.Panel2.Height - 6;
-            splitContainer2_SplitterMoved(sender, null);
+            SplitContainer2_SplitterMoved(sender, null);
         }
 
-        private void splitContainer2_SplitterMoved(object sender, SplitterEventArgs e)
+        private void SplitContainer2_SplitterMoved(object? sender, SplitterEventArgs? e)
         {
             tv_details.Width = splitContainer2.Panel1.Width - 6;
             tv_details.Height = splitContainer2.Panel1.Height - 6;
@@ -153,13 +147,15 @@ namespace IfrViewer
             log.Height = splitContainer2.Panel2.Height - 6;
         }
 
-        private void tabControl1_SizeChanged(object sender, EventArgs e)
+        private void TabControl1_SizeChanged(object? sender, EventArgs? e)
         {
-            Control ActiveParent = tabControl1.SelectedTab;
-            tv_tree.Width = ActiveParent.Width;
-            tv_tree.Height = ActiveParent.Height;
-            tv_logical.Width = ActiveParent.Width;
-            tv_logical.Height = ActiveParent.Height;
+            if (tabControl1.SelectedTab is Control ActiveParent)
+            {
+                tv_tree.Width = ActiveParent.Width;
+                tv_tree.Height = ActiveParent.Height;
+                tv_logical.Width = ActiveParent.Width;
+                tv_logical.Height = ActiveParent.Height;
+            }
         }
 
         /// <summary>
@@ -169,7 +165,7 @@ namespace IfrViewer
         /// <param name="text">Displayed text of new node</param>
         /// <param name="obj">Object added to node for reference</param>
         /// <returns>New created tree node</returns>
-        private TreeNode AddTreeNode(TreeNode root, string text, object obj)
+        private static TreeNode AddTreeNode(TreeNode root, string text, object obj)
         {
             TreeNode leaf = root.Nodes.Add(text);
             leaf.Tag = obj;
@@ -179,22 +175,24 @@ namespace IfrViewer
         /// <summary>
         /// Updates the details window when a tree node gets selected by user
         /// </summary>
-        private void tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
+        private void Tv_tree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            ShowAtDetails(e.Node.Tag, e.Node.Name);
+            ShowAtDetails(e.Node?.Tag, e.Node?.Name);
         }
 
         /// <summary>
         /// Handles drag and drop operation in order to load further files
         /// </summary>
         /// <param name="e">Argument must contain DragEventArgs</param>
-        void DragDropWorker_DoWork(object sender, DoWorkEventArgs e)
+        void DragDropWorker_DoWork(object? sender, DoWorkEventArgs e)
         {
-            DragEventArgs drag_args = (DragEventArgs)e.Argument;
-            string[] DroppedPathList = (string[])drag_args.Data.GetData(DataFormats.FileDrop);
-            List<string> DroppedFiles = new List<string>();
+            DragEventArgs? drag_args = (DragEventArgs?)e.Argument;
+            string[]? DroppedPathList = (string[]?)drag_args?.Data?.GetData(DataFormats.FileDrop);
+            if (DroppedPathList is null)
+                return;
 
             // get all files of the dropped object(s) and add them..
+            List<string> DroppedFiles = [];
             foreach (string path in DroppedPathList)
             {
                 if (Directory.Exists(path))
@@ -211,7 +209,7 @@ namespace IfrViewer
             DragDropWorker.RunWorkerAsync(e);
         }
 
-        private void tv_tree_DragOver(object sender, DragEventArgs e)
+        private void Tv_tree_DragOver(object sender, DragEventArgs e)
         {
             if (null != GetTreeNodeAtPoint(sender, e.X, e.Y)) // Is draging onto a tree node?
                 e.Effect = DragDropEffects.Link; // Allow dropping files into existing package
@@ -221,28 +219,28 @@ namespace IfrViewer
 
         private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy; // Allow dopping files
+            if (e.Data?.GetDataPresent(DataFormats.FileDrop) ?? false) e.Effect = DragDropEffects.Copy; // Allow dopping files
         }
 
-        private void parseLogicalViewToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ParseLogicalViewToolStripMenuItem_Click(object? sender, EventArgs? e)
         {
             ParseAllFiles(ts_parse_lang.Text);
             tabControl1.SelectedIndex = 1;
         }
 
-        private void createHTMLToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CreateHTMLToolStripMenuItem_Click(object? sender, EventArgs? e)
         {
             CreateHTMLFiles(ts_parse_lang.Text, printDetailsIntoHtmlToolStripMenuItem.Checked);
         }
 
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
 
-        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        private void HelpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            (new About()).ShowDialog(this);
+            new About().ShowDialog(this);
         }
 
         /// <summary>
@@ -251,9 +249,9 @@ namespace IfrViewer
         /// <param name="sender">TreeView object to search</param>
         /// <param name="x">Position X</param>
         /// <param name="x">Position Y</param>
-        private TreeNode GetTreeNodeAtPoint(object sender, int x, int y)
+        private static TreeNode? GetTreeNodeAtPoint(object sender, int x, int y)
         {
-            if (!(sender is TreeView))
+            if (sender is not TreeView)
                 return null;
 
             TreeView tv_sender = (TreeView)sender;
@@ -269,11 +267,11 @@ namespace IfrViewer
         /// <param name="e">Drag and drop event arguments</param>
         private void DragDropFiles(string[] filepaths, DragEventArgs e)
         {
-            TreeNode RootNode = null;
+            TreeNode? RootNode = null;
             if (DragDropEffects.Link == e.Effect) // object needs to be linked with an existing node?
             {
                 RootNode = GetTreeNodeAtPoint(tv_tree, e.X, e.Y);
-                while (null != RootNode.Parent) RootNode = RootNode.Parent;
+                while (null != RootNode?.Parent) RootNode = RootNode.Parent;
             }
             LoadFiles(filepaths, RootNode);
         }
@@ -284,14 +282,14 @@ namespace IfrViewer
         /// </summary>
         /// <param name="filepaths">List of files to load</param>
         /// <param name="ParentNode">Optional node the loaded packages are added to</param>
-        private void LoadFiles(string[] filepaths, TreeNode ParentNode = null)
+        private void LoadFiles(string[] filepaths, TreeNode? ParentNode = null)
         {
-            Cursor previousCursor = Cursor.Current;
+            Cursor? previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
 
-            List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+            List<HiiPackageBase> Packages = [];
 
-            TreeNode PkgNodeRaw = ParentNode;
+            TreeNode? PkgNodeRaw = ParentNode;
             if (null == PkgNodeRaw) // use given parent or create it
             {
                 PkgNodeRaw = tv_tree.Nodes.Add("Package");
@@ -305,7 +303,7 @@ namespace IfrViewer
             {
                 CreateLogEntryMain(LogSeverity.INFO, "Loading file \"" + filename + "\" ...");
 
-                HPKfile hpk = null;
+                HPKfile? hpk = null;
                 try
                 {
                     hpk = new HPKfile(filename);
@@ -327,14 +325,17 @@ namespace IfrViewer
                     tv_tree.EndUpdate();
 
                     // Collect all new packages of this file
-                    foreach (HiiPackageBase hpkpkg in hpk.Childs)
+                    foreach (HiiPackageBase hpkpkg in hpk.Childs.Cast<HiiPackageBase>())
                         Packages.Add(hpkpkg);
                 }
             }
 
             CreateLogEntryMain(LogSeverity.SUCCESS, "Loading files completed!");
 
-            Cursor.Current = previousCursor;
+            if (previousCursor is not null)
+            {
+                Cursor.Current = previousCursor;
+            }
         }
 
         /// <summary>
@@ -343,28 +344,29 @@ namespace IfrViewer
         /// <param name="Language">Primary language</param>
         private void ParseAllFiles(string Language)
         {
-            Cursor previousCursor = Cursor.Current;
+            Cursor? previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
 
             CreateLogEntryMain(LogSeverity.INFO, "Parsing packages...");
 
-            tv_logical.Parent.Text = "Logical Tree (\"" + Language + "\")";
+            tv_logical.Parent?.Text = "Logical Tree (\"" + Language + "\")";
             tv_logical.Nodes.Clear();
 
             foreach (TreeNode node_files in tv_tree.Nodes)
             {
-                List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+                List<HiiPackageBase> Packages = [];
 
                 TreeNode PkgNodeLogical = tv_logical.Nodes.Add("Package");
                 PkgNodeLogical.Tag = EmptyDetails;
 
                 // Collect all HII packages of the files that are building a logical package
                 foreach (TreeNode node_pkg in node_files.Nodes)
-                    foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
-                        Packages.Add(hpk);
+                    if (node_pkg.Tag is HPKfile hpkfile)
+                        foreach (HiiPackageBase hpk in hpkfile.Childs.Cast<HiiPackageBase>())
+                            Packages.Add(hpk);
 
-                ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
-                ParsedHpkContainer ParsedHpkContainer = new ParsedHpkContainer(Packages, HpkStrings);
+                ParsedHpkStringContainer HpkStrings = new(Packages, Language);
+                ParsedHpkContainer ParsedHpkContainer = new(Packages, HpkStrings);
 
                 // Since HPKs interact with each other, build logical tree after loading is completely done
                 foreach (ParsedHpkNode pkg in ParsedHpkContainer.HpkPackages)
@@ -390,7 +392,10 @@ namespace IfrViewer
 
             CreateLogEntryMain(LogSeverity.SUCCESS, "Parsing packages completed!");
 
-            Cursor.Current = previousCursor;
+            if (previousCursor is not null)
+            {
+                Cursor.Current = previousCursor;
+            }
         }
 
         /// <summary>
@@ -400,22 +405,23 @@ namespace IfrViewer
         /// <param name="bShowDetails">Printing details into HTML</param>
         private void CreateHTMLFiles(string Language, bool bShowDetails)
         {
-            Cursor previousCursor = Cursor.Current;
+            Cursor? previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
 
             CreateLogEntryMain(LogSeverity.INFO, "Creating HTML output...");
 
             foreach (TreeNode node_files in tv_tree.Nodes)
             {
-                List<HiiPackageBase> Packages = new List<HiiPackageBase>();
+                List<HiiPackageBase> Packages = [];
 
                 // Collect all HII packages of the files that are building a logical package
                 foreach (TreeNode node_pkg in node_files.Nodes)
-                    foreach (HiiPackageBase hpk in (node_pkg.Tag as HPKfile).Childs)
-                        Packages.Add(hpk);
+                    if (node_pkg.Tag is HPKfile hpkfile)
+                        foreach (HiiPackageBase hpk in hpkfile.Childs.Cast<HiiPackageBase>())
+                            Packages.Add(hpk);
 
-                ParsedHpkStringContainer HpkStrings = new ParsedHpkStringContainer(Packages, Language);
-                HtmlBuilder HtmlBuilder = new HtmlBuilder(Packages, HpkStrings, bShowDetails, printCompactHtmlToolStripMenuItem.Checked);
+                ParsedHpkStringContainer HpkStrings = new(Packages, Language);
+                HtmlBuilder HtmlBuilder = new(Packages, HpkStrings, bShowDetails, printCompactHtmlToolStripMenuItem.Checked);
             }
 
             // TODO!
@@ -424,7 +430,10 @@ namespace IfrViewer
             //else
             CreateLogEntryMain(LogSeverity.SUCCESS, "Creating HTML output completed!");
 
-            Cursor.Current = previousCursor;
+            if (previousCursor is not null)
+            {
+                Cursor.Current = previousCursor;
+            }
         }
 
         /// <summary>
@@ -432,7 +441,7 @@ namespace IfrViewer
         /// </summary>
         /// <param name="elem">Root node of HPK tree</param>
         /// <param name="root">Root node of target tree</param>
-        private void ShowAtRawTree(HPKElement elem, TreeNode root)
+        private static void ShowAtRawTree(HPKElement elem, TreeNode root)
         {
             // add all child elements to the tree..
             if (elem.Childs.Count > 0)
@@ -450,7 +459,7 @@ namespace IfrViewer
         /// </summary>
         /// <param name="node">Root node of parsed HPK tree</param>
         /// <param name="root">Root node of target tree</param>
-        private void ShowAtLogicalTree(ParsedHpkNode node, TreeNode root)
+        private static void ShowAtLogicalTree(ParsedHpkNode node, TreeNode root)
         {
             // add all child elements to the tree..
             if (node.Childs.Count > 0)
@@ -468,9 +477,9 @@ namespace IfrViewer
         /// </summary>
         /// <param name="obj">Object to be displayed</param>
         /// <param name="name">Name of the displayed object (in case of error)</param>
-        private void ShowAtDetails(object obj, string name)
+        private void ShowAtDetails(object? obj, string? name)
         {
-            Cursor previousCursor = Cursor.Current;
+            Cursor? previousCursor = Cursor.Current;
             Cursor.Current = Cursors.WaitCursor;
             tv_details.BeginUpdate();
 
@@ -481,9 +490,8 @@ namespace IfrViewer
                 tv_details.Nodes.Add(EmptyDetails);
                 CreateLogEntryMain(LogSeverity.WARNING, "No data found for \"" + name + "\"!");
             }
-            else if (obj is HPKElement)
+            else if (obj is HPKElement elem)
             {
-                HPKElement elem = (HPKElement)obj;
                 const uint BytesPerLine = 16;
 
                 // add common elements..
@@ -498,7 +506,7 @@ namespace IfrViewer
                     if ((HeaderRaw != null) && (showRawInDetailsWindowToolStripMenuItem.Checked))
                     {
                         TreeNode leaf = branch.Nodes.Add("__RAW");
-                        foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                        foreach (string line in HeaderRaw.HexDump(BytesPerLine).Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries))
                             leaf.Nodes.Add(line);
                     }
                     // handle managed..
@@ -520,7 +528,7 @@ namespace IfrViewer
                     if ((PayloadRaw != null) && (showRawInDetailsWindowToolStripMenuItem.Checked))
                     {
                         TreeNode leaf = branch.Nodes.Add("__RAW");
-                        foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                        foreach (string line in PayloadRaw.HexDump(BytesPerLine).Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries))
                             leaf.Nodes.Add(line);
                     }
                     // handle managed..
@@ -546,18 +554,21 @@ namespace IfrViewer
             }
 
             tv_details.EndUpdate();
-            Cursor.Current = previousCursor;
+
+            if (previousCursor is not null)
+            {
+                Cursor.Current = previousCursor;
+            }
         }
 
         /// <summary>
         /// Handler for CTRL+C copy shortcut on tree view nodes
         /// Copies the tree node's text to clipboard
         /// </summary>
-        private void tv_KeyDown(object sender, KeyEventArgs e)
+        private void Tv_KeyDown(object sender, KeyEventArgs e)
         {
-            if (sender is TreeView)
+            if (sender is TreeView tv)
             {
-                TreeView tv = (TreeView)sender;
                 if (e.KeyData == (Keys.Control | Keys.C))
                 {
                     if (tv.SelectedNode != null)
