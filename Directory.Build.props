@@ -1,0 +1,21 @@
+<Project>
+<!--
+SPDX-FileCopyrightText: © 2026 Peter Kirmeier
+SPDX-License-Identifier: MIT
+-->
+  <PropertyGroup>
+    <Version>0.9.0.0</Version>
+    <Product>IfrViewer</Product>
+    <FileVersion>$(Version)</FileVersion>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <AssemblyName>$(Product)</AssemblyName>
+    <AssemblyTitle>Viewer for IFR structures</AssemblyTitle>
+    <NeutralLanguage>en</NeutralLanguage>
+
+    <Authors>Peter Kirmeier</Authors>
+    <Company>$(Authors)</Company>
+    <Copyright>Copyright © $(Authors) $([System.DateTime]::Now.Year)</Copyright>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

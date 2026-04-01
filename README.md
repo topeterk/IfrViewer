@@ -22,7 +22,7 @@ Tool that is able to read a binary HPK package and most (hopefully all in future
 All available releases can be found at the [Releases page](../../releases) on GitHub.
 
 ## Systemrequirements
-.Net Framework 4.5
+.Net 10
 
 ## Front-End
 > Please visit the **[Wiki pages](../../wiki)** for some screenshots.

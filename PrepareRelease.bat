@@ -2,7 +2,7 @@
 
 REM MIT License
 
-REM Copyright(c) 2019 Peter Kirmeier
+REM Copyright(c) 2019-2026 Peter Kirmeier
 
 REM Permission is hereby granted, free of charge, to any person obtaining a copy
 REM of this software and associated documentation files (the "Software"), to deal
@@ -32,14 +32,14 @@ set PR_FINAL=FinalFiles
 if not exist %PR_FINAL% mkdir %PR_FINAL%
 
 echo Packing Portable Release:
-set PR_BASE=bin\Release
+set PR_BASE=bin\Release\net10.0-windows
 set PR_TARGET=%PR_FINAL%\ReleasePortable
 set PR_OUTPUT=%PR_FINAL%\IfrViewer_Portable_v1.x.y.z.zip
 rmdir /S /Q %PR_TARGET% 2>nul
 mkdir %PR_TARGET%
 
 echo ^ ^ Copy files from %PR_BASE%
-FOR %%G IN (IfrViewer.exe) DO copy %PR_BASE%\%%G %PR_TARGET%
+FOR %%G IN (IfrViewer.exe IfrViewer.dll IfrViewer.dll.config IfrViewer.runtimeconfig.json) DO copy %PR_BASE%\%%G %PR_TARGET%
 
 del %PR_OUTPUT% 2>nul
 7z a %PR_OUTPUT% .\%PR_TARGET%\*
