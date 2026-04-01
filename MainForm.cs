@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using static IFR.IFRHelper;
 
@@ -49,7 +50,8 @@ namespace IfrViewer
         private void MainForm_Load(object sender, EventArgs e)
         {
             // Update Version
-            Text += " - v" + Application.ProductVersion + " (UEFI 2.6)";
+            AssemblyName ApplicationName = Assembly.GetEntryAssembly()?.GetName() ?? Assembly.GetExecutingAssembly().GetName();
+            Text += " - v" + ApplicationName.Version + " (UEFI 2.6)";
 
             // Set size of window to 80 percent by default
             MainForm_SizeChanged(sender, e);
