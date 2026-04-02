@@ -2424,7 +2424,17 @@ namespace IfrViewer
         EfiKeyF12,
         EfiKeyPrint,
         EfiKeySLck,
-        EfiKeyPause
+        EfiKeyPause,
+        EfiKeyIntl0,
+        EfiKeyIntl1,
+        EfiKeyIntl2,
+        EfiKeyIntl3,
+        EfiKeyIntl4,
+        EfiKeyIntl5,
+        EfiKeyIntl6,
+        EfiKeyIntl7,
+        EfiKeyIntl8,
+        EfiKeyIntl9
     }
     EFI_KEY;
 
