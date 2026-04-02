@@ -20,9 +20,6 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Emit;
-
 namespace IFR
 {
     /// <summary>
@@ -91,7 +88,7 @@ namespace IFR
                 if (data_payload.Length < ifr_hdr.Length + offset)
                     throw new Exception("Payload length invalid");
 
-                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
+                IfrRawDataBlock raw_data = new(data_payload.Bytes, data_payload.Offset + offset, ifr_hdr.Length);
                 HiiIfrOpCode ifr_element;
 
                 switch (ifr_hdr.OpCode)
@@ -251,7 +248,7 @@ namespace IFR
         {
             EFI_IFR_OP_HEADER hdr = data.ToIfrType<EFI_IFR_OP_HEADER>();
             this.OpCode = hdr.OpCode;
-            this.HasOwnScope = hdr.Scope == 1 ? true : false;
+            this.HasOwnScope = hdr.Scope == 1;
         }
     }
 
@@ -307,7 +304,7 @@ namespace IFR
     {
         public HiiIfrOpCodeFormSet(IfrRawDataBlock raw) : base(raw)
         {
-            this._Payload = new List<EFI_GUID>();
+            this._Payload = [];
 
             // Parse all GUIDs..
             uint offset = 0;
@@ -341,7 +338,7 @@ namespace IFR
         }
         public HiiIfrOpCodeWithAsciiNullTerminatedString(IfrRawDataBlock raw) : base(raw)
         {
-            NamedPayload_t pl = new NamedPayload_t();
+            NamedPayload_t pl = new();
             if (data_payload is null)
                 LogMessage(LogSeverity.ERROR, Name + ": Payload is null!");
             else
@@ -418,7 +415,7 @@ namespace IFR
     {
         public HiiIfrOpCodeEqIdList(IfrRawDataBlock raw) : base(raw)
         {
-            this._Payload = new List<IfrTypeUINT16>();
+            this._Payload = [];
 
             // Parse all IDs..
             uint offset = 0;
@@ -555,7 +552,7 @@ namespace IFR
     {
         public HiiIfrOpCodeFormMap(IfrRawDataBlock raw) : base(raw)
         {
-            this._Payload = new List<EFI_IFR_FORM_MAP_METHOD>();
+            this._Payload = [];
 
             // Parse all methods..
             uint offset = 0;
@@ -606,7 +603,7 @@ namespace IFR
             uint offset = (uint)_Payload.Language.Length + 1;
             while (offset < data_payload.Length)
             {
-                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, data_payload.Length - offset);
+                IfrRawDataBlock raw_data = new(data_payload.Bytes, data_payload.Offset + offset, data_payload.Length - offset);
                 EFI_HII_STRING_BLOCK block_hdr = raw_data.ToIfrType<EFI_HII_STRING_BLOCK>();
                 HPKElement hpk_element;
 

@@ -49,7 +49,7 @@ namespace IfrViewer
         public ParsedHpkContainer(List<HiiPackageBase> Packages, ParsedHpkStringContainer HpkStrings)
         {
             this.HpkStrings = HpkStrings;
-            HpkPackages = new List<ParsedHpkNode>();
+            HpkPackages = [];
 
             // Copy HPK strings to HPK packages to be shown in logical view, too..
             foreach (ParsedHpkNode pkg in HpkStrings.HpkPackages)
@@ -59,7 +59,7 @@ namespace IfrViewer
             {
                 try
                 {
-                    ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
+                    ParsedHpkNode root = new(pkg, pkg.Name);
                     switch (pkg.PackageType)
                     {
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
@@ -89,7 +89,7 @@ namespace IfrViewer
         /// <param name="root">Tree node which new nodes will be added to</param>
         private void ParsePackageIfr(HPKElement hpkelem, ParsedHpkNode root)
         {
-            ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
+            ParsedHpkNode branch = new(hpkelem, hpkelem.Name);
             HiiIfrOpCode elem = (HiiIfrOpCode)hpkelem;
             bool bProcessChilds = true;
 
@@ -99,7 +99,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_FORM_SET_OP:
                     {
                         EFI_IFR_FORM_SET hdr = (EFI_IFR_FORM_SET)elem.Header;
-                        ParsedHpkNode leaf = new ParsedHpkNode(hpkelem, "");
+                        ParsedHpkNode leaf = new(hpkelem, "");
                         string prefix = "FormSet";
                         branch.Name = prefix + " \"" + HpkStrings.GetString(hdr.FormSetTitle, hpkelem.UniqueID) + "\"";
                         leaf.Name = prefix + "-Help = " + HpkStrings.GetString(hdr.Help, hpkelem.UniqueID);
@@ -112,9 +112,9 @@ namespace IfrViewer
                             branch.Childs.Add(leaf);
                         }
 
-                        ParsedHpkNode varstores = new ParsedHpkNode(hpkelem, prefix + "-Varstores");
+                        ParsedHpkNode varstores = new(hpkelem, prefix + "-Varstores");
                         branch.Childs.Add(varstores);
-                        foreach (HiiIfrOpCode child in elem.Childs)
+                        foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                         {
                             switch (child.OpCode)
                             {
@@ -144,63 +144,48 @@ namespace IfrViewer
                         string FormIdString = "FormId = ";
                         string FormSetIdString = "FormSetId = ";
                         string QuestionId = "QuestionId = ";
-                        string InfoString = "";
+                        string InfoString;
                         string? RefName = null;
                         switch (hpkelem.Header.GetType().Name)
                         {
                             case "EFI_IFR_REF":
                                 {
                                     EFI_IFR_REF ifr_hdr = (EFI_IFR_REF)hpkelem.Header;
-                                    FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
-                                    InfoString = FormIdString;
+                                    InfoString = FormIdString + (ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5));
                                     RefName = HpkStrings.GetString(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF2":
                                 {
                                     EFI_IFR_REF2 ifr_hdr = (EFI_IFR_REF2)hpkelem.Header;
-                                    FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
-                                    if (0 == ifr_hdr.QuestionId)
-                                        QuestionId = "";
-                                    else
-                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
-                                    InfoString = FormIdString + ", " + QuestionId;
+                                    InfoString = FormIdString + (ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5));
+                                    if (0 != ifr_hdr.QuestionId) InfoString += ", " + QuestionId + ifr_hdr.QuestionId.ToDecimalString(5);
                                     RefName = HpkStrings.GetString(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF3":
                                 {
                                     EFI_IFR_REF3 ifr_hdr = (EFI_IFR_REF3)hpkelem.Header;
-                                    FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
-                                    if (0 == ifr_hdr.QuestionId)
-                                        QuestionId = "";
-                                    else
-                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
-                                    InfoString = FormIdString + ", " + QuestionId;
-                                    FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
-                                    InfoString = FormIdString + ", " + FormSetIdString;
+                                    InfoString = FormIdString + (ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5));
+                                    if (0 != ifr_hdr.QuestionId) InfoString += ", " + QuestionId + ifr_hdr.QuestionId.ToDecimalString(5);
+                                    InfoString += ", " + FormSetIdString + ifr_hdr.FormSetId.Guid.ToString();
                                     RefName = HpkStrings.GetString(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF4":
                                 {
                                     EFI_IFR_REF4 ifr_hdr = (EFI_IFR_REF4)hpkelem.Header;
-                                    FormIdString += ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5);
-                                    if (0 == ifr_hdr.QuestionId)
-                                        QuestionId = "";
-                                    else
-                                        QuestionId += ifr_hdr.QuestionId.ToDecimalString(5);
-                                    InfoString = FormIdString + ", " + QuestionId;
-                                    FormSetIdString += ifr_hdr.FormSetId.Guid.ToString();
-                                    InfoString = FormIdString + ", " + FormSetIdString + ", DevicePath = \"" + HpkStrings.GetString(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
+                                    InfoString = FormIdString + (ifr_hdr.FormId == 0 ? "Current" : ifr_hdr.FormId.ToDecimalString(5));
+                                    if (0 != ifr_hdr.QuestionId) InfoString += ", " + QuestionId + ifr_hdr.QuestionId.ToDecimalString(5);
+                                    InfoString += ", " + FormSetIdString + ifr_hdr.FormSetId.Guid.ToString();
+                                    InfoString += ", DevicePath = \"" + HpkStrings.GetString(ifr_hdr.DevicePath, hpkelem.UniqueID) + "\"";
                                     RefName = HpkStrings.GetString(ifr_hdr.Question.Header.Prompt, hpkelem.UniqueID);
                                 }
                                 break;
                             case "EFI_IFR_REF5":
                                 {
-                                    EFI_IFR_REF5 ifr_hdr = (EFI_IFR_REF5)hpkelem.Header;
-                                    FormIdString += "Nested";
-                                    InfoString = FormIdString;
+                                    //EFI_IFR_REF5 ifr_hdr = (EFI_IFR_REF5)hpkelem.Header;
+                                    InfoString = FormIdString + "Nested";
                                 }
                                 break;
                             default:
@@ -215,7 +200,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_FORM_MAP_OP:
                     {
                         EFI_IFR_FORM_MAP hdr = (EFI_IFR_FORM_MAP)elem.Header;
-                        ParsedHpkNode leaf = new ParsedHpkNode(hpkelem, "");
+                        ParsedHpkNode leaf = new(hpkelem, "");
                         string prefix = "FormMap";
                         branch.Name = prefix + " Id = " + hdr.FormId.ToDecimalString(5);
                         foreach (EFI_IFR_FORM_MAP_METHOD method in (List<EFI_IFR_FORM_MAP_METHOD>?)elem.Payload ?? [])
@@ -425,7 +410,7 @@ namespace IfrViewer
                             else
                             {
                                 // Child index: 0 = Value opcode, 1 = END opcode
-                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
+                                ParsedHpkNode leaf = new(elem.Childs[0], "Nested value = " + HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
                                 branch.Childs.Add(leaf);
                                 bProcessChilds = false;
                             }
@@ -530,7 +515,7 @@ namespace IfrViewer
                             else
                             {
                                 // Child index: 0 = Value opcode, 1 = END opcode
-                                ParsedHpkNode leaf = new ParsedHpkNode(elem.Childs[0], "Nested value = " + HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
+                                ParsedHpkNode leaf = new(elem.Childs[0], "Nested value = " + HpkStrings.GetIfrLogicString((HiiIfrOpCode)elem.Childs[0]));
                                 branch.Childs.Add(leaf);
                                 bProcessChilds = false;
                             }
@@ -544,7 +529,7 @@ namespace IfrViewer
             }
 
             if (bProcessChilds)
-                foreach (HiiIfrOpCode child in elem.Childs)
+                foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                     ParsePackageIfr(child, branch);
 
             root.Childs.Add(branch);

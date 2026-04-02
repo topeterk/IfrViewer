@@ -199,7 +199,7 @@ namespace IFR
                 if (IdxNull == -1)
                     throw new Exception("Expected string is not NULL terminated!");
 
-                return System.Text.Encoding.ASCII.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
+                return Encoding.ASCII.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
             }
         }
 
@@ -228,7 +228,7 @@ namespace IFR
                 if (IdxNull == -1)
                     throw new Exception("Expected string is not NULL terminated!");
 
-                return System.Text.Encoding.Unicode.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
+                return Encoding.Unicode.GetString(Bytes.SubArray(IdxStart, IdxNull - IdxStart)); ;
             }
         }
         #endregion
@@ -358,7 +358,7 @@ namespace IFR
 
             char[] line = (new String(' ', lineLength - 2) + Environment.NewLine).ToCharArray();
             int expectedLines = (bytesLength + bytesPerLine - 1) / bytesPerLine;
-            System.Text.StringBuilder result = new System.Text.StringBuilder(expectedLines * lineLength);
+            StringBuilder result = new(expectedLines * lineLength);
 
             for (int i = 0; i < bytesLength; i += bytesPerLine)
             {
@@ -400,7 +400,7 @@ namespace IFR
         #endregion
 
         #region Methods specific for numeric bitmasks
-        private static T _internal_GetBits<T>(UINT64 Value, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
+        private static T Internal_GetBits<T>(UINT64 Value, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
         {
             return (T)(dynamic)((Value >> ShiftedOffset) & BitMask);
         }
@@ -417,7 +417,7 @@ namespace IFR
         /// <returns>Value of selected bits</returns>
         public static T GetBits<T>(this UINT64 Value, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+            return Internal_GetBits<T>(Value, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Gets a typecasted value from a bit mask represented by the object's numeric value.
@@ -431,7 +431,7 @@ namespace IFR
         /// <returns>Value of selected bits</returns>
         public static T GetBits<T>(this UINT32 Value, UINT32 BitMask = UINT32.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+            return Internal_GetBits<T>(Value, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Gets a typecasted value from a bit mask represented by the object's numeric value.
@@ -445,7 +445,7 @@ namespace IFR
         /// <returns>Value of selected bits</returns>
         public static T GetBits<T>(this UINT16 Value, UINT16 BitMask = UINT16.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+            return Internal_GetBits<T>(Value, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Gets a typecasted value from a bit mask represented by the object's numeric value.
@@ -459,11 +459,11 @@ namespace IFR
         /// <returns>Value of selected bits</returns>
         public static T GetBits<T>(this UINT8 Value, UINT8 BitMask = UINT8.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_GetBits<T>(Value, BitMask, ShiftedOffset);
+            return Internal_GetBits<T>(Value, BitMask, ShiftedOffset);
         }
         #endregion
 
-        private static T _internal_SetBits<T>(UINT64 Value, UINT64 NewValue, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
+        private static T Internal_SetBits<T>(UINT64 Value, UINT64 NewValue, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0)
         {
             return (T)(dynamic)((Value & ~(BitMask << ShiftedOffset)) | ((NewValue & BitMask) << ShiftedOffset));
         }
@@ -480,7 +480,7 @@ namespace IFR
         /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
         public static UINT64 SetBits<T>(UINT64 OldValue, T NewValue, UINT64 BitMask = UINT64.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_SetBits<UINT64>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+            return Internal_SetBits<UINT64>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
@@ -494,7 +494,7 @@ namespace IFR
         /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
         public static UINT32 SetBits<T>(UINT32 OldValue, T NewValue, UINT32 BitMask = UINT32.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_SetBits<UINT32>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+            return Internal_SetBits<UINT32>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
@@ -508,7 +508,7 @@ namespace IFR
         /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
         public static UINT16 SetBits<T>(UINT16 OldValue, T NewValue, UINT16 BitMask = UINT16.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_SetBits<UINT16>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+            return Internal_SetBits<UINT16>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
         }
         /// <summary>
         /// Sets bits of the object's numeric value to a typecasted numeric value in the masked bitfield.
@@ -522,7 +522,7 @@ namespace IFR
         /// <param name="ShiftedOffset">Amount of bits shifted, default = 0</param>
         public static UINT8 SetBits<T>(UINT8 OldValue, T NewValue, UINT8 BitMask = UINT8.MaxValue, UINT8 ShiftedOffset = 0) where T : IConvertible
         {
-            return _internal_SetBits<UINT8>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
+            return Internal_SetBits<UINT8>(OldValue, (UINT64)(dynamic)NewValue, BitMask, ShiftedOffset);
         }
         #endregion
         #endregion
@@ -561,7 +561,7 @@ namespace IFR
             if (log != null)
             {
                 // print debug message and assign color
-                log.Rows[log.Rows.Add(new object[]{ typename, origin, msg.Replace(Environment.NewLine, Environment.NewLine + " > ") })].SetRowBackgroundColor(color);
+                log.Rows[log.Rows.Add([typename, origin, msg.Replace(Environment.NewLine, Environment.NewLine + " > ")])].SetRowBackgroundColor(color);
                 log.AutoResizeColumns();
                 log.AutoResizeRow(log.Rows.Count - 1);
             }
@@ -602,8 +602,8 @@ namespace IFR
         private UINT8 _Type;
         // UINT8  Data[...];
 
-        public UINT32 Length { get { return _Length.GetBits<UINT32>(0x00FFFFFF); } set { _Length = SetBits<UINT32>(_Length, value, 0x00FFFFFF); } }
-        public EFI_HII_PACKAGE_e Type { get { return _Type.GetBits<EFI_HII_PACKAGE_e>(); } set { _Type = SetBits(_Type, value); } }
+        public UINT32 Length { readonly get { return _Length.GetBits<UINT32>(0x00FFFFFF); } set { _Length = SetBits<UINT32>(_Length, value, 0x00FFFFFF); } }
+        public EFI_HII_PACKAGE_e Type { readonly get { return _Type.GetBits<EFI_HII_PACKAGE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     /// <summary>
@@ -927,7 +927,7 @@ namespace IFR
         private UINT8 _BlockType;
         // UINT8 BlockBody[...];
 
-        public EFI_HII_SIBT_e BlockType { get { return _BlockType.GetBits<EFI_HII_SIBT_e>(); } set { _BlockType = SetBits(_BlockType, value); } }
+        public EFI_HII_SIBT_e BlockType { readonly get { return _BlockType.GetBits<EFI_HII_SIBT_e>(); } set { _BlockType = SetBits(_BlockType, value); } }
     }
 
     /// <summary>
@@ -1466,9 +1466,9 @@ namespace IFR
         private UINT8 _OpCode;
         private UINT8 _LengthAndscope;
         
-        public EFI_IFR_OPCODE_e OpCode { get { return _OpCode.GetBits<EFI_IFR_OPCODE_e>(); } set { _OpCode = SetBits(_OpCode, value); } }
-        public UINT8 Length { get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x7F); } }
-        public UINT8 Scope { get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x01, 7); } }
+        public EFI_IFR_OPCODE_e OpCode { readonly get { return _OpCode.GetBits<EFI_IFR_OPCODE_e>(); } set { _OpCode = SetBits(_OpCode, value); } }
+        public UINT8 Length { readonly get { return _LengthAndscope.GetBits<UINT8>(0x7F); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x7F); } }
+        public UINT8 Scope { readonly get { return _LengthAndscope.GetBits<UINT8>(0x01,7); } set { _LengthAndscope = SetBits(_LengthAndscope, value, 0x01, 7); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 4)]
@@ -1496,7 +1496,7 @@ namespace IFR
         public EFI_IFR_QUESTION_HEADER_VarStoreInfo VarStoreInfo;
         private UINT8 _Flags;
 
-        public EFI_IFR_QUESTION_HEADER_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_QUESTION_HEADER_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_QUESTION_HEADER_FLAGS_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_QUESTION_HEADER_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
      };
 
     /// <summary>
@@ -1523,7 +1523,7 @@ namespace IFR
         public EFI_STRING_ID DefaultName;
         private UINT16 _DefaultId;
 
-        public EFI_HII_DEFAULT_CLASS_e DefaultId { get { return _DefaultId.GetBits<EFI_HII_DEFAULT_CLASS_e>(); } set { _DefaultId = SetBits(_DefaultId, value); } }
+        public EFI_HII_DEFAULT_CLASS_e DefaultId { readonly get { return _DefaultId.GetBits<EFI_HII_DEFAULT_CLASS_e>(); } set { _DefaultId = SetBits(_DefaultId, value); } }
     };
 
     /// <summary>
@@ -1581,7 +1581,7 @@ namespace IFR
         public UINT8 Flags; // bits 2:7 reserved
         // EFI_GUID ClassGuid[...];
 
-        public UINT8 Flags_ClassGuidCount { get { return Flags.GetBits<UINT8>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
+        public UINT8 Flags_ClassGuidCount { readonly get { return Flags.GetBits<UINT8>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 6)]
@@ -1617,7 +1617,7 @@ namespace IFR
         private UINT8 _Type;
         // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
         
-        public EFI_IFR_TYPE_e Type { get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
+        public EFI_IFR_TYPE_e Type { readonly get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 7)]
@@ -1627,7 +1627,7 @@ namespace IFR
         public EFI_IFR_STATEMENT_HEADER Statement;
         private UINT8 _Flags;
 
-        public EFI_IFR_SUBTITLE_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_SUBTITLE_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_SUBTITLE_FLAGS_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_SUBTITLE_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
     [Flags]
@@ -1643,7 +1643,7 @@ namespace IFR
         public EFI_IFR_QUESTION_HEADER Question;
         private UINT8 _Flags;
 
-        public EFI_IFR_CHECKBOX_e Flags { get { return _Flags.GetBits<EFI_IFR_CHECKBOX_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_CHECKBOX_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_CHECKBOX_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
     [Flags]
@@ -1739,8 +1739,8 @@ namespace IFR
         /// </summary>
         public UINT8 Flags;
 
-        public EFI_QF_DATE_SUPPRESS_FLAGS_e Flags_Supress { get { return Flags.GetBits<EFI_QF_DATE_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
-        public EFI_QF_DATE_STORAGE_e Flags_Storage { get { return Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
+        public EFI_QF_DATE_SUPPRESS_FLAGS_e Flags_Supress { readonly get { return Flags.GetBits<EFI_QF_DATE_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
+        public EFI_QF_DATE_STORAGE_e Flags_Storage { readonly get { return Flags.GetBits<EFI_QF_DATE_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -1805,8 +1805,8 @@ namespace IFR
         public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
-        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
-        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { readonly get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { readonly get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -1843,8 +1843,8 @@ namespace IFR
         public UINT8 Flags;
         // EFI_IFR_NUMERIC_MINMAXSTEP_DATA_x data;
 
-        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
-        public EFI_IFR_DISPLAY_e Flags_DisplayType { get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
+        public EFI_IFR_NUMERIC_SIZE_e Flags_DataSize { readonly get { return Flags.GetBits<EFI_IFR_NUMERIC_SIZE_e>(0x03); } set { Flags = SetBits(Flags, value, 0x03); } }
+        public EFI_IFR_DISPLAY_e Flags_DisplayType { readonly get { return Flags.GetBits<EFI_IFR_DISPLAY_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 16)]
@@ -1856,7 +1856,7 @@ namespace IFR
         public UINT8 MaxSize;
         private UINT8 _Flags;
 
-        public EFI_IFR_STRING_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_STRING_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_STRING_FLAGS_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_STRING_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
     [Flags]
@@ -1882,7 +1882,7 @@ namespace IFR
         public UINT8 MaxContainers;
         private UINT8 _Flags;
  
-        public EFI_IFR_ORDERED_LIST_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_ORDERED_LIST_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_ORDERED_LIST_FLAGS_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_ORDERED_LIST_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
     [Flags]
@@ -1902,8 +1902,8 @@ namespace IFR
         /// </summary>
         public UINT8 Flags;
 
-        public EFI_QF_TIME_SUPPRESS_FLAGS_e Flags_Suppress { get { return Flags.GetBits<EFI_QF_TIME_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
-        public EFI_QF_TIME_STORAGE_e Flags_Storage { get { return Flags.GetBits<EFI_QF_TIME_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
+        public EFI_QF_TIME_SUPPRESS_FLAGS_e Flags_Suppress { readonly get { return Flags.GetBits<EFI_QF_TIME_SUPPRESS_FLAGS_e>(0x07); } set { Flags = SetBits(Flags, value, 0x07); } }
+        public EFI_QF_TIME_STORAGE_e Flags_Storage { readonly get { return Flags.GetBits<EFI_QF_TIME_STORAGE_e>(0x30); } set { Flags = SetBits(Flags, value, 0x30); } }
     };
 
     /// <summary>
@@ -1973,8 +1973,8 @@ namespace IFR
         private UINT8 _Type;
         // EFI_IFR_TYPE_VALUE Value; // = buffer which type depends on Type
 
-        public EFI_IFR_OPTION_e Flags { get { return _Flags.GetBits<EFI_IFR_OPTION_e>(); } set { _Flags = SetBits(_Flags, value); } }
-        public EFI_IFR_TYPE_e Type { get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
+        public EFI_IFR_OPTION_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_OPTION_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_TYPE_e Type { readonly get { return _Type.GetBits<EFI_IFR_TYPE_e>(); } set { _Type = SetBits(_Type, value); } }
     };
 
     /// <summary>
@@ -2148,8 +2148,8 @@ namespace IFR
         /// </summary>
         public UINT8 Format;
 
-        public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { Format = SetBits(Format, value); } }
-        public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { Format = SetBits(Format, value); } }
+        public EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e Format_FromUINT { readonly get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_BUFFER_e>(); } set { Format = SetBits(Format, value); } }
+        public EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e Format_FromBUFFER { readonly get { return Format.GetBits<EFI_IFR_TO_STRING_FORMAT_FROM_UINT_e>(); } set { Format = SetBits(Format, value); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
@@ -2174,7 +2174,7 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         private UINT8 _Format;
 
-        public EFI_IFR_FIND_FORMAT_e Format { get { return _Format.GetBits<EFI_IFR_FIND_FORMAT_e>(); } set { _Format = SetBits(_Format, value); } }
+        public EFI_IFR_FIND_FORMAT_e Format { readonly get { return _Format.GetBits<EFI_IFR_FIND_FORMAT_e>(); } set { _Format = SetBits(_Format, value); } }
     };
 
     /// <summary>
@@ -2193,7 +2193,7 @@ namespace IFR
         public EFI_IFR_OP_HEADER Header;
         private UINT8 _Flags;
 
-        public EFI_IFR_SPAN_FLAGS_e Flags { get { return _Flags.GetBits<EFI_IFR_SPAN_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
+        public EFI_IFR_SPAN_FLAGS_e Flags { readonly get { return _Flags.GetBits<EFI_IFR_SPAN_FLAGS_e>(); } set { _Flags = SetBits(_Flags, value); } }
     };
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1, Size = 18)]
@@ -2310,7 +2310,7 @@ namespace IFR
         /// Specifies the type used for storage. 
         /// </summary>
         private UINT8 _VarStoreType;
-        public EFI_IFR_TYPE_e VarStoreType { get { return _VarStoreType.GetBits<EFI_IFR_TYPE_e>(); } set { _VarStoreType = SetBits(_VarStoreType, value); } }
+        public EFI_IFR_TYPE_e VarStoreType { readonly get { return _VarStoreType.GetBits<EFI_IFR_TYPE_e>(); } set { _VarStoreType = SetBits(_VarStoreType, value); } }
     };
     #endregion
 

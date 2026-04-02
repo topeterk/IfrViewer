@@ -12,6 +12,7 @@
   <ItemGroup>
     <Using Include="System.Collections" />
     <Using Include="System.Reflection" />
+    <Using Include="System.Text" />
   </ItemGroup>
 
   <ItemGroup>

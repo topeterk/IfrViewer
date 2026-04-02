@@ -189,7 +189,7 @@ namespace IfrViewer
             {
                 try
                 {
-                    ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
+                    ParsedHpkNode root = new(pkg, pkg.Name);
                     switch (pkg.PackageType)
                     {
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
@@ -248,7 +248,7 @@ namespace IfrViewer
                         foreach (EFI_GUID classguid in (List<EFI_GUID>?)elem.Payload ?? [])
                             DetailsString += prefix + "-ClassGuid = " + classguid.Guid.ToString() + Environment.NewLine;
                         DetailsString += prefix + "-Varstores:" + Environment.NewLine;
-                        foreach (HiiIfrOpCode child in elem.Childs)
+                        foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                         {
                             switch (child.OpCode)
                             {
@@ -268,7 +268,7 @@ namespace IfrViewer
                         if (bShowDetails) body.AddDetailsNode(doc, prefix).AddTextNode(doc, DetailsString);
 
                         // Process forms..
-                        foreach (HiiIfrOpCode child in elem.Childs)
+                        foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                         {
                             switch (child.OpCode)
                             {
@@ -306,11 +306,11 @@ namespace IfrViewer
                             ProduceLink(root, doc, "<FORM: " + FormTitle + ">", CurrFormSetGuid, CurrFormId); // add link so, formset HTML can be used as crossreference
 
                             // Create new document..
-                            XmlDocument form_doc = new XmlDocument();
+                            XmlDocument form_doc = new();
                             XmlNode body = ProduceHtmlBody(form_doc, FormTitle);
 
                             // Process childs
-                            foreach (HiiIfrOpCode child in elem.Childs)
+                            foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                                 ParsePackageIfr(child, form_doc, body, CurrFormSetGuid, CurrFormId, CurrentQuestion);
 
                             WriteHtmlFile(form_doc, CurrFormSetGuid.ToString() + "_form_" + CurrFormId.ToString());
@@ -749,7 +749,7 @@ namespace IfrViewer
             }
 
             if (bProcessChilds)
-                foreach (HiiIfrOpCode child in elem.Childs)
+                foreach (HiiIfrOpCode child in elem.Childs.Cast<HiiIfrOpCode>())
                     ParsePackageIfr(child, doc, root, CurrFormSetGuid, CurrFormId, CurrentQuestion);
         }
 
@@ -842,7 +842,7 @@ namespace IfrViewer
         /// <param name="Document">XmlDocument used for item generation</param>
         /// <param name="PageTitle">HTML page title</param>
         /// <returns>HTML body XML node</returns>
-        private XmlNode ProduceHtmlBody(XmlDocument Document, string PageTitle)
+        private static XmlNode ProduceHtmlBody(XmlDocument Document, string PageTitle)
         {
             // Embedded CSS style..
             string StyleString = Environment.NewLine
@@ -908,12 +908,12 @@ namespace IfrViewer
         /// </summary>
         /// <param name="Document">XmlDocument that is written to file</param>
         /// <param name="Basename">Filename without file extension</param>
-        private void WriteHtmlFile(XmlDocument Document, string Basename)
+        private static void WriteHtmlFile(XmlDocument Document, string Basename)
         {
             // Write file with correct encoding and BOM (HTML5 UTF-16)
-            XmlWriterSettings settings = new XmlWriterSettings
+            XmlWriterSettings settings = new()
             {
-                Encoding = System.Text.Encoding.Unicode,
+                Encoding = Encoding.Unicode,
                 Indent = true,
                 IndentChars = "  ",
                 OmitXmlDeclaration = true // not used by HTML5
@@ -930,7 +930,9 @@ namespace IfrViewer
         /// <param name="Question">Input IFR question header</param>
         /// <param name="UniqueID">ID of the requesting HPK element (for reference on errors)</param>
         /// <returns>Humand readable string</returns>
-        private string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID) // TODO! Remove UniqueID
+#pragma warning disable IDE0060 // Remove unused parameter
+        private static string GetIfrQuestionInfoString(EFI_IFR_QUESTION_HEADER Question, int UniqueID)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return "QuestionFlags = " + Question.Flags + Environment.NewLine
                 + "QuestionVarStoreId = " + Question.VarStoreId.ToString() + Environment.NewLine

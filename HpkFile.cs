@@ -28,7 +28,7 @@ namespace IFR
     /// Used as a core element that enables iterating through the HPK file tree
     /// and providing some generic information about the object.
     /// </summary>
-    public class HPKElement
+    public class HPKElement(IfrRawDataBlock raw)
     {
         #region UniqueID
         /// <summary>
@@ -38,14 +38,14 @@ namespace IFR
         /// <summary>
         /// Unique ID of instance
         /// </summary>
-        public readonly int UniqueID;
+        public readonly int UniqueID = GlobalLastUniqueID++;
         #endregion
 
         #region Raw Data Blocks
         /// <summary>
         /// Raw data representation of this object
         /// </summary> 
-        protected IfrRawDataBlock data;
+        protected IfrRawDataBlock data = raw;
         /// <summary>
         /// Raw data representation of this object's payload
         /// </summary> 
@@ -71,8 +71,10 @@ namespace IFR
                 else
                 {
                     // Otherwise, the header is from data start till payload begin..
-                    IfrRawDataBlock hdr_data = new IfrRawDataBlock(data);
-                    hdr_data.Length = data_payload.Offset - data.Offset;
+                    IfrRawDataBlock hdr_data = new(data)
+                    {
+                        Length = data_payload.Offset - data.Offset
+                    };
                     result = hdr_data.CopyOfSelectedBytes;
                 }
                 return result.Length > 0 ? result : null;
@@ -124,7 +126,7 @@ namespace IFR
         #endregion
 
         #region Private helper methods
-        private void GetPrintableStructureElements(List<KeyValuePair<string, object?>> list, object? obj, uint BytesPerLine)
+        private static void GetPrintableStructureElements(List<KeyValuePair<string, object?>> list, object? obj, uint BytesPerLine)
         {
             if (obj is null) return;
 
@@ -161,26 +163,25 @@ namespace IFR
             }
             foreach (MemberInfo mi in type.GetMembers())
             {
-                if (mi is FieldInfo)
+                if (mi is FieldInfo fi)
                 {
-                    FieldInfo fi = (FieldInfo)mi;
                     if (fi.IsPublic)
                     {
                         if (fi.FieldType.FullName == "System.Char[]")
                         {
                             string value = new string(fi.GetValue(obj) as System.Char[]).Replace("\0", "<NUL>");
-                            list.Add(new (fi.Name, "\"" + value + "\""));
+                            list.Add(new(fi.Name, "\"" + value + "\""));
                         }
                         else if (fi.FieldType.FullName == "System.String")
                         {
                             if (fi.Name != "Empty") // filter Empty member of basic string class
                             {
                                 string? value = fi.GetValue(obj) as System.String;
-                                list.Add(new (fi.Name, "\"" + value + "\""));
+                                list.Add(new(fi.Name, "\"" + value + "\""));
                             }
                         }
                         else if ((fi.FieldType.IsEnum) || (fi.FieldType?.FullName?.StartsWith("System.") ?? false))
-                            list.Add(new (fi.Name, fi.GetValue(obj)));
+                            list.Add(new(fi.Name, fi.GetValue(obj)));
                         else
                             GetPrintableStructureElements(list, fi.GetValue(obj), BytesPerLine);
                     }
@@ -197,14 +198,8 @@ namespace IFR
         /// <summary>
         /// List of all childs
         /// </summary> 
-        public readonly List<HPKElement> Childs;
+        public readonly List<HPKElement> Childs = [];
 
-        public HPKElement(IfrRawDataBlock raw)
-        {
-            UniqueID = GlobalLastUniqueID++;
-            data = raw;
-            Childs = [];
-        }
         /// <summary>
         /// Generates a logged message
         /// </summary>
@@ -236,8 +231,8 @@ namespace IFR
             this.Filename = filename;
 
             // Load file into memory
-            StreamReader stream = new StreamReader(Filename);
-            BinaryReader file = new BinaryReader(stream.BaseStream);
+            StreamReader stream = new(Filename);
+            BinaryReader file = new(stream.BaseStream);
             data = new IfrRawDataBlock(file.ReadBytes((int)file.BaseStream.Length));
             data_payload = new IfrRawDataBlock(data);
             stream.Close();
@@ -250,7 +245,7 @@ namespace IFR
                 if (data_payload.Length < hdr.Length + offset)
                     throw new Exception("Payload length invalid");
 
-                IfrRawDataBlock raw_data = new IfrRawDataBlock(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
+                IfrRawDataBlock raw_data = new(data_payload.Bytes, data_payload.Offset + offset, hdr.Length);
                 HPKElement hpk_element;
 
                 switch (hdr.Type)
