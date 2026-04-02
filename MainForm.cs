@@ -44,7 +44,8 @@ namespace IfrViewer
         {
             // Update Version
             AssemblyName ApplicationName = Assembly.GetEntryAssembly()?.GetName() ?? Assembly.GetExecutingAssembly().GetName();
-            Text += " - v" + ApplicationName.Version + " (UEFI 2.6)";
+            Text += " - v" + ApplicationName.Version + " (UEFI 2.7)";
+            // See: EFI_SPECIFICATION_VERSION of MdePkg/Include/Uefi/UefiSpec.h
 
             // Set size of window to 80 percent by default
             MainForm_SizeChanged(sender, e);
