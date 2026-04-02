@@ -49,7 +49,7 @@ namespace IFR
         /// <summary>
         /// Raw data representation of this object's payload
         /// </summary> 
-        protected IfrRawDataBlock data_payload;
+        protected IfrRawDataBlock? data_payload;
         /// <summary>
         /// Physical size of header and payload
         /// </summary>
@@ -60,13 +60,13 @@ namespace IFR
         /// <summary>
         /// Managed structure payload (raw)
         /// </summary>
-        public byte[] HeaderRaw
+        public byte[]? HeaderRaw
         {
             get
             {
                 byte[] result;
                 // There is no payload? Then everything is header..
-                if (data_payload == null)
+                if (data_payload is null)
                     result = data.CopyOfSelectedBytes;
                 else
                 {
@@ -82,15 +82,15 @@ namespace IFR
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public virtual object Header { get { return null; } }
+        public virtual object Header { get; } = new object();
 
         /// <summary>
         /// Gets name/value pairs of all managed header's data
         /// </summary>
         /// <returns>list of name/value pairs</returns>
-        public List<KeyValuePair<string, object>> GetPrintableHeader(uint BytesPerLine = 16)
+        public List<KeyValuePair<string, object?>> GetPrintableHeader(uint BytesPerLine = 16)
         {
-            List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
+            List<KeyValuePair<string, object?>> result = [];
 
             if (Header != null) GetPrintableStructureElements(result, Header, BytesPerLine);
 
@@ -102,20 +102,20 @@ namespace IFR
         /// <summary>
         /// Managed structure payload (raw)
         /// </summary>
-        public byte[] PayloadRaw { get { return (data_payload == null ? null : (data_payload.Length == 0 ? null : data_payload.CopyOfSelectedBytes)); } }
+        public byte[]? PayloadRaw => data_payload?.Length > 0 ? data_payload.CopyOfSelectedBytes : null;
 
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        public virtual object Payload { get { return null; } }
+        public virtual object? Payload { get; }
 
         /// <summary>
         /// Gets name/value pairs of all managed payloads's data
         /// </summary>
         /// <returns>list of name/value pairs</returns>
-        public List<KeyValuePair<string, object>> GetPrintablePayload(uint BytesPerLine = 16)
+        public List<KeyValuePair<string, object?>> GetPrintablePayload(uint BytesPerLine = 16)
         {
-            List<KeyValuePair<string, object>> result = new List<KeyValuePair<string, object>>();
+            List<KeyValuePair<string, object?>> result = [];
 
             if (Payload != null) GetPrintableStructureElements(result, Payload, BytesPerLine);
 
@@ -124,12 +124,14 @@ namespace IFR
         #endregion
 
         #region Private helper methods
-        private void GetPrintableStructureElements(List<KeyValuePair<string, object>> list, object obj, uint BytesPerLine)
+        private void GetPrintableStructureElements(List<KeyValuePair<string, object?>> list, object? obj, uint BytesPerLine)
         {
+            if (obj is null) return;
+
             Type type = obj.GetType();
             bool IsList = obj is IEnumerable;
 
-            foreach (System.Reflection.PropertyInfo pi in type.GetProperties())
+            foreach (PropertyInfo pi in type.GetProperties())
             {
                 if (pi.CanRead)
                 {
@@ -137,48 +139,48 @@ namespace IFR
                     {
                         if (type.FullName == "System.Byte[]")
                         {
-                            list.Add(new KeyValuePair<string, object>("Raw Bytes", (obj as System.Byte[]).HexDump(BytesPerLine)));
+                            list.Add(new ("Raw Bytes", (obj as System.Byte[])?.HexDump(BytesPerLine)));
                         }
                         else if (type.FullName == "System.String")
                         {
-                            string value = obj as System.String;
-                            list.Add(new KeyValuePair<string, object>("String", "\"" + value + "\""));
+                            string? value = obj as System.String;
+                            list.Add(new ("String", "\"" + value + "\""));
                         }
                         else
                         {
-                            foreach (var obj_elem in obj as IEnumerable)
+                            foreach (var obj_elem in (obj as IEnumerable)!)
                                 GetPrintableStructureElements(list, obj_elem, BytesPerLine);
                         }
                         break; // skip list internal data (means: all other properties of this type)
                     }
-                    else if ((pi.PropertyType.IsEnum) || (pi.PropertyType.FullName.StartsWith("System.")))
-                        list.Add(new KeyValuePair<string, object>(pi.Name, pi.GetValue(obj)));
+                    else if ((pi.PropertyType?.IsEnum ?? false) || (pi.PropertyType?.FullName?.StartsWith("System.") ?? false))
+                        list.Add(new (pi.Name, pi.GetValue(obj)));
                     else
                         GetPrintableStructureElements(list, pi.GetValue(obj), BytesPerLine);
                 }
             }
-            foreach (System.Reflection.MemberInfo mi in type.GetMembers())
+            foreach (MemberInfo mi in type.GetMembers())
             {
-                if (mi is System.Reflection.FieldInfo)
+                if (mi is FieldInfo)
                 {
-                    System.Reflection.FieldInfo fi = (System.Reflection.FieldInfo)mi;
+                    FieldInfo fi = (FieldInfo)mi;
                     if (fi.IsPublic)
                     {
                         if (fi.FieldType.FullName == "System.Char[]")
                         {
                             string value = new string(fi.GetValue(obj) as System.Char[]).Replace("\0", "<NUL>");
-                            list.Add(new KeyValuePair<string, object>(fi.Name, "\"" + value + "\""));
+                            list.Add(new (fi.Name, "\"" + value + "\""));
                         }
                         else if (fi.FieldType.FullName == "System.String")
                         {
                             if (fi.Name != "Empty") // filter Empty member of basic string class
                             {
-                                string value = fi.GetValue(obj) as System.String;
-                                list.Add(new KeyValuePair<string, object>(fi.Name, "\"" + value + "\""));
+                                string? value = fi.GetValue(obj) as System.String;
+                                list.Add(new (fi.Name, "\"" + value + "\""));
                             }
                         }
-                        else if ((fi.FieldType.IsEnum) || (fi.FieldType.FullName.StartsWith("System.")))
-                            list.Add(new KeyValuePair<string, object>(fi.Name, fi.GetValue(obj)));
+                        else if ((fi.FieldType.IsEnum) || (fi.FieldType?.FullName?.StartsWith("System.") ?? false))
+                            list.Add(new (fi.Name, fi.GetValue(obj)));
                         else
                             GetPrintableStructureElements(list, fi.GetValue(obj), BytesPerLine);
                     }
@@ -191,7 +193,7 @@ namespace IFR
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public virtual string Name { get { return this.ToString(); } }
+        public virtual string Name { get => "HPKElement"; }
         /// <summary>
         /// List of all childs
         /// </summary> 
@@ -201,7 +203,7 @@ namespace IFR
         {
             UniqueID = GlobalLastUniqueID++;
             data = raw;
-            Childs = new List<HPKElement>();
+            Childs = [];
         }
         /// <summary>
         /// Generates a logged message
@@ -227,9 +229,9 @@ namespace IFR
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { return Filename; } }
+        public override string Name => Filename;
 
-        public HPKfile(string filename) : base(null)
+        public HPKfile(string filename) : base(null!)
         {
             this.Filename = filename;
 

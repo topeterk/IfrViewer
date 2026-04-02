@@ -58,7 +58,7 @@ namespace IfrViewer
         {
             XmlAttribute attr = Document.CreateAttribute(Name);
             attr.Value = Value.ToString();
-            Node.Attributes.Append(attr);
+            Node.Attributes?.Append(attr);
             return Node;
         }
 
@@ -103,14 +103,15 @@ namespace IfrViewer
         /// <param name="TableClass">Class of table style</param>
         /// <param name="ColClasses">List of span-class pairs</param>
         /// <returns>Generated node</returns>
-        public static XmlNode AddTableNode(this XmlNode Parent, XmlDocument Document, string TableClass, string[,] ColClasses)
+        public static XmlNode AddTableNode(this XmlNode Parent, XmlDocument Document, string TableClass, string?[,] ColClasses)
         {
             XmlNode table = Parent.AddElementNode(Document, "table").SetAttribute(Document, "class", TableClass);
             XmlNode colgroup = table.AddElementNode(Document, "colgroup");
             for (int i = 0; i < ColClasses.Length / 2; i++)
             {
-                XmlNode col = colgroup.AddElementNode(Document, "col").SetAttribute(Document, "class", ColClasses[i, 1]);
-                if (null != ColClasses[i, 0]) col.SetAttribute(Document, "span", ColClasses[i, 0]);
+                XmlNode col = colgroup.AddElementNode(Document, "col");
+                if (null != ColClasses[i, 1]) col.SetAttribute(Document, "class", ColClasses[i, 1]!);
+                if (null != ColClasses[i, 0]) col.SetAttribute(Document, "span", ColClasses[i, 0]!);
             }
             return table.AddElementNode(Document, "tr"); // first row
         }
@@ -193,7 +194,7 @@ namespace IfrViewer
                     {
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_FORMS:
                             foreach (HPKElement child in root.Origin.Childs)
-                                ParsePackageIfr(child, null, null, Guid.Empty); // doc and node will be created by each formset within this package
+                                ParsePackageIfr(child, null!, null!, Guid.Empty); // doc and node will be created by each formset within this package
                             break;
                         case EFI_HII_PACKAGE_e.EFI_HII_PACKAGE_STRINGS: break; // Already done
                         default:
@@ -218,7 +219,7 @@ namespace IfrViewer
         /// <param name="CurrFormSetGuid">Current FormSetGuid (Guid.Empty if unknown)</param>
         /// <param name="CurrFormId">Current FormId (0 if not set)</param>
         /// <param name="CurrentQuestion">Current Question (null if not set)</param>
-        private void ParsePackageIfr(HPKElement hpkelem, XmlDocument doc, XmlNode root, Guid CurrFormSetGuid, UInt16 CurrFormId = 0, XmlNode CurrentQuestion = null)
+        private void ParsePackageIfr(HPKElement hpkelem, XmlDocument doc, XmlNode root, Guid CurrFormSetGuid, UInt16 CurrFormId = 0, XmlNode? CurrentQuestion = null)
         {
             HiiIfrOpCode elem = (HiiIfrOpCode)hpkelem;
             bool bProcessChilds = true;
@@ -244,7 +245,7 @@ namespace IfrViewer
                         string prefix = "FormSet";
                         string DetailsString = prefix + "-Help = " + HpkStrings.GetString(hdr.Help, hpkelem.UniqueID) + Environment.NewLine
                             + prefix + "-Guid = " + hdr.Guid.Guid.ToString() + Environment.NewLine;
-                        foreach (EFI_GUID classguid in (List<EFI_GUID>)elem.Payload)
+                        foreach (EFI_GUID classguid in (List<EFI_GUID>?)elem.Payload ?? [])
                             DetailsString += prefix + "-ClassGuid = " + classguid.Guid.ToString() + Environment.NewLine;
                         DetailsString += prefix + "-Varstores:" + Environment.NewLine;
                         foreach (HiiIfrOpCode child in elem.Childs)
@@ -259,7 +260,7 @@ namespace IfrViewer
                                     XmlNode varstores = doc.CreateElement("varstores");
                                     ParsePackageIfr(child, doc, varstores, hdr.Guid.Guid);
                                     if (0 < varstores.ChildNodes.Count)
-                                        DetailsString += prefix + "-ClassGuid = " + varstores.ChildNodes[0].InnerText + Environment.NewLine;
+                                        DetailsString += prefix + "-ClassGuid = " + varstores.ChildNodes[0]?.InnerText + Environment.NewLine;
                                     break;
                                 default: break;
                             }
@@ -321,7 +322,7 @@ namespace IfrViewer
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_REF_OP:
                     {
-                        string QueryString = null;
+                        string? QueryString = null;
                         Guid FormSetGuid = CurrFormSetGuid;
                         UInt16 FormId = CurrFormId;
                         UInt16 NameStrId = 0;
@@ -377,7 +378,7 @@ namespace IfrViewer
                         EFI_IFR_FORM_MAP hdr = (EFI_IFR_FORM_MAP)elem.Header;
                         string prefix = "FormMap";
                         string DetailsString = prefix + " Id = " + hdr.FormId.ToDecimalString(5) + Environment.NewLine;
-                        foreach (EFI_IFR_FORM_MAP_METHOD method in (List<EFI_IFR_FORM_MAP_METHOD>)elem.Payload)
+                        foreach (EFI_IFR_FORM_MAP_METHOD method in (List<EFI_IFR_FORM_MAP_METHOD>?)elem.Payload ?? [])
                         {
                             DetailsString += prefix + "-Method = " + method.MethodIdentifier.Guid.ToString()
                                 + " " + method.MethodTitle.ToDecimalString(5) + " [\"" + HpkStrings.GetString(method.MethodTitle, hpkelem.UniqueID) + "\"]" + Environment.NewLine;
@@ -401,7 +402,7 @@ namespace IfrViewer
                         EFI_IFR_VARSTORE ifr_hdr = (EFI_IFR_VARSTORE)hpkelem.Header;
                         root.AddTextNode(doc, "VarStore"
                             + " [Id = " + ifr_hdr.VarStoreId.ToDecimalString(5) + ", Guid = " + ifr_hdr.Guid.Guid.ToString() + "]"
-                            + " \"" + ((HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>.NamedPayload_t)hpkelem.Payload).Name + "\"");
+                            + " \"" + ((HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE>.NamedPayload_t?)hpkelem.Payload)?.Name + "\"");
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_EFI_OP:
@@ -409,7 +410,7 @@ namespace IfrViewer
                         EFI_IFR_VARSTORE_EFI ifr_hdr = (EFI_IFR_VARSTORE_EFI)hpkelem.Header;
                         root.AddTextNode(doc, "VarStore"
                             + " [Id = " + ifr_hdr.VarStoreId.ToDecimalString(5) + ", Guid = " + ifr_hdr.Guid.Guid.ToString() + "]"
-                            + " \"" + ((HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>.NamedPayload_t)hpkelem.Payload).Name + "\"");
+                            + " \"" + ((HiiIfrOpCodeWithAsciiNullTerminatedString<EFI_IFR_VARSTORE_EFI>.NamedPayload_t?)hpkelem.Payload)?.Name + "\"");
                     }
                     break;
                 case EFI_IFR_OPCODE_e.EFI_IFR_VARSTORE_NAME_VALUE_OP:
@@ -475,7 +476,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_TEXT_OP:
                     {
                         EFI_IFR_TEXT ifr_hdr = (EFI_IFR_TEXT)hpkelem.Header;
-                        XmlNode tr = root.AddTableNode(doc, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+                        XmlNode tr = root.AddTableNode(doc, "full", new string?[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
                         tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Prompt, hpkelem.UniqueID));
                         tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.TextTwo, hpkelem.UniqueID));
                         tr.AddElementNode(doc, "td").AddTextNode(doc, HpkStrings.GetString(ifr_hdr.Statement.Help, hpkelem.UniqueID));
@@ -493,7 +494,7 @@ namespace IfrViewer
                             {
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -501,7 +502,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -509,7 +510,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -517,7 +518,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -553,7 +554,7 @@ namespace IfrViewer
                             {
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -561,7 +562,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_2:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_16)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -569,7 +570,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_4:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_32)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -577,7 +578,7 @@ namespace IfrViewer
                                     break;
                                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_8:
                                     {
-                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload;
+                                        EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64 data = (EFI_IFR_NUMERIC_MINMAXSTEP_DATA_64)hpkelem.Payload!;
                                         InfoStr += "Min = " + data.MinValue.ToString() + Environment.NewLine
                                             + "Max = " + data.MaxValue.ToString() + Environment.NewLine
                                             + "Step = " + data.Step.ToString() + Environment.NewLine;
@@ -608,13 +609,13 @@ namespace IfrViewer
                         else
                         {
 
-                            object OptionValue = null;
+                            object? OptionValue = null;
                             string OptionText = HpkStrings.GetString(ifr_hdr.Option, hpkelem.UniqueID);
                             string DetailsString = "Option = \"" + OptionText + "\"" + Environment.NewLine
                                 + "Flags = " + ifr_hdr.Flags.ToString() + Environment.NewLine
-                                + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, ref OptionValue) + Environment.NewLine;
+                                + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload ?? "", hpkelem.UniqueID, ref OptionValue) + Environment.NewLine;
 
-                            CurrentQuestion.AddElementNode(doc, "option").SetAttribute(doc, "value", OptionValue.ToString()).AddTextNode(doc, OptionText);
+                            CurrentQuestion.AddElementNode(doc, "option").SetAttribute(doc, "value", OptionValue?.ToString() ?? "").AddTextNode(doc, OptionText);
 
                             // Parse nested value logic..
                             if (ifr_hdr.Type == EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER)
@@ -631,7 +632,7 @@ namespace IfrViewer
                                 }
                             }
 
-                            if (bShowDetails) CurrentQuestion.ParentNode.AddDetailsNode(doc, "OneOfOption").AddTextNode(doc, DetailsString);
+                            if (bShowDetails) CurrentQuestion.ParentNode?.AddDetailsNode(doc, "OneOfOption").AddTextNode(doc, DetailsString);
                         }
                     }
                     break;
@@ -719,9 +720,9 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_DEFAULT_OP:
                     {
                         EFI_IFR_DEFAULT ifr_hdr = (EFI_IFR_DEFAULT)hpkelem.Header;
-                        object dummy = null;
+                        object? dummy = null;
                         string DetailsString = "Default Id = " + ifr_hdr.DefaultId.ToDecimalString(5)
-                            + ", " + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload, hpkelem.UniqueID, ref dummy);
+                            + ", " + HpkStrings.GetValueString(ifr_hdr.Type, hpkelem.Payload ?? "", hpkelem.UniqueID, ref dummy);
 
                         // Parse nested value logic..
                         if (ifr_hdr.Type == EFI_IFR_TYPE_e.EFI_IFR_TYPE_OTHER)
@@ -764,7 +765,7 @@ namespace IfrViewer
         /// <returns>Generated input node</returns>
         private XmlNode ProduceInputField(XmlNode Parent, XmlDocument Document, string InputTypeName, UInt16 FormId, EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
-            XmlNode tr = Parent.AddTableNode(Document, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+            XmlNode tr = Parent.AddTableNode(Document, "full", new string?[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
             tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
             XmlNode input = tr.AddElementNode(Document, "td").AddElementNode(Document, "input");
             tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
@@ -786,7 +787,7 @@ namespace IfrViewer
         /// <returns>Generated input node</returns>
         private XmlNode ProduceSelectField(XmlNode Parent, XmlDocument Document, UInt16 FormId, EFI_IFR_QUESTION_HEADER Question, int UniqueID)
         {
-            XmlNode tr = Parent.AddTableNode(Document, "full", new string[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
+            XmlNode tr = Parent.AddTableNode(Document, "full", new string?[,] { { null, "left" }, { null, "mid" }, { null, "right" } });
             tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Prompt, UniqueID));
             XmlNode input = tr.AddElementNode(Document, "td").AddElementNode(Document, "select");
             tr.AddElementNode(Document, "td").AddTextNode(Document, HpkStrings.GetString(Question.Header.Help, UniqueID));
@@ -806,7 +807,7 @@ namespace IfrViewer
         /// <param name="FormId">Current FormId (0 if not set)</param>
         /// <param name="QuestionId">Current QuestionId (0 if not set)</param>
         /// <param name="GetQueryString">Optional GET parameters (without leading '?')</param>
-        private void ProduceLink(XmlNode Parent, XmlDocument Document, string FriendlyUrlName, Guid FormSetGuid, UInt16 FormId = 0, UInt16 QuestionId = 0, string GetQueryString = null)
+        private void ProduceLink(XmlNode Parent, XmlDocument Document, string FriendlyUrlName, Guid FormSetGuid, UInt16 FormId = 0, UInt16 QuestionId = 0, string? GetQueryString = null)
         {
             string Uri = FormSetGuid.ToString();
 

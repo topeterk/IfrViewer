@@ -47,7 +47,7 @@ namespace IfrViewer
         /// <returns>String with fixed size</returns>
         public static string ToDecimalString(this object Obj, int TotalWith = 0)
         {
-            return Obj.ToString().PadLeft(TotalWith);
+            return (Obj.ToString() ?? "").PadLeft(TotalWith);
         }
     }
 
@@ -117,8 +117,8 @@ namespace IfrViewer
                         ParsedHpkNode root = new ParsedHpkNode(pkg, pkg.Name);
                         UInt16 StringID = 0; // First ID is 1 (will be increased later)
                         StringDataBase db;
-                        db.Language = ((HiiPackageString.Payload_t)pkg.Payload).Language;
-                        db.Strings = new List<KeyValuePair<UInt16, string>>();
+                        db.Language = ((HiiPackageString.Payload_t)pkg.Payload!).Language;
+                        db.Strings = [];
                         StringDB.Add(db);
 
                         root.Name = "Strings Package \"" + db.Language + "\"";
@@ -144,16 +144,16 @@ namespace IfrViewer
         /// <param name="db">String database where new strings will be added to</param>
         private void ParsePackageSibt(HPKElement hpkelem, ParsedHpkNode root, ref UInt16 StringID, StringDataBase db)
         {
-            ParsedHpkNode branch = new ParsedHpkNode(hpkelem, hpkelem.Name);
+            ParsedHpkNode branch = new (hpkelem, hpkelem.Name);
             HiiSibtBlockBase elem = (HiiSibtBlockBase)hpkelem;
 
             switch (elem.BlockType)
             {
                 case EFI_HII_SIBT_e.EFI_HII_SIBT_STRING_UCS2:
-                    string StringText = ((HiiSibtBlockStringUcs2.Payload_t)elem.Payload).StringText;
+                    string StringText = ((HiiSibtBlockStringUcs2.Payload_t?)elem.Payload)?.StringText ?? "";
                     StringID++;
                     branch.Name = StringID.ToDecimalString(5) + " " + StringText;
-                    db.Strings.Add(new KeyValuePair<ushort, string>(StringID, StringText));
+                    db.Strings.Add(new (StringID, StringText));
                     break;
                 case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP1: StringID += ((EFI_HII_SIBT_SKIP1_BLOCK)elem.Header).SkipCount; return; // Skip
                 case EFI_HII_SIBT_e.EFI_HII_SIBT_SKIP2: StringID += ((EFI_HII_SIBT_SKIP2_BLOCK)elem.Header).SkipCount; return; // Skip
@@ -209,7 +209,7 @@ namespace IfrViewer
         public string GetValueString(EFI_IFR_TYPE_e type, object Value, int UniqueID, ref object? RawValue)
         {
             string TypeStr;
-            string ValueStr;
+            string? ValueStr;
             switch (type)
             {
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: TypeStr = "UINT8"; RawValue = ((IfrTypeUINT8)Value).u8; ValueStr = RawValue.ToString(); break;
@@ -286,7 +286,7 @@ namespace IfrViewer
                 case EFI_IFR_OPCODE_e.EFI_IFR_EQ_ID_VAL_LIST_OP:
                     {
                         string ValueListStr = "";
-                        foreach (IfrTypeUINT16 value in (List<IfrTypeUINT16>)ifrelem.Payload) ValueListStr += value.u16.ToString() + ",";
+                        if (ifrelem.Payload is not null) foreach (IfrTypeUINT16 value in (List<IfrTypeUINT16>)ifrelem.Payload) ValueListStr += value.u16.ToString() + ",";
                         Stack.Push("(ValueOfId(" + ((EFI_IFR_EQ_ID_VAL_LIST)ifrelem.Header).QuestionId.ToDecimalString(5) + ") is in [" + ValueListStr + "])");
                     }
                     break;

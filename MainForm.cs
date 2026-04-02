@@ -498,7 +498,7 @@ namespace IfrViewer
                 tv_details.Nodes.Add("UniqueID = " + elem.UniqueID);
 
                 // add all header fields to the tree..
-                byte[] HeaderRaw = elem.HeaderRaw;
+                byte[]? HeaderRaw = elem.HeaderRaw;
                 if ((elem.Header != null) || (HeaderRaw != null))
                 {
                     TreeNode branch = tv_details.Nodes.Add("Header");
@@ -512,15 +512,15 @@ namespace IfrViewer
                     // handle managed..
                     if (elem.Header != null)
                     {
-                        foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintableHeader(BytesPerLine))
+                        foreach (KeyValuePair<string, object?> pair in elem.GetPrintableHeader(BytesPerLine))
                         {
-                            branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                            branch.Nodes.Add(pair.Key + " = " + pair.Value?.ToString());
                         }
                     }
                     //branch.Expand();
                 }
                 // add all payload fields to the tree..
-                byte[] PayloadRaw = elem.PayloadRaw;
+                byte[]? PayloadRaw = elem.PayloadRaw;
                 if ((elem.Payload != null) || (PayloadRaw != null))
                 {
                     TreeNode branch = tv_details.Nodes.Add("Payload");
@@ -534,9 +534,9 @@ namespace IfrViewer
                     // handle managed..
                     if (elem.Payload != null)
                     {
-                        foreach (System.Collections.Generic.KeyValuePair<string, object> pair in elem.GetPrintablePayload(BytesPerLine))
+                        foreach (KeyValuePair<string, object?> pair in elem.GetPrintablePayload(BytesPerLine))
                         {
-                            branch.Nodes.Add(pair.Key + " = " + pair.Value.ToString());
+                            branch.Nodes.Add(pair.Key + " = " + pair.Value?.ToString());
                         }
                     }
                     //branch.Expand();

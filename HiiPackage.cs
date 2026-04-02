@@ -20,6 +20,9 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Emit;
+
 namespace IFR
 {
     /// <summary>
@@ -35,7 +38,7 @@ namespace IFR
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { string name = Enum.GetName(PackageType.GetType(), PackageType); return name == null ? "UNKNOWN" : name; } }
+        public override string Name => Enum.GetName(PackageType.GetType(), PackageType) ?? "UNKNOWN";
 
         public HiiPackageBase(IfrRawDataBlock raw) : base(raw)
         {
@@ -46,7 +49,7 @@ namespace IFR
     /// <summary>
     /// Hii package generic class
     /// </summary>
-    class HiiPackage<T> : HiiPackageBase
+    class HiiPackage<T> : HiiPackageBase where T : struct
     {
         /// <summary>
         /// Managed structure header
@@ -55,7 +58,7 @@ namespace IFR
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _Header; } }
+        public override object Header => _Header;
 
         public HiiPackage(IfrRawDataBlock raw) : base(raw)
         {
@@ -79,10 +82,10 @@ namespace IFR
             ParseIfrScope(null, ref offset);
         }
 
-        private void ParseIfrScope(HiiIfrOpCode parent, ref uint offset)
+        private void ParseIfrScope(HiiIfrOpCode? parent, ref uint offset)
         {
             // Parse all IFR opcodes of this scope..
-            while (offset < data_payload.Length)
+            while (offset < data_payload?.Length)
             {
                 EFI_IFR_OP_HEADER ifr_hdr = data_payload.ToIfrType<EFI_IFR_OP_HEADER>(offset);
                 if (data_payload.Length < ifr_hdr.Length + offset)
@@ -242,7 +245,7 @@ namespace IFR
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { string name = Enum.GetName(OpCode.GetType(), OpCode); return name == null ? "UNKNOWN" : name; } }
+        public override string Name => Enum.GetName(OpCode.GetType(), OpCode) ?? "UNKNOWN";
 
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
@@ -265,7 +268,7 @@ namespace IFR
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _Header; } }
+        public override object Header => _Header;
 
         public HiiIfrOpCode(IfrRawDataBlock raw) : base(raw)
         {
@@ -288,11 +291,11 @@ namespace IFR
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        protected P _Payload;
+        protected P? _Payload;
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        public override object Payload { get { return _Payload; } }
+        public override object? Payload => _Payload;
 
         public HiiIfrOpCodeWithPayload(IfrRawDataBlock raw) : base(raw) { return; }
     }
@@ -308,7 +311,7 @@ namespace IFR
 
             // Parse all GUIDs..
             uint offset = 0;
-            while (offset < data_payload.Length)
+            while (offset < data_payload?.Length)
             {
                 if ((data_payload.Length + offset) < 16)
                 {
@@ -339,7 +342,10 @@ namespace IFR
         public HiiIfrOpCodeWithAsciiNullTerminatedString(IfrRawDataBlock raw) : base(raw)
         {
             NamedPayload_t pl = new NamedPayload_t();
-            pl.Name = data_payload.CopyOfAsciiNullTerminatedString;
+            if (data_payload is null)
+                LogMessage(LogSeverity.ERROR, Name + ": Payload is null!");
+            else
+                pl.Name = data_payload.CopyOfAsciiNullTerminatedString;
             _Payload = pl;
         }
     }
@@ -352,6 +358,12 @@ namespace IFR
     {
         public HiiIfrOpCodeWithEfiIfrNumericValue(IfrRawDataBlock raw) : base(raw)
         {
+            if (data_payload is null)
+            {
+                LogMessage(LogSeverity.ERROR, Name + ": Payload is null!");
+                return;
+            }
+
             switch (this._Header.Flags_DataSize)
             {
                 case EFI_IFR_NUMERIC_SIZE_e.EFI_IFR_NUMERIC_SIZE_1: _Payload = data_payload.ToIfrType<EFI_IFR_NUMERIC_MINMAXSTEP_DATA_8>(); break;
@@ -373,6 +385,12 @@ namespace IFR
     {
         public HiiIfrOpCodeWithEfiIfrTypeValue(IfrRawDataBlock raw) : base(raw)
         {
+            if (data_payload is null)
+            {
+                LogMessage(LogSeverity.ERROR, Name + ": Payload is null!");
+                return;
+            }
+
             switch (this._Header.Type)
             {
                 case EFI_IFR_TYPE_e.EFI_IFR_TYPE_NUM_SIZE_8: _Payload = data_payload.ToIfrType<IfrTypeUINT8>(); break;
@@ -404,9 +422,9 @@ namespace IFR
 
             // Parse all IDs..
             uint offset = 0;
-            while (offset < data_payload.Length)
+            while (offset < data_payload?.Length)
             {
-                if ((data_payload.Length + offset) < typeof(IfrTypeUINT16).StructLayoutAttribute.Size)
+                if ((data_payload.Length + offset) < typeof(IfrTypeUINT16).StructLayoutAttribute!.Size)
                 {
                     LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
                     break;
@@ -414,7 +432,7 @@ namespace IFR
 
                 _Payload.Add(data_payload.ToIfrType<IfrTypeUINT16>(offset));
 
-                offset += (uint)typeof(IfrTypeUINT16).StructLayoutAttribute.Size;
+                offset += (uint)typeof(IfrTypeUINT16).StructLayoutAttribute!.Size;
             }
 
             if (this._Header.ListLength != _Payload.Count) // information doubled in structure, so we use it for sanity check
@@ -430,20 +448,20 @@ namespace IFR
         /// <summary>
         /// Managed structure header (Extended due to successfull header validation)
         /// </summary>
-        protected object _HeaderEx;
+        protected object? _HeaderEx;
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _HeaderEx; } }
+        public override object Header => _HeaderEx ?? _Header;
 
         public HiiIfrOpCodeQuestionRef(IfrRawDataBlock raw) : base(raw)
         {
-            if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_2).StructLayoutAttribute.Size)
+            if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_2).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_QUESTION_REF3_2>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_3).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_QUESTION_REF3_3).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_QUESTION_REF3_3>();
                 this.data_payload = null; // payload is part of header, now
@@ -461,35 +479,35 @@ namespace IFR
         /// <summary>
         /// Managed structure header (Extended due to successfull header validation)
         /// </summary>
-        protected object _HeaderEx;
+        protected object? _HeaderEx;
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _HeaderEx; } }
+        public override object Header => _HeaderEx ?? _Header;
 
         public HiiIfrOpCodeRef(IfrRawDataBlock raw) : base(raw)
         {
-            if (_Header.Header.Length == typeof(EFI_IFR_REF).StructLayoutAttribute.Size)
+            if (_Header.Header.Length == typeof(EFI_IFR_REF).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_REF>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_REF2).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF2).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_REF2>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_REF3).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF3).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_REF3>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_REF4).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF4).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_REF4>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_REF5).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_REF5).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_REF5>();
                 this.data_payload = null; // payload is part of header, now
@@ -507,20 +525,20 @@ namespace IFR
         /// <summary>
         /// Managed structure header (Extended due to successfull header validation)
         /// </summary>
-        protected object _HeaderEx;
+        protected object? _HeaderEx;
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _HeaderEx; } }
+        public override object Header => _HeaderEx ?? _Header;
 
         public HiiIfrOpCodeAction(IfrRawDataBlock raw) : base(raw)
         {
-            if (_Header.Header.Length == typeof(EFI_IFR_ACTION).StructLayoutAttribute.Size)
+            if (_Header.Header.Length == typeof(EFI_IFR_ACTION).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_ACTION>();
                 this.data_payload = null; // payload is part of header, now
             }
-            else if (_Header.Header.Length == typeof(EFI_IFR_ACTION_1).StructLayoutAttribute.Size)
+            else if (_Header.Header.Length == typeof(EFI_IFR_ACTION_1).StructLayoutAttribute!.Size)
             {
                 _HeaderEx = raw.ToIfrType<EFI_IFR_ACTION_1>();
                 this.data_payload = null; // payload is part of header, now
@@ -541,9 +559,9 @@ namespace IFR
 
             // Parse all methods..
             uint offset = 0;
-            while (offset < data_payload.Length)
+            while (offset < data_payload?.Length)
             {
-                if ((data_payload.Length + offset) < typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute.Size)
+                if ((data_payload.Length + offset) < typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute!.Size)
                 {
                     LogMessage(LogSeverity.ERROR, Name + ": Payload length invalid!");
                     break;
@@ -551,7 +569,7 @@ namespace IFR
 
                 _Payload.Add(data_payload.ToIfrType<EFI_IFR_FORM_MAP_METHOD>(offset));
 
-                offset += (uint)typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute.Size;
+                offset += (uint)typeof(EFI_IFR_FORM_MAP_METHOD).StructLayoutAttribute!.Size;
             }
         }
     }
@@ -575,7 +593,7 @@ namespace IFR
         /// <summary>
         /// Language identifier for this package
         /// </summary>
-        public override object Payload { get { return _Payload; } }
+        public override object Payload => _Payload;
 
         public HiiPackageString(IfrRawDataBlock raw) : base(raw)
         {
@@ -636,7 +654,7 @@ namespace IFR
         /// <summary>
         /// Friendly name of this object
         /// </summary> 
-        public override string Name { get { string name = Enum.GetName(BlockType.GetType(), BlockType); return name == null ? "UNKNOWN" : name; } }
+        public override string Name => Enum.GetName(BlockType.GetType(), BlockType) ?? "UNKNOWN";
 
         public HiiSibtBlockBase(IfrRawDataBlock raw) : base(raw)
         {
@@ -656,8 +674,8 @@ namespace IFR
         /// <summary>
         /// Managed structure header
         /// </summary>
-        public override object Header { get { return _Header; } }
-        
+        public override object Header => _Header;
+
         public HiiSibtBlock(IfrRawDataBlock raw) : base(raw)
         {
             this._Header = data.ToIfrType<T>();
@@ -685,13 +703,19 @@ namespace IFR
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        public override object Payload { get { return _Payload; } }
+        public override object Payload => _Payload;
 
         public HiiSibtBlockStringUcs2(IfrRawDataBlock raw) : base(raw)
         {
+            if (data_payload is null)
+            {
+                LogMessage(LogSeverity.ERROR, Name + ": Payload is null!");
+                return;
+            }
+
             _Payload.StringText = data_payload.CopyOfUnicodeNullTerminatedString;
 
-            // know we know actual data after parsing payload, so fix up lengths..
+            // now, we know actual data after parsing payload, so fix up lengths..
             data_payload.Length = ((uint)_Payload.StringText.Length)*2 + 2; // n*CHAR16 + NULL
             data.Length = this._Header.GetPhysSize() + data_payload.Length;
         }
@@ -720,11 +744,11 @@ namespace IFR
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        protected P _Payload;
+        protected P? _Payload;
         /// <summary>
         /// Managed structure payload
         /// </summary>
-        public override object Payload { get { return _Payload; } }
+        public override object? Payload => _Payload;
 
         public HiiSibtBlockWithPayload(IfrRawDataBlock raw) : base(raw) { return; }
     }
@@ -746,7 +770,7 @@ namespace IFR
                 default: LogMessage(LogSeverity.ERROR, Name + ": Unknown data type \"" + this.BlockType + "\""); break;
             }
 
-            if (0 == len)
+            if (0 == len || data_payload is null)
             {
                 data_payload = null;
                 data.Length = this._Header.GetPhysSize(); // shorten header length since we have no payload
