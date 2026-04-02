@@ -20,9 +20,8 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using IFR;
 using System.Xml;
-using static IFR.IFRHelper;
+using static IfrViewer.IFRHelper;
 using static IfrViewer.HtmlBuilderHelper;
 
 // TODO! https://www.quackit.com/html_5/tags/

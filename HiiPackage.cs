@@ -20,7 +20,7 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-namespace IFR
+namespace IfrViewer
 {
     /// <summary>
     /// Hii package base class

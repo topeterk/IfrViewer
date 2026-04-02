@@ -20,9 +20,9 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using static IFR.IFRHelper;
+using static IfrViewer.IFRHelper;
 
-namespace IFR
+namespace IfrViewer
 {
     /// <summary>
     /// Used as a core element that enables iterating through the HPK file tree

@@ -20,8 +20,7 @@
 //OUT OF Or IN CONNECTION WITH THE SOFTWARE Or THE USE Or OTHER DEALINGS IN THE
 //SOFTWARE.
 
-using IFR;
-using static IFR.IFRHelper;
+using static IfrViewer.IFRHelper;
 using static IfrViewer.HpkParser;
 
 namespace IfrViewer

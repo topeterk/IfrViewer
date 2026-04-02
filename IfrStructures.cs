@@ -23,13 +23,13 @@
 // This file contains the EDKII structures of "UefiInternalFormRepresentation.h"
 
 using System.Runtime.InteropServices;
-using static IFR.IFRHelper;
+using static IfrViewer.IFRHelper;
 
 /// <summary>
 /// This namespace contains the Internal Form Representation definisions
 /// (see: EDKII structures of "UefiInternalFormRepresentation.h")
 /// </summary>
-namespace IFR
+namespace IfrViewer
 {
     #region 1:1 type assignments between C <-> C#
     using UINT8 = Byte;
@@ -282,7 +282,7 @@ namespace IFR
         public string GenerateAndLogDump(string title = "Unnamed", uint bytesPerLine = 16)
         {
             string message = "Data \"" + title + "\" dumped (Offset=" + Offset + ", Length=" + Length + "):" + Environment.NewLine + CopyOfSelectedBytes.HexDump(bytesPerLine);
-            IFRHelper.CreateLogEntry(LogSeverity.INFO, "Debug", message);
+            CreateLogEntry(LogSeverity.INFO, "Debug", message);
             return message;
         }
         #endregion
